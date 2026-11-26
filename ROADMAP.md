@@ -83,7 +83,7 @@ There's one more modifier, `hidden`: if enabled, the pet hides while an app is f
 6. `sleeping`
 7. `greeting`
 8. `vibing` / `gaming` / `watching`
-9. `bedtime` / `stretch`
+9. `stretch` / `bedtime` (stretch is brief, so it can still show up at night)
 10. `focused`
 11. `wander`
 
