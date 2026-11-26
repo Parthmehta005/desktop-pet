@@ -1,0 +1,101 @@
+/* Base styles for a pet view. Animations live in animations.css. */
+
+.pet-view {
+  --pet-size: 160px;
+  position: relative;
+  width: var(--pet-size);
+  height: var(--pet-size);
+  transition: opacity 0.4s ease;
+  user-select: none;
+}
+
+.pet-view[data-meeting="true"] { opacity: 0.5; }
+.pet-view[data-hidden="true"] { opacity: 0; pointer-events: none; }
+
+.pet-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Rig parts rotate and scale around pivots given in viewBox coordinates. */
+.pet-svg g { transform-box: view-box; }
+.pet-svg .eye { transform-box: fill-box; transform-origin: center; }
+
+.pet-view[data-facing="-1"] .flip { transform: scaleX(-1); }
+
+/* Only the face variants and props for the current state are drawn. */
+.pet-svg .eyes,
+.pet-svg .mouth,
+.pet-svg .prop { display: none; }
+
+.pet-view[data-eyes="open"] .eyes-open,
+.pet-view[data-eyes="happy"] .eyes-happy,
+.pet-view[data-eyes="closed"] .eyes-closed,
+.pet-view[data-eyes="sleepy"] .eyes-sleepy,
+.pet-view[data-eyes="worried"] .eyes-worried,
+.pet-view[data-eyes="wide"] .eyes-wide,
+.pet-view[data-eyes="down"] .eyes-down { display: inline; }
+
+.pet-view[data-mouth="neutral"] .mouth-neutral,
+.pet-view[data-mouth="smile"] .mouth-smile,
+.pet-view[data-mouth="worried"] .mouth-worried,
+.pet-view[data-mouth="o"] .mouth-o,
+.pet-view[data-mouth="flat"] .mouth-flat,
+.pet-view[data-mouth="yawn"] .mouth-neutral,
+.pet-view[data-mouth="yawn"] .mouth-o { display: inline; }
+
+.pet-view[data-props~="laptop"] .prop-laptop,
+.pet-view[data-props~="sweat"] .prop-sweat,
+.pet-view[data-props~="steam"] .prop-steam,
+.pet-view[data-props~="zzz"] .prop-zzz,
+.pet-view[data-props~="hearts"] .prop-hearts,
+.pet-view[data-props~="sparkles"] .prop-sparkles,
+.pet-view[data-props~="confetti"] .prop-confetti,
+.pet-view[data-props~="exclaim"] .prop-exclaim,
+.pet-view[data-props~="notes"] .prop-notes,
+.pet-view[data-props~="headphones"] .prop-headphones,
+.pet-view[data-props~="controller"] .prop-controller,
+.pet-view[data-props~="popcorn"] .prop-popcorn,
+.pet-view[data-props~="nightcap"] .prop-nightcap,
+.pet-view[data-props~="flag"] .prop-flag,
+.pet-view[data-props~="muted"] .prop-muted,
+.pet-view[data-props~="speedlines"] .prop-speedlines { display: inline; }
+
+/* Speech bubble, above the pet's head. */
+.pet-bubble {
+  position: absolute;
+  left: 50%;
+  bottom: 80%;
+  z-index: 1;
+  padding: 4px 10px;
+  border: 2px solid #3b302a;
+  border-radius: 12px;
+  background: #fffdf8;
+  color: #3b302a;
+  font: 700 14px/1.2 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  animation: bubble-pop 0.25s ease-out;
+}
+
+.pet-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid #3b302a;
+  border-bottom: 2px solid #3b302a;
+  background: #fffdf8;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.pet-bubble[hidden] { display: none; }
+
+@keyframes bubble-pop {
+  from { opacity: 0; transform: translateX(-50%) scale(0.6); }
+  to { opacity: 1; transform: translateX(-50%) scale(1); }
+}
