@@ -14,10 +14,9 @@
 import { createEngine } from '../core/engine.js';
 import { MOODS, presentation, animationStateFor } from '../core/moods.js';
 import { createWalker, stepWalker, resizeWalker, placeWalker } from '../core/walker.js';
+import { petSizePx as petSizeFor } from '../core/layout.js';
 import { createPetView } from './pet-view.js';
 
-/** Pet size in CSS pixels at petSize 1. */
-export const BASE_PET_SIZE = 140;
 /** How often the engine is ticked so timed moods expire. */
 const TICK_MS = 250;
 /** How long a speech bubble stays up, in real time. */
@@ -34,8 +33,7 @@ const HIT_INSET = 0.14;
 const HISTORY_LENGTH = 50;
 
 function petSizePx(config) {
-  const scale = Number(config.petSize);
-  return Math.round(BASE_PET_SIZE * (Number.isFinite(scale) && scale > 0 ? scale : 1));
+  return petSizeFor(config.petSize);
 }
 
 /**
