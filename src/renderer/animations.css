@@ -250,3 +250,107 @@
   0%, 15%, 100% { transform: translate(0, 0) rotate(0deg); }
   45%, 75% { transform: translate(4px, -58px) rotate(-20deg); }
 }
+
+/* ---------- Coding and apps: focused, celebrating, vibing, gaming, watching, meeting ---------- */
+
+.pet-view[data-state="focused"] .head { animation: focus-nod 2.4s ease-in-out infinite; }
+.pet-view[data-state="focused"] .paw-l { animation: type 0.42s ease-in-out infinite; }
+.pet-view[data-state="focused"] .paw-r { animation: type 0.42s ease-in-out -0.21s infinite; }
+
+@keyframes focus-nod {
+  0%, 100% { transform: translateY(3px) rotate(0deg); }
+  50% { transform: translateY(4px) rotate(2deg); }
+}
+
+.pet-view[data-state="celebrating"] .rig { animation: celebrate-jump 1s ease-in-out infinite; }
+.pet-view[data-state="celebrating"] .shadow { animation: shadow-hop 1s ease-in-out infinite; }
+.pet-view[data-state="celebrating"] .paw-l { animation: cheer-l 0.5s ease-in-out infinite; }
+.pet-view[data-state="celebrating"] .paw-r { animation: cheer-r 0.5s ease-in-out -0.25s infinite; }
+.pet-view .prop-confetti .bit { animation: confetti-burst 1.6s ease-out infinite; }
+.pet-view .prop-confetti .bit:nth-child(1) { --dx: -62px; --dy: -42px; --rot: 220deg; }
+.pet-view .prop-confetti .bit:nth-child(2) { --dx: 58px; --dy: -48px; --rot: -180deg; }
+.pet-view .prop-confetti .bit:nth-child(3) { --dx: -30px; --dy: -66px; --rot: 160deg; }
+.pet-view .prop-confetti .bit:nth-child(4) { --dx: 26px; --dy: -70px; --rot: -240deg; }
+.pet-view .prop-confetti .bit:nth-child(5) { --dx: -78px; --dy: -14px; --rot: 300deg; }
+.pet-view .prop-confetti .bit:nth-child(6) { --dx: 80px; --dy: -18px; --rot: -320deg; }
+.pet-view .prop-confetti .bit:nth-child(7) { --dx: -4px; --dy: -78px; --rot: 200deg; }
+.pet-view .prop-confetti .bit:nth-child(8) { --dx: -50px; --dy: -60px; --rot: -150deg; }
+.pet-view .prop-confetti .bit:nth-child(9) { --dx: 46px; --dy: -64px; --rot: 260deg; }
+.pet-view .prop-confetti .bit:nth-child(10) { --dx: -70px; --dy: -30px; --rot: -200deg; }
+.pet-view .prop-confetti .bit:nth-child(11) { --dx: 70px; --dy: -34px; --rot: 180deg; }
+.pet-view .prop-confetti .bit:nth-child(12) { --dx: 12px; --dy: -58px; --rot: -280deg; }
+.pet-view .prop-confetti .bit:nth-child(13) { --dx: -18px; --dy: -50px; --rot: 240deg; }
+.pet-view .prop-confetti .bit:nth-child(14) { --dx: 36px; --dy: -40px; --rot: -160deg; }
+.pet-view .prop-confetti .bit:nth-child(even) { animation-delay: -0.2s; }
+.pet-view .prop-confetti .bit:nth-child(3n) { animation-delay: -0.4s; }
+
+@keyframes celebrate-jump {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  35% { transform: translateY(-26px) rotate(-8deg); }
+  65% { transform: translateY(-26px) rotate(8deg); }
+}
+
+@keyframes confetti-burst {
+  0% { transform: translate(0, 0) rotate(0deg) scale(0.4); opacity: 0; }
+  8% { opacity: 1; }
+  45% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(1); opacity: 1; }
+  100% { transform: translate(calc(var(--dx) * 1.2), calc(var(--dy) + 80px)) rotate(calc(var(--rot) * 2)) scale(1); opacity: 0; }
+}
+
+.pet-view[data-state="vibing"] .head { animation: head-bob 0.6s ease-in-out infinite alternate; }
+.pet-view[data-state="vibing"] .rig { animation: sway 1.2s ease-in-out infinite; }
+.pet-view .note { animation: note-float 2s ease-out infinite; }
+.pet-view .note-2 { animation-delay: -1s; }
+
+@keyframes head-bob {
+  from { transform: rotate(-8deg); }
+  to { transform: rotate(8deg); }
+}
+
+@keyframes note-float {
+  0% { transform: translate(0, 6px) rotate(-10deg); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: translate(6px, -22px) rotate(12deg); opacity: 0; }
+}
+
+.pet-view[data-state="gaming"] .head { animation: focus-nod 1.2s ease-in-out infinite; }
+.pet-view[data-state="gaming"] .paw-l { animation: mash 0.12s linear infinite; }
+.pet-view[data-state="gaming"] .paw-r { animation: mash 0.12s linear -0.06s infinite; }
+.pet-view .prop-controller .pad { animation: pad-wiggle 0.9s ease-in-out infinite; }
+
+@keyframes mash {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(1px, -3px); }
+}
+
+@keyframes pad-wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+.pet-view[data-state="watching"] .paw-l { animation: eat 2.4s ease-in-out infinite; }
+.pet-view[data-state="watching"] .head { animation: munch 2.4s ease-in-out infinite; }
+.pet-view .kernel { animation: kernel-pop 1.2s ease-out infinite; }
+.pet-view .kernel-2 { animation-delay: -0.6s; }
+
+@keyframes eat {
+  0%, 40%, 100% { transform: translate(0, 0) rotate(0deg); }
+  55%, 68% { transform: translate(14px, -46px) rotate(-20deg); }
+}
+
+@keyframes munch {
+  0%, 55%, 100% { transform: translateY(0); }
+  62% { transform: translateY(2px); }
+  70% { transform: translateY(0); }
+  78% { transform: translateY(2px); }
+}
+
+@keyframes kernel-pop {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  20% { opacity: 1; }
+  60% { transform: translateY(-16px) scale(1); opacity: 1; }
+  100% { transform: translateY(-6px) scale(1); opacity: 0; }
+}
+
+/* Meeting: quiet and still, just breathing and blinking. */
+.pet-view[data-state="meeting"] .tail { animation-duration: 5s; }
