@@ -1,0 +1,44 @@
+import js from '@eslint/js';
+import globals from 'globals';
+
+export default [
+  {
+    ignores: ['node_modules/**', 'dist/**', 'out/**', 'coverage/**', 'test-results/**', 'playwright-report/**'],
+  },
+  js.configs.recommended,
+  {
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+    },
+    linterOptions: {
+      reportUnusedDisableDirectives: 'error',
+    },
+    rules: {
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrors: 'none' }],
+      eqeqeq: ['error', 'smart'],
+      'no-var': 'error',
+      'prefer-const': 'error',
+    },
+  },
+  {
+    // src/core runs unchanged in Node (main process, tests) and in the browser
+    // (renderer, preview page), so it gets no environment globals at all and may
+    // only import other core modules.
+    files: ['src/core/**/*.js'],
+    languageOptions: { globals: {} },
+    rules: {
+      'no-console': 'error',
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          regex: '^(?!\\.\\.?/)',
+          message: 'src/core must stay pure: import only other src/core modules.',
+        }],
+      }],
+    },
+  },
+  {
+    files: ['test/**/*.js', 'scripts/**/*.js', 'eslint.config.js'],
+    languageOptions: { globals: { ...globals.node } },
+  },
+];
