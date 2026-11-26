@@ -19,7 +19,7 @@ completed in the last milestone.
 | M1 | Project scaffold and core logic | Done |
 | M2 | Pet rig, first pet, every animation | Done |
 | M3 | The other five pets | Done |
-| M4 | Interactive browser preview | Not started |
+| M4 | Interactive browser preview | Done |
 | M5 | Electron shell | Not started |
 | M6 | Claude Code integration | Not started |
 | M7 | Local activity sources | Not started |
@@ -287,7 +287,7 @@ the same renderer code the Electron window will load.
   intensity from the number of sessions.
 - Pointer interaction: hit-testing on the pet, click to pet it, drag to hold it, drop to
   make it fall with gravity and squash on landing.
-- A stage on the preview page: a simulated desktop strip; buttons for every event
+- A stage page (`preview/stage.html`, linked from the gallery): a simulated desktop strip; buttons for every event
   (Claude start, permission, stop, session end, idle, return, lock, commit, file edit,
   open Spotify, Zoom, Steam, YouTube, fullscreen); a pet picker; a light/dark wallpaper
   toggle; and a time-speed control so idle and nudge timers can be tested quickly.

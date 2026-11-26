@@ -139,25 +139,25 @@ app is complete.
 - [x] Nimbus is an original design and doesn't resemble an existing franchise character.
 
 ### M4 — Interactive browser preview
-- [ ] Each stage button produces the expected state (one browser test per event).
-- [ ] Event sequences:
-  - [ ] Claude start → permission → tool result → stop gives
+- [x] Each stage button produces the expected state (one browser test per event).
+- [x] Event sequences:
+  - [x] Claude start → permission → tool result → stop gives
         `working → alert → working → happy → wander`.
-  - [ ] Claude start → go idle → stop → return gives
+  - [x] Claude start → go idle → stop → return gives
         `working → away-done → happy`.
-- [ ] The time-speed control makes `sleeping` and `stretch` reachable within a few
+- [x] The time-speed control makes `sleeping` and `stretch` reachable within a few
       seconds.
-- [ ] Walking: the pet stays inside the stage at 320px, 1280px and 3840px wide, and when
+- [x] Walking: the pet stays inside the stage at 320px, 1280px and 3840px wide, and when
       the window is resized while it walks.
-- [ ] Pointer:
-  - [ ] Click → `petted`.
-  - [ ] Drag → `held`, and the pet follows the pointer.
-  - [ ] Release mid-air → `falling`, then it lands on the baseline.
-  - [ ] It can't be dropped outside the stage.
-- [ ] `meeting` hides bubbles and lowers opacity; `hidden` hides the pet; both restore
+- [x] Pointer:
+  - [x] Click → `petted`.
+  - [x] Drag → `held`, and the pet follows the pointer.
+  - [x] Release mid-air → `falling`, then it lands on the baseline.
+  - [x] It can't be dropped outside the stage.
+- [x] `meeting` hides bubbles and lowers opacity; `hidden` hides the pet; both restore
       when cleared.
-- [ ] The pet picker swaps the pet without resetting the current state.
-- [ ] Light and dark wallpaper toggle works; screenshot reviewed for both.
+- [x] The pet picker swaps the pet without resetting the current state.
+- [x] Light and dark wallpaper toggle works; screenshot reviewed for both.
 
 ### M5 — Electron shell
 - [ ] The app launches under `xvfb-run`, and a second launch exits because of the
@@ -296,3 +296,4 @@ column.
 | M1 | `804d034` | 2026-11-26 | Pass | 291/291, 3 runs in a row | n/a | n/a | Pass | Pass | All 11 M1 commits pass on their own from `npm ci`. 132 pairwise priority tests; only the two documented bedtime pairs switch the lower mood off. Changes from the plan: `stretch` now outranks `bedtime` (otherwise the break reminder could never appear late at night), and an `alertTimeoutMinutes` setting (default 30) was added so an unanswered alert can't stick forever. Review fixes: removed an unused engine parameter, corrected the purity rule in CLAUDE.md |
 | M2 | `9c05023` | 2026-11-26 | Pass | 315/315, 3 runs in a row | 8/8, 3 runs in a row | n/a | Pass | Pass (unit on Windows, browser tests on Linux) | All 9 M2 commits pass lint, unit and browser tests on their own. I looked at the gallery at several animation frames and on both backgrounds; per-state screenshots are in `test-results/screenshots/`. Changes from the plan: `rig.js` and `props.js` are single files rather than folders; added a `headSize` anchor for headphones; landing squash is a `.landing` class the controller adds in M4 |
 | M3 | `3497a25` | 2026-11-26 | Pass | 316/316, 3 runs in a row | 48/48, 3 runs in a row | n/a | Pass | Pass (unit on Windows, browser tests on Linux) | All 7 M3 commits pass lint, unit and browser tests on their own. I looked at every pet's full state grid and a side-by-side lineup on dark; all six are distinct. Nimbus is lavender with a cloud crest, mint ear pods, a dark LED visor and a chest heart. One slip: an M3 commit was first made with a failing test (the pipe hid the exit code); it was amended before pushing, and commits now go through a script that checks real exit codes |
+| M4 | `437c4d4` | 2026-11-26 | Pass | 317/317, 3 runs in a row | 79/79, 3 runs in a row | n/a | Pass | Pass (unit on Windows, browser tests on Linux) | All 6 M4 commits pass on their own. The stage is its own page, `preview/stage.html`. For deterministic tests the stage takes `?time=HH:MM` (tests start at noon, so real-world bedtime can't leak in) and the controller keeps a short mood history (brief moods flash by at high clock speeds). Two first-run test failures were test-timing assumptions, not app bugs: a session going stale at 1 hour/second, and a 12s reminder lasting milliseconds. Screenshots of both wallpapers reviewed. README "Browser preview" section written |
