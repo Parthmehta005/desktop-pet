@@ -80,38 +80,38 @@ app is complete.
 ## 2. Milestone-specific checks
 
 ### M1 — Project scaffold and core logic
-- [ ] `npm ci` works from a clean clone with Node 22.
-- [ ] Every one of the 18 state IDs can be reached through a sequence of engine events
+- [x] `npm ci` works from a clean clone with Node 22.
+- [x] Every one of the 18 state IDs can be reached through a sequence of engine events
       in a unit test, and so can both modifiers.
-- [ ] Priority: for each pair of states that can both apply, a test shows the
+- [x] Priority: for each pair of states that can both apply, a test shows the
       higher-priority one wins.
-- [ ] Timed states (`happy`, `celebrating`, `greeting`, `petted`) expire at their
+- [x] Timed states (`happy`, `celebrating`, `greeting`, `petted`) expire at their
       duration with a fake clock, and fall back to the right state.
-- [ ] Claude sessions:
-  - [ ] Two sessions running and one stopping → a brief `happy`, then back to
+- [x] Claude sessions:
+  - [x] Two sessions running and one stopping → a brief `happy`, then back to
         `working` at intensity 1.
-  - [ ] `working` intensity is 1, 2 and 3 for 1, 2 and 3+ sessions.
-  - [ ] A stale session (no events for `workingStaleMinutes`) stops counting.
-  - [ ] `alert` clears on `PostToolUse` and on `UserPromptSubmit`.
-  - [ ] An idle-prompt `Notification` doesn't trigger `alert`.
-  - [ ] `Stop` while idle → `away-done`; returning → `happy` → `wander`.
-- [ ] Path matching:
-  - [ ] `C:\Code\App` matches `c:/code/app/src`.
-  - [ ] `C:\code\app` does **not** match `C:\code\app2`.
-  - [ ] Trailing separators are handled.
-  - [ ] `/mnt/c/code/app` matches `C:\code\app`.
-  - [ ] POSIX paths match case-sensitively.
-- [ ] App rules: process-name and title regexes match; an invalid regex is rejected by
+  - [x] `working` intensity is 1, 2 and 3 for 1, 2 and 3+ sessions.
+  - [x] A stale session (no events for `workingStaleMinutes`) stops counting.
+  - [x] `alert` clears on `PostToolUse` and on `UserPromptSubmit`.
+  - [x] An idle-prompt `Notification` doesn't trigger `alert`.
+  - [x] `Stop` while idle → `away-done`; returning → `happy` → `wander`.
+- [x] Path matching:
+  - [x] `C:\Code\App` matches `c:/code/app/src`.
+  - [x] `C:\code\app` does **not** match `C:\code\app2`.
+  - [x] Trailing separators are handled.
+  - [x] `/mnt/c/code/app` matches `C:\code\app`.
+  - [x] POSIX paths match case-sensitively.
+- [x] App rules: process-name and title regexes match; an invalid regex is rejected by
       config validation rather than crashing.
-- [ ] Walker:
-  - [ ] It never goes outside `[0, width - petWidth]` across 10,000 random steps.
-  - [ ] It turns around at the edges.
-  - [ ] Its speed is 0 in `sleeping`, `meeting`, `held` and `away-done`.
-  - [ ] A width change mid-walk clamps the position.
-- [ ] Config: defaults are valid; unknown keys are dropped; bad values fall back to the
+- [x] Walker:
+  - [x] It never goes outside `[0, width - petWidth]` across 10,000 random steps.
+  - [x] It turns around at the edges.
+  - [x] Its speed is 0 in `sleeping`, `meeting`, `held` and `away-done`.
+  - [x] A width change mid-walk clamps the position.
+- [x] Config: defaults are valid; unknown keys are dropped; bad values fall back to the
       defaults with a reported error; migration from version 0 to the current version
       works.
-- [ ] CI workflow file is present and green on both operating systems.
+- [x] CI workflow file is present and green on both operating systems.
 
 ### M2 — Pet rig, first pet, every animation
 - [ ] `npm run preview` serves the gallery, and the browser tests open it.
@@ -292,4 +292,5 @@ column.
 
 | Milestone | Final commit | Date | Lint | Unit | Browser | Electron | CI Linux | CI Windows | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| M0 | (this commit) | 2026-11-26 | n/a | n/a | n/a | n/a | n/a | n/a | Planning docs only; waiting for approval to start M1 |
+| M0 | `cc7b618` | 2026-11-26 | n/a | n/a | n/a | n/a | n/a | n/a | Planning docs only. Approved by the user before M1 started |
+| M1 | `804d034` | 2026-11-26 | Pass | 291/291, 3 runs in a row | n/a | n/a | Pass | Pass | All 11 M1 commits pass on their own from `npm ci`. 132 pairwise priority tests; only the two documented bedtime pairs switch the lower mood off. Changes from the plan: `stretch` now outranks `bedtime` (otherwise the break reminder could never appear late at night), and an `alertTimeoutMinutes` setting (default 30) was added so an unanswered alert can't stick forever. Review fixes: removed an unused engine parameter, corrected the purity rule in CLAUDE.md |
