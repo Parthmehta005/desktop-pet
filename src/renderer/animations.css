@@ -354,3 +354,76 @@
 
 /* Meeting: quiet and still, just breathing and blinking. */
 .pet-view[data-state="meeting"] .tail { animation-duration: 5s; }
+
+/* ---------- Interaction: petted, held, falling, landing ---------- */
+
+.pet-view[data-state="petted"] .rig { animation: squish 0.5s ease-in-out infinite alternate; }
+.pet-view[data-state="petted"] .head { animation: head-tilt 1s ease-in-out infinite; }
+.pet-view[data-state="petted"] .blush { transform-box: fill-box; transform-origin: center; transform: scale(1.3); }
+.pet-view .heart { animation: heart-float 1.6s ease-out infinite; }
+.pet-view .heart-2 { animation-delay: -0.55s; }
+.pet-view .heart-3 { animation-delay: -1.1s; }
+
+@keyframes squish {
+  from { transform: scale(1.06, 0.94); }
+  to { transform: scale(0.97, 1.03); }
+}
+
+@keyframes heart-float {
+  0% { transform: translateY(6px) scale(0.4); opacity: 0; }
+  30% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-24px) scale(0.9); opacity: 0; }
+}
+
+/* Held: dangling from the scruff, legs kicking. The shadow stays on the ground. */
+.pet-view[data-state="held"] .rig { transform-origin: 100px 56px; animation: dangle 1.3s ease-in-out infinite; }
+.pet-view[data-state="held"] .foot-l { animation: kick 0.32s ease-in-out infinite alternate; }
+.pet-view[data-state="held"] .foot-r { animation: kick 0.32s ease-in-out -0.16s infinite alternate; }
+.pet-view[data-state="held"] .paw-l,
+.pet-view[data-state="held"] .paw-r { animation: none; transform: translateY(-6px); }
+.pet-view[data-state="held"] .shadow,
+.pet-view[data-state="falling"] .shadow { opacity: 0.35; }
+
+@keyframes dangle {
+  0%, 100% { transform: rotate(-7deg); }
+  50% { transform: rotate(7deg); }
+}
+
+@keyframes kick {
+  from { transform: rotate(-16deg); }
+  to { transform: rotate(16deg); }
+}
+
+/* Falling: flailing, with speed lines streaming upwards. */
+.pet-view[data-state="falling"] .paw-l { animation: flail-l 0.22s ease-in-out infinite alternate; }
+.pet-view[data-state="falling"] .paw-r { animation: flail-r 0.22s ease-in-out infinite alternate; }
+.pet-view[data-state="falling"] .foot-l { animation: kick 0.2s ease-in-out infinite alternate; }
+.pet-view[data-state="falling"] .foot-r { animation: kick 0.2s ease-in-out -0.1s infinite alternate; }
+.pet-view .prop-speedlines .line { animation: speedline 0.45s linear infinite; }
+.pet-view .prop-speedlines .line-2 { animation-delay: -0.15s; }
+.pet-view .prop-speedlines .line-3 { animation-delay: -0.3s; }
+
+@keyframes flail-l {
+  from { transform: translate(-4px, -26px) rotate(30deg); }
+  to { transform: translate(-6px, -32px) rotate(-10deg); }
+}
+
+@keyframes flail-r {
+  from { transform: translate(4px, -26px) rotate(-30deg); }
+  to { transform: translate(6px, -32px) rotate(10deg); }
+}
+
+@keyframes speedline {
+  0% { transform: translateY(12px); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateY(-16px); opacity: 0; }
+}
+
+/* Landing: a quick squash when the pet hits the ground (the view adds .landing). */
+.pet-view.landing .rig { animation: land-squash 0.35s ease-out; }
+
+@keyframes land-squash {
+  0% { transform: scale(1.18, 0.78); }
+  55% { transform: scale(0.95, 1.06); }
+  100% { transform: scale(1, 1); }
+}
