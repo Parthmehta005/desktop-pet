@@ -105,3 +105,24 @@ test('the background toggle switches light and dark', async ({ page }) => {
   await page.getByRole('button', { name: 'Light background' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-bg', 'light');
 });
+
+test('the default view shows every pet, and the filter narrows it to one', async ({ page }) => {
+  const errors = watchForErrors(page);
+  await openGallery(page);
+  const sections = await page.locator('.states').evaluateAll((s) => s.map((el) => el.dataset.pet));
+  expect(sections).toEqual(Object.keys(PET_DEFINITIONS));
+  await expect(page.locator('.states .cell')).toHaveCount(Object.keys(PET_DEFINITIONS).length * ANIMATION_STATE_IDS.length);
+  await expect(page.locator('.intensities')).toHaveCount(0);
+
+  await page.getByLabel('Pet', { exact: true }).selectOption('cat');
+  await page.locator('#gallery[data-ready="true"]').waitFor({ state: 'attached' });
+  await expect(page).toHaveURL(/pet=cat/);
+  await expect(page.locator('.states')).toHaveCount(1);
+  await expect(page.locator('.intensities .cell')).toHaveCount(3);
+  expect(errors).toEqual([]);
+});
+
+test('an unknown pet id falls back to showing every pet', async ({ page }) => {
+  await openGallery(page, '?pet=dragon');
+  await expect(page.locator('.states')).toHaveCount(Object.keys(PET_DEFINITIONS).length);
+});
