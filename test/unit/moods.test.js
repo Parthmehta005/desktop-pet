@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   MOODS, MOOD_IDS, MODIFIERS, MODIFIER_IDS, ANIMATION_STATE_IDS, APP_RULE_MOODS,
-  intensityFor, presentation,
+  intensityFor, presentation, animationStateFor,
 } from '../../src/core/moods.js';
 
 test('the catalogue has the 17 moods and 2 modifiers from the roadmap', () => {
@@ -102,4 +102,17 @@ test('presentation applies modifiers on top of the mood', () => {
     { speed: 0, opacity: 0, showBubbles: false },
   );
   assert.equal(presentation({ mood: 'not-a-mood' }).speed, 1, 'unknown moods fall back to wander');
+});
+
+test('animationStateFor: meetings quieten everyday moods but not urgent ones', () => {
+  const meeting = { meeting: true };
+  for (const mood of ['wander', 'focused', 'bedtime', 'stretch', 'vibing', 'gaming', 'watching']) {
+    assert.equal(animationStateFor({ mood, modifiers: meeting }), 'meeting', mood);
+  }
+  for (const mood of ['greeting', 'sleeping', 'away-done', 'working', 'happy', 'celebrating', 'alert', 'petted', 'held', 'falling']) {
+    assert.equal(animationStateFor({ mood, modifiers: meeting }), mood, mood);
+  }
+  assert.equal(animationStateFor({ mood: 'working' }), 'working');
+  assert.equal(animationStateFor({ mood: 'wander', modifiers: { hidden: true } }), 'wander');
+  assert.equal(animationStateFor({ mood: 'nope' }), 'wander');
 });

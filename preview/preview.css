@@ -76,3 +76,28 @@ section h2 { margin: 28px 0 0; font-size: 1.1rem; }
 .toolbar select:hover { border-color: var(--muted); }
 .toolbar button:focus-visible,
 .toolbar select:focus-visible { outline: 2px solid #5aa9ff; outline-offset: 2px; }
+
+/* ---------- Stage ---------- */
+
+.page-nav { display: flex; gap: 14px; margin-bottom: 8px; font-size: 0.9rem; }
+.page-nav a { color: var(--muted); }
+.page-nav a[aria-current="page"] { color: var(--text); font-weight: 700; text-decoration: none; }
+
+#stage { max-width: 1200px; margin: 0 auto; }
+
+.desktop {
+  --wallpaper: linear-gradient(160deg, #cfe6ff 0%, #e9f3ff 55%, #fdf1e4 100%);
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--wallpaper);
+}
+
+.desktop[data-wallpaper="dark"] {
+  --wallpaper: linear-gradient(160deg, #12182b 0%, #23284a 55%, #3a2a45 100%);
+}
+
+.desktop .strip { height: 240px; }
+
+.taskbar { height: 36px; background: rgba(20, 24, 34, 0.82); }

@@ -205,3 +205,16 @@ export function presentation(result) {
   }
   return { speed, opacity, showBubbles };
 }
+
+/**
+ * Which animation to play for an engine result. In a meeting, everyday moods (anything
+ * below `greeting`) switch to the quiet meeting look; anything that needs attention
+ * keeps its own animation, just dimmed.
+ *
+ * @param {{ mood: string, modifiers?: { meeting?: boolean } }} result
+ */
+export function animationStateFor(result) {
+  const def = MOODS[result.mood] ?? MOODS.wander;
+  if (result.modifiers?.meeting && def.priority < MOODS.greeting.priority) return 'meeting';
+  return def.id;
+}

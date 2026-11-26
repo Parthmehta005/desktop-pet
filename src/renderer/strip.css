@@ -1,0 +1,15 @@
+/* The strip the pet walks along. Its bottom edge is the ground. */
+
+.strip {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.pet-actor {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  will-change: transform;
+}
