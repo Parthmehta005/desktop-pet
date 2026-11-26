@@ -27,6 +27,10 @@
  *       The foreground window changed. Matched against the app rules.
  *   { type: 'config', config }
  *       Settings changed; `config` holds the changed keys.
+ *   { type: 'pet' }
+ *       The user clicked the pet.
+ *   { type: 'grab' }, { type: 'drop' }, { type: 'land' }
+ *       The user picked the pet up, let go of it, and it reached the ground.
  *   { type: 'tick' }
  *       Time passed. Lets timed moods expire.
  */
@@ -43,6 +47,13 @@ export const ENGINE_DEFAULTS = Object.freeze({
   quietDuringMeetings: true,
   hideWhenFullscreen: true,
   appRules: DEFAULT_APP_RULES,
+  // Stretch reminder after this much activity with no break; 0 turns it off.
+  breakReminderMinutes: 90,
+  // Idle (or locked) for at least this long counts as a break.
+  breakMinutes: 5,
+  // Local "HH:MM" window for the bedtime nudge; null (or equal times) turns it off.
+  bedtime: '00:30',
+  wakeTime: '06:00',
 });
 
 const APP_MOODS = new Set(['vibing', 'gaming', 'watching']);
@@ -78,7 +89,44 @@ export function createEngineState(config = {}, _now = 0) {
     awayDone: false,
     // When files last changed in a watched repo, or null.
     lastFileActivityAt: null,
+    // When the next stretch reminder is due, or null if no active streak is running.
+    nextStretchAt: null,
+    // null, 'held' or 'falling'.
+    interaction: null,
   });
+}
+
+/** "HH:MM" -> minutes after midnight, or null. */
+export function parseTimeOfDay(value) {
+  if (typeof value !== 'string') return null;
+  const m = value.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+}
+
+/** True if local time at `now` falls in [start, end), wrapping past midnight. */
+export function inTimeWindow(now, start, end) {
+  const from = parseTimeOfDay(start);
+  const to = parseTimeOfDay(end);
+  if (from === null || to === null || from === to) return false;
+  const d = new Date(now);
+  const minute = d.getHours() * 60 + d.getMinutes();
+  return from < to ? minute >= from && minute < to : minute >= from || minute < to;
+}
+
+function breakIntervalMs(config) {
+  const minutes = Number(config.breakReminderMinutes);
+  return Number.isFinite(minutes) && minutes > 0 ? minutes * MINUTE : null;
+}
+
+function startActiveStreak(next, now) {
+  const interval = breakIntervalMs(next.config);
+  next.nextStretchAt = interval === null ? null : now + interval;
+}
+
+function checkStretch(next, now) {
+  if (next.nextStretchAt === null || next.user.idle || now < next.nextStretchAt) return;
+  startTimer(next, 'stretch', now);
+  startActiveStreak(next, now);
 }
 
 /**
@@ -129,21 +177,26 @@ function onIdleTime(next, event, now) {
   if (!Number.isFinite(seconds) || seconds < 0) return;
   next.user.idleSeconds = seconds;
   setIdle(next, next.user.locked || seconds >= next.config.idleMinutes * 60, now);
+  if (next.user.locked || seconds >= next.config.breakMinutes * 60) next.nextStretchAt = null;
+  else if (next.nextStretchAt === null) startActiveStreak(next, now);
 }
 
 function onLock(next, _event, now) {
   next.user.locked = true;
   setIdle(next, true, now);
+  next.nextStretchAt = null;
 }
 
 function onUnlock(next, _event, now) {
   next.user.locked = false;
   next.user.idleSeconds = 0;
   setIdle(next, false, now);
+  startActiveStreak(next, now);
 }
 
 function onAppStart(next, _event, now) {
   startTimer(next, 'greeting', now);
+  startActiveStreak(next, now);
 }
 
 function onFileActivity(next, _event, now) {
@@ -176,6 +229,25 @@ function onConfig(next, event, now) {
   if (!next.user.locked) {
     setIdle(next, next.user.idleSeconds >= next.config.idleMinutes * 60, now);
   }
+  if (next.config.breakReminderMinutes !== before.breakReminderMinutes && next.nextStretchAt !== null) {
+    startActiveStreak(next, now);
+  }
+}
+
+function onPet(next, _event, now) {
+  startTimer(next, 'petted', now);
+}
+
+function onGrab(next) {
+  next.interaction = 'held';
+}
+
+function onDrop(next) {
+  if (next.interaction === 'held') next.interaction = 'falling';
+}
+
+function onLand(next) {
+  next.interaction = null;
 }
 
 function onClaude(next, event, now) {
@@ -216,6 +288,10 @@ const HANDLERS = {
   commit: onCommit,
   app: onApp,
   config: onConfig,
+  pet: onPet,
+  grab: onGrab,
+  drop: onDrop,
+  land: onLand,
   tick: () => {},
 };
 
@@ -230,6 +306,7 @@ export function reduce(state, event, now) {
     user: { ...state.user },
   };
   handler(next, event, now);
+  checkStretch(next, now);
   forgetOldSessions(next, now);
   for (const [id, until] of Object.entries(next.timers)) {
     if (until <= now) delete next.timers[id];
@@ -268,6 +345,10 @@ export function applicableMoods(state, now) {
     moods.push('focused');
   }
   if (APP_MOODS.has(state.appMood)) moods.push(state.appMood);
+  if (!state.user.idle && inTimeWindow(now, state.config.bedtime, state.config.wakeTime)) {
+    moods.push('bedtime');
+  }
+  if (state.interaction !== null) moods.push(state.interaction);
   return moods;
 }
 
