@@ -172,3 +172,81 @@
   0%, 100% { transform: scaleX(1) skewY(0deg); }
   50% { transform: scaleX(0.88) skewY(-7deg); }
 }
+
+/* ---------- Rest and time: sleeping, greeting, bedtime, stretch ---------- */
+
+.pet-view[data-state="sleeping"] .rig { animation: sleep-breathe 3.6s ease-in-out infinite; }
+.pet-view[data-state="sleeping"] .body { animation: none; }
+.pet-view[data-state="sleeping"] .head { animation: none; transform: translate(4px, 10px) rotate(9deg); }
+.pet-view[data-state="sleeping"] .paw-l,
+.pet-view[data-state="sleeping"] .paw-r { animation: none; transform: translateY(5px); }
+.pet-view[data-state="sleeping"] .tail { animation: none; transform: rotate(-38deg); }
+.pet-view[data-state="sleeping"] .ear { animation: none; }
+.pet-view .z { animation: z-float 3s ease-in-out infinite; }
+.pet-view .z-2 { animation-delay: -1s; }
+.pet-view .z-3 { animation-delay: -2s; }
+
+@keyframes sleep-breathe {
+  0%, 100% { transform: translateY(8px) scale(1.06, 0.88); }
+  50% { transform: translateY(7px) scale(1.08, 0.91); }
+}
+
+@keyframes z-float {
+  0% { transform: translate(-6px, 8px) scale(0.5); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translate(6px, -14px) scale(1.1); opacity: 0; }
+}
+
+.pet-view[data-state="greeting"] .rig { animation: alert-hop 1s ease-in-out infinite; }
+.pet-view[data-state="greeting"] .head { animation: head-tilt 2s ease-in-out infinite; }
+.pet-view[data-state="greeting"] .paw-r { animation: wave-hello 0.45s ease-in-out infinite alternate; }
+
+@keyframes wave-hello {
+  from { transform: translate(10px, -30px) rotate(-30deg); }
+  to { transform: translate(10px, -30px) rotate(18deg); }
+}
+
+.pet-view[data-state="bedtime"] .head { animation: drowsy 4s ease-in-out infinite; }
+.pet-view[data-state="bedtime"] .mouth-o { animation: yawn-open 4s ease-in-out infinite; }
+.pet-view[data-state="bedtime"] .mouth-neutral { animation: yawn-close 4s ease-in-out infinite; }
+.pet-view .prop-nightcap .cap { transform-origin: 30% 100%; animation: cap-flop 4s ease-in-out infinite; }
+
+@keyframes drowsy {
+  0%, 30%, 100% { transform: rotate(0deg); }
+  60% { transform: translateY(3px) rotate(7deg); }
+  68% { transform: rotate(-2deg); }
+}
+
+@keyframes yawn-open {
+  0%, 35%, 65%, 100% { opacity: 0; }
+  42%, 58% { opacity: 1; }
+}
+
+@keyframes yawn-close {
+  0%, 35%, 65%, 100% { opacity: 1; }
+  42%, 58% { opacity: 0; }
+}
+
+@keyframes cap-flop {
+  0%, 30%, 100% { transform: rotate(0deg); }
+  60% { transform: rotate(6deg); }
+}
+
+.pet-view[data-state="stretch"] .rig { animation: stretch-up 2.4s ease-in-out infinite; }
+.pet-view[data-state="stretch"] .paw-l { animation: stretch-paw-l 2.4s ease-in-out infinite; }
+.pet-view[data-state="stretch"] .paw-r { animation: stretch-paw-r 2.4s ease-in-out infinite; }
+
+@keyframes stretch-up {
+  0%, 15%, 100% { transform: scale(1, 1); }
+  45%, 75% { transform: scale(0.95, 1.1); }
+}
+
+@keyframes stretch-paw-l {
+  0%, 15%, 100% { transform: translate(0, 0) rotate(0deg); }
+  45%, 75% { transform: translate(-4px, -58px) rotate(20deg); }
+}
+
+@keyframes stretch-paw-r {
+  0%, 15%, 100% { transform: translate(0, 0) rotate(0deg); }
+  45%, 75% { transform: translate(4px, -58px) rotate(-20deg); }
+}
