@@ -114,19 +114,19 @@ app is complete.
 - [x] CI workflow file is present and green on both operating systems.
 
 ### M2 — Pet rig, first pet, every animation
-- [ ] `npm run preview` serves the gallery, and the browser tests open it.
-- [ ] The gallery has exactly one cell per state ID from `moods.js`, so a missing
+- [x] `npm run preview` serves the gallery, and the browser tests open it.
+- [x] The gallery has exactly one cell per state ID from `moods.js`, so a missing
       animation fails the test.
-- [ ] Each cell renders an `<svg>` with the standard rig parts and the props that state
+- [x] Each cell renders an `<svg>` with the standard rig parts and the props that state
       needs (for example sweat in `working`, Zzz in `sleeping`, hearts in `petted`).
-- [ ] `working` shows a different amount of sweat at intensities 1, 2 and 3.
-- [ ] No console errors, page errors or failed network requests.
-- [ ] A screenshot of each state is saved, and I've **looked at every one**: the pet is
+- [x] `working` shows a different amount of sweat at intensities 1, 2 and 3.
+- [x] No console errors, page errors or failed network requests.
+- [x] A screenshot of each state is saved, and I've **looked at every one**: the pet is
       recognisable, nothing is clipped, the props sit in the right place, and the pet
       reads well on both a light and a dark background.
-- [ ] The animations are smooth: no layout-triggering properties are animated (only
+- [x] The animations are smooth: no layout-triggering properties are animated (only
       `transform` and `opacity`).
-- [ ] The pet definition format is documented in the rig source, ready for M3.
+- [x] The pet definition format is documented in the rig source, ready for M3.
 
 ### M3 — The other five pets
 - [ ] The gallery shows 6 pets × 18 states = 108 cells, and all of them pass the M2 cell
@@ -294,3 +294,4 @@ column.
 |---|---|---|---|---|---|---|---|---|---|
 | M0 | `cc7b618` | 2026-11-26 | n/a | n/a | n/a | n/a | n/a | n/a | Planning docs only. Approved by the user before M1 started |
 | M1 | `804d034` | 2026-11-26 | Pass | 291/291, 3 runs in a row | n/a | n/a | Pass | Pass | All 11 M1 commits pass on their own from `npm ci`. 132 pairwise priority tests; only the two documented bedtime pairs switch the lower mood off. Changes from the plan: `stretch` now outranks `bedtime` (otherwise the break reminder could never appear late at night), and an `alertTimeoutMinutes` setting (default 30) was added so an unanswered alert can't stick forever. Review fixes: removed an unused engine parameter, corrected the purity rule in CLAUDE.md |
+| M2 | `9c05023` | 2026-11-26 | Pass | 315/315, 3 runs in a row | 8/8, 3 runs in a row | n/a | Pass | Pass (unit on Windows, browser tests on Linux) | All 9 M2 commits pass lint, unit and browser tests on their own. I looked at the gallery at several animation frames and on both backgrounds; per-state screenshots are in `test-results/screenshots/`. Changes from the plan: `rig.js` and `props.js` are single files rather than folders; added a `headSize` anchor for headphones; landing squash is a `.landing` class the controller adds in M4 |

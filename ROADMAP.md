@@ -17,7 +17,7 @@ completed in the last milestone.
 |---|---|---|
 | M0 | Planning docs | Done |
 | M1 | Project scaffold and core logic | Done |
-| M2 | Pet rig, first pet, every animation | In progress |
+| M2 | Pet rig, first pet, every animation | Done |
 | M3 | The other five pets | Not started |
 | M4 | Interactive browser preview | Not started |
 | M5 | Electron shell | Not started |
@@ -216,13 +216,15 @@ order is tested pairwise, CI is green on Linux and Windows, and REVIEW.md §M1 p
 enough that the other pets only need new shapes.
 
 **Scope**
-- `src/renderer/rig/`: the pet definition format, an SVG builder, standard part names,
+- `src/renderer/rig.js`: the pet definition format, an SVG builder, standard part names,
   and the base CSS.
-- `src/renderer/props/`: sweat (3 intensity levels), steam, Zzz, hearts, sparkles,
+- `src/renderer/props.js`: sweat (3 intensity levels), steam, Zzz, hearts, sparkles,
   confetti, a speech bubble, a "!" mark, laptop, headphones, controller, popcorn,
   nightcap and a done flag.
 - `src/renderer/animations.css`: keyframes for every state.
-- `src/renderer/pets/cat.js`
+- `src/renderer/pets/cat.js`, plus `pets/pets.css` for each pet's signature touches.
+- `src/renderer/pet-view.js` and `pet.css`: the element that shows one pet in one
+  state, with its speech bubble.
 - `scripts/preview-server.js` (no dependencies; `npm run preview`) and a gallery page
   `preview/index.html` that shows one live cell per state.
 - Playwright config and browser tests (`npm run test:browser`).
