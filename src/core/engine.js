@@ -37,6 +37,7 @@
 
 import { MOODS, intensityFor } from './moods.js';
 import { DEFAULT_APP_RULES, compileRules, matchApp } from './app-rules.js';
+import { inTimeWindow } from './time.js';
 
 const MINUTE = 60 * 1000;
 
@@ -94,23 +95,6 @@ export function createEngineState(config = {}, _now = 0) {
     // null, 'held' or 'falling'.
     interaction: null,
   });
-}
-
-/** "HH:MM" -> minutes after midnight, or null. */
-export function parseTimeOfDay(value) {
-  if (typeof value !== 'string') return null;
-  const m = value.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
-  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
-}
-
-/** True if local time at `now` falls in [start, end), wrapping past midnight. */
-export function inTimeWindow(now, start, end) {
-  const from = parseTimeOfDay(start);
-  const to = parseTimeOfDay(end);
-  if (from === null || to === null || from === to) return false;
-  const d = new Date(now);
-  const minute = d.getHours() * 60 + d.getMinutes();
-  return from < to ? minute >= from && minute < to : minute >= from || minute < to;
 }
 
 function breakIntervalMs(config) {

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseTimeOfDay, inTimeWindow } from '../../src/core/engine.js';
+import { parseTimeOfDay, inTimeWindow } from '../../src/core/time.js';
 import { harness, SECOND, MINUTE } from './helpers/harness.js';
 
 const idle = (seconds) => ({ type: 'idle-time', seconds });
