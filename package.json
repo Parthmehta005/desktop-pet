@@ -15,7 +15,8 @@
     "preview": "node scripts/preview-server.js",
     "test:browser": "playwright test --trace off",
     "test:electron": "node scripts/run-electron-tests.js",
-    "test:all": "npm run lint && npm test && npm run test:browser && npm run test:electron"
+    "test:all": "npm run lint && npm test && npm run test:browser && npm run test:electron",
+    "build:icons": "node scripts/build-icons.js"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

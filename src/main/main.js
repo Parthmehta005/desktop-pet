@@ -5,6 +5,10 @@ import { createPetWindow, PET_WINDOW_OPTIONS } from './pet-window.js';
 import { registerAppScheme, handleAppProtocol, hardenApp, secureWebPreferences } from './security.js';
 import { rendererUrl } from './app-paths.js';
 import { createConfigStore } from './config-store.js';
+import { createEventBus } from './event-bus.js';
+import { createTray } from './tray.js';
+import { buildTrayMenu, TEST_REACTIONS } from './tray-menu.js';
+import { PETS } from '../core/pets.js';
 
 // Tests (and anyone who wants a separate profile) can point the app at another folder
 // for its settings, so they never touch the real ones.
@@ -15,7 +19,7 @@ app.commandLine.appendSwitch('disable-background-networking');
 app.commandLine.appendSwitch('disable-component-update');
 const PRELOAD = fileURLToPath(new URL('./preload.cjs', import.meta.url));
 
-const state = { petWindow: null, store: null };
+const state = { petWindow: null, store: null, bus: null, tray: null };
 
 /** Sends an engine event to the pet. */
 function sendToPet(event) {
@@ -42,6 +46,27 @@ async function setConfig(changes) {
   return { ok: true, errors: [] };
 }
 
+/** What the tray menu can do. */
+const actions = {
+  async setPet(id) {
+    await setConfig({ pet: id });
+    state.tray?.refresh();
+  },
+  setPaused(paused) {
+    state.bus.setPaused(paused);
+    state.tray?.refresh();
+  },
+  test(id) {
+    const reaction = TEST_REACTIONS.find((r) => r.id === id);
+    for (const event of reaction?.events ?? []) state.bus.emit(event, { source: 'test' });
+  },
+  quit() {
+    app.quit();
+  },
+};
+
+const trayState = () => ({ config: state.store.config, paused: state.bus.paused, pets: PETS });
+
 function registerIpc() {
   ipcMain.handle('pet:get-config', (event) => {
     if (!fromPetWindow(event)) throw new Error('not allowed');
@@ -63,6 +88,7 @@ async function start() {
     webPreferences: secureWebPreferences(PRELOAD),
   });
   await state.petWindow.win.loadURL(rendererUrl('pet.html'));
+  state.tray = createTray({ getState: trayState, actions });
 }
 
 registerAppScheme();
@@ -72,6 +98,7 @@ if (!isFirstInstance) {
   // The pet is already running; one pet is plenty.
   app.quit();
 } else {
+  state.bus = createEventBus(sendToPet);
   state.store = createConfigStore(app.getPath('userData'));
   const loaded = state.store.load();
   if (loaded.movedAside) console.warn(`Settings file was unreadable; moved it to ${loaded.movedAside} and started fresh.`);
@@ -83,6 +110,7 @@ if (!isFirstInstance) {
   });
   // The pet lives in the tray, so closing windows doesn't quit the app.
   app.on('window-all-closed', () => {});
+  app.on('before-quit', () => state.tray?.destroy());
   app.whenReady().then(start).catch((err) => {
     console.error('Desktop Pet failed to start:', err);
     app.exit(1);
@@ -90,4 +118,13 @@ if (!isFirstInstance) {
 }
 
 // Tests reach in through this; it is only set when DESKTOP_PET_TEST=1.
-if (testing) globalThis.__desktopPet = { state, PET_WINDOW_OPTIONS, sendToPet, setConfig };
+if (testing) {
+  globalThis.__desktopPet = {
+    state,
+    actions,
+    PET_WINDOW_OPTIONS,
+    sendToPet,
+    setConfig,
+    trayMenu: () => buildTrayMenu(trayState(), actions),
+  };
+}

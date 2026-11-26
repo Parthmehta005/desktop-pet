@@ -141,3 +141,17 @@ test('drop without grab, and stray lands, are ignored', () => {
   h.send({ type: 'land' }).send({ type: 'land' });
   assert.equal(h.mood(), 'wander');
 });
+
+test('reset forgets what the pet was reacting to, but not whether you are idle', () => {
+  const h = harness();
+  h.claude('UserPromptSubmit', 'a').permission('b').send({ type: 'commit' })
+    .send({ type: 'file-activity' }).send({ type: 'app', process: 'Zoom', title: 'Zoom Meeting', fullscreen: true });
+  h.send({ type: 'reset' });
+  assert.equal(h.mood(), 'wander');
+  assert.deepEqual(h.result().modifiers, { meeting: false, hidden: false });
+  assert.deepEqual(h.result().claude, { working: 0, waiting: 0 });
+
+  h.send(idle(600)).claude('Stop').send({ type: 'reset' });
+  assert.equal(h.mood(), 'sleeping', 'still idle');
+  assert.equal(h.state.awayDone, false);
+});

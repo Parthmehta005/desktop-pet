@@ -31,6 +31,10 @@
  *       The user clicked the pet.
  *   { type: 'grab' }, { type: 'drop' }, { type: 'land' }
  *       The user picked the pet up, let go of it, and it reached the ground.
+ *   { type: 'reset' }
+ *       Forget everything the pet is reacting to (Claude sessions, timed moods, the
+ *       foreground app, recent edits), e.g. when reactions are paused. What the user is
+ *       doing (idle, locked) and the settings are kept.
  *   { type: 'tick' }
  *       Time passed. Lets timed moods expire.
  */
@@ -234,6 +238,16 @@ function onLand(next) {
   next.interaction = null;
 }
 
+function onReset(next) {
+  next.sessions = {};
+  next.timers = {};
+  next.app = null;
+  next.appMood = null;
+  next.awayDone = false;
+  next.lastFileActivityAt = null;
+  next.interaction = null;
+}
+
 function onClaude(next, event, now) {
   const id = typeof event.sessionId === 'string' && event.sessionId !== '' ? event.sessionId : 'default';
   const prev = next.sessions[id];
@@ -276,6 +290,7 @@ const HANDLERS = {
   grab: onGrab,
   drop: onDrop,
   land: onLand,
+  reset: onReset,
   tick: () => {},
 };
 
