@@ -101,3 +101,48 @@ section h2 { margin: 28px 0 0; font-size: 1.1rem; }
 .desktop .strip { height: 240px; }
 
 .taskbar { height: 36px; background: rgba(20, 24, 34, 0.82); }
+
+.status {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.status div { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); }
+.status dt { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.status dd { margin: 2px 0 0; font-weight: 600; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+
+.controls fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 10px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.controls legend { padding: 0 4px; color: var(--muted); font-size: 0.8rem; font-weight: 700; }
+
+.controls button,
+.controls select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.controls button:hover,
+.controls select:hover { border-color: var(--muted); }
+.controls button:focus-visible,
+.controls select:focus-visible { outline: 2px solid #5aa9ff; outline-offset: 2px; }
+.controls .setting { display: inline-flex; align-items: center; gap: 6px; }

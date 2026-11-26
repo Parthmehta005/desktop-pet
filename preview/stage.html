@@ -21,6 +21,15 @@
       <div class="strip" id="strip"></div>
       <div class="taskbar" aria-hidden="true"></div>
     </div>
+    <dl id="status" class="status" aria-live="polite">
+      <div><dt>Mood</dt><dd data-field="mood"></dd></div>
+      <div><dt>Animation</dt><dd data-field="animation"></dd></div>
+      <div><dt>Modifiers</dt><dd data-field="modifiers"></dd></div>
+      <div><dt>Claude</dt><dd data-field="claude"></dd></div>
+      <div><dt>You</dt><dd data-field="you"></dd></div>
+      <div><dt>Clock</dt><dd data-field="clock"></dd></div>
+    </dl>
+    <div id="controls" class="controls"></div>
   </main>
   <script type="module" src="./stage.js"></script>
 </body>
