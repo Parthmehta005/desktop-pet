@@ -1,7 +1,8 @@
 // Every pet's drawing, by id. The list of ids and names lives in src/core/pets.js.
 import cat from './cat.js';
+import corgi from './corgi.js';
 
-export const PET_DEFINITIONS = Object.freeze({ cat });
+export const PET_DEFINITIONS = Object.freeze({ cat, corgi });
 
 /** The pet with this id, or Mochi if there's no such pet. */
 export function getPet(id) {

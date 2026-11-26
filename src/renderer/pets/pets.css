@@ -10,3 +10,17 @@
   92% { transform: rotate(-4deg); }
   95% { transform: rotate(6deg); }
 }
+
+/* Biscuit: a happy butt wiggle while wandering, and a quick tail wag. */
+.pet-view[data-pet="corgi"][data-state="wander"] .body { animation: corgi-wiggle 0.6s ease-in-out infinite alternate; }
+.pet-view[data-pet="corgi"] .tail { animation: corgi-wag 0.3s ease-in-out infinite alternate; }
+
+@keyframes corgi-wiggle {
+  from { transform: rotate(-3deg); }
+  to { transform: rotate(3deg); }
+}
+
+@keyframes corgi-wag {
+  from { transform: rotate(-12deg); }
+  to { transform: rotate(12deg); }
+}
