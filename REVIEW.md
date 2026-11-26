@@ -129,14 +129,14 @@ app is complete.
 - [x] The pet definition format is documented in the rig source, ready for M3.
 
 ### M3 — The other five pets
-- [ ] The gallery shows 6 pets × 18 states = 108 cells, and all of them pass the M2 cell
+- [x] The gallery shows 6 pets × 18 states = 108 cells, and all of them pass the M2 cell
       checks.
-- [ ] Every pet has the same bounding box and ground baseline, checked by a test
+- [x] Every pet has the same bounding box and ground baseline, checked by a test
       measuring each pet's SVG bounding box.
-- [ ] Each pet's signature touch is visible in its `wander` state.
-- [ ] I've looked at the screenshots for every pet: they look distinct from each other,
+- [x] Each pet's signature touch is visible in its `wander` state.
+- [x] I've looked at the screenshots for every pet: they look distinct from each other,
       and nothing is clipped at any state.
-- [ ] Nimbus is an original design and doesn't resemble an existing franchise character.
+- [x] Nimbus is an original design and doesn't resemble an existing franchise character.
 
 ### M4 — Interactive browser preview
 - [ ] Each stage button produces the expected state (one browser test per event).
@@ -295,3 +295,4 @@ column.
 | M0 | `cc7b618` | 2026-11-26 | n/a | n/a | n/a | n/a | n/a | n/a | Planning docs only. Approved by the user before M1 started |
 | M1 | `804d034` | 2026-11-26 | Pass | 291/291, 3 runs in a row | n/a | n/a | Pass | Pass | All 11 M1 commits pass on their own from `npm ci`. 132 pairwise priority tests; only the two documented bedtime pairs switch the lower mood off. Changes from the plan: `stretch` now outranks `bedtime` (otherwise the break reminder could never appear late at night), and an `alertTimeoutMinutes` setting (default 30) was added so an unanswered alert can't stick forever. Review fixes: removed an unused engine parameter, corrected the purity rule in CLAUDE.md |
 | M2 | `9c05023` | 2026-11-26 | Pass | 315/315, 3 runs in a row | 8/8, 3 runs in a row | n/a | Pass | Pass (unit on Windows, browser tests on Linux) | All 9 M2 commits pass lint, unit and browser tests on their own. I looked at the gallery at several animation frames and on both backgrounds; per-state screenshots are in `test-results/screenshots/`. Changes from the plan: `rig.js` and `props.js` are single files rather than folders; added a `headSize` anchor for headphones; landing squash is a `.landing` class the controller adds in M4 |
+| M3 | `3497a25` | 2026-11-26 | Pass | 316/316, 3 runs in a row | 48/48, 3 runs in a row | n/a | Pass | Pass (unit on Windows, browser tests on Linux) | All 7 M3 commits pass lint, unit and browser tests on their own. I looked at every pet's full state grid and a side-by-side lineup on dark; all six are distinct. Nimbus is lavender with a cloud crest, mint ear pods, a dark LED visor and a chest heart. One slip: an M3 commit was first made with a failing test (the pipe hid the exit code); it was amended before pushing, and commits now go through a script that checks real exit codes |

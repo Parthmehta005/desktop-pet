@@ -18,7 +18,7 @@ completed in the last milestone.
 | M0 | Planning docs | Done |
 | M1 | Project scaffold and core logic | Done |
 | M2 | Pet rig, first pet, every animation | Done |
-| M3 | The other five pets | Not started |
+| M3 | The other five pets | Done |
 | M4 | Interactive browser preview | Not started |
 | M5 | Electron shell | Not started |
 | M6 | Claude Code integration | Not started |
