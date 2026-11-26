@@ -13,6 +13,12 @@
  *       A Claude Code hook. `hook` is the hook event name, e.g. 'UserPromptSubmit',
  *       'PreToolUse', 'PostToolUse', 'Notification', 'Stop', 'SessionStart',
  *       'SessionEnd'. Filtering by watched folder happens before the engine.
+ *   { type: 'idle-time', seconds }
+ *       Seconds since the user's last keyboard or mouse input (polled every few seconds).
+ *   { type: 'lock' }, { type: 'unlock' }
+ *       The screen was locked / unlocked.
+ *   { type: 'app-start' }
+ *       The pet just launched.
  *   { type: 'tick' }
  *       Time passed. Lets timed moods expire.
  */
@@ -22,6 +28,7 @@ import { MOODS, intensityFor } from './moods.js';
 const MINUTE = 60 * 1000;
 
 export const ENGINE_DEFAULTS = Object.freeze({
+  idleMinutes: 5,
   workingStaleMinutes: 10,
   alertTimeoutMinutes: 30,
 });
@@ -44,6 +51,9 @@ export function createEngineState(config = {}, _now = 0) {
     sessions: Object.freeze({}),
     // timed mood id -> time (ms) at which it ends
     timers: Object.freeze({}),
+    user: Object.freeze({ idleSeconds: 0, locked: false, idle: false }),
+    // Claude finished while the user was away; cleared when they come back.
+    awayDone: false,
   });
 }
 
@@ -71,7 +81,45 @@ function startTimer(next, moodId, now) {
 }
 
 function claudeFinished(next, now) {
-  startTimer(next, 'happy', now);
+  // Nobody is watching: hold the news until the user is back.
+  if (next.user.idle) next.awayDone = true;
+  else startTimer(next, 'happy', now);
+}
+
+function userReturned(next, now) {
+  startTimer(next, 'greeting', now);
+  if (next.awayDone) {
+    next.awayDone = false;
+    startTimer(next, 'happy', now);
+  }
+}
+
+function setIdle(next, idle, now) {
+  const wasIdle = next.user.idle;
+  next.user.idle = idle;
+  if (wasIdle && !idle) userReturned(next, now);
+}
+
+function onIdleTime(next, event, now) {
+  const seconds = Number(event.seconds);
+  if (!Number.isFinite(seconds) || seconds < 0) return;
+  next.user.idleSeconds = seconds;
+  setIdle(next, next.user.locked || seconds >= next.config.idleMinutes * 60, now);
+}
+
+function onLock(next, _event, now) {
+  next.user.locked = true;
+  setIdle(next, true, now);
+}
+
+function onUnlock(next, _event, now) {
+  next.user.locked = false;
+  next.user.idleSeconds = 0;
+  setIdle(next, false, now);
+}
+
+function onAppStart(next, _event, now) {
+  startTimer(next, 'greeting', now);
 }
 
 function onClaude(next, event, now) {
@@ -104,6 +152,10 @@ function forgetOldSessions(next, now) {
 
 const HANDLERS = {
   claude: onClaude,
+  'idle-time': onIdleTime,
+  lock: onLock,
+  unlock: onUnlock,
+  'app-start': onAppStart,
   tick: () => {},
 };
 
@@ -115,6 +167,7 @@ export function reduce(state, event, now) {
     ...state,
     sessions: { ...state.sessions },
     timers: { ...state.timers },
+    user: { ...state.user },
   };
   handler(next, event, now);
   forgetOldSessions(next, now);
@@ -123,6 +176,7 @@ export function reduce(state, event, now) {
   }
   next.sessions = Object.freeze(next.sessions);
   next.timers = Object.freeze(next.timers);
+  next.user = Object.freeze(next.user);
   return Object.freeze(next);
 }
 
@@ -148,6 +202,8 @@ export function applicableMoods(state, now) {
   const claude = claudeCounts(state, now);
   if (claude.working > 0) moods.push('working');
   if (claude.waiting > 0) moods.push('alert');
+  if (state.awayDone) moods.push('away-done');
+  if (state.user.idle) moods.push('sleeping');
   return moods;
 }
 
