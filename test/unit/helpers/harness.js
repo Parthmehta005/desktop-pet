@@ -10,7 +10,7 @@ export const T0 = new Date(2026, 10, 26, 14, 0, 0).getTime();
 
 export function harness(config = {}, start = T0) {
   let now = start;
-  const engine = createEngine(config, now);
+  const engine = createEngine(config);
   const h = {
     get now() { return now; },
     get state() { return engine.state; },

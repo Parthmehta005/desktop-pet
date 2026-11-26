@@ -185,6 +185,9 @@ should move.
   the screen bounds.
 - `src/core/config.js`: config defaults, validation and version migration. This is pure
   logic with no file access.
+- Small helpers added along the way: `src/core/pets.js` (the six pet IDs and names),
+  `src/core/time.js` (time-of-day windows) and `src/core/random.js` (a seeded random
+  generator, so walking can be replayed in tests).
 
 **Boundary:** no DOM, no Electron, no network, and no file access outside tests. No art.
 

@@ -167,7 +167,7 @@ test('sessions silent for a day are forgotten', () => {
 });
 
 test('unknown hooks and event types change nothing', () => {
-  const state = createEngineState({}, T0);
+  const state = createEngineState({});
   assert.equal(reduce(state, { type: 'claude', hook: 'MadeUpHook', sessionId: 'x' }, T0).sessions.x, undefined);
   assert.equal(reduce(state, { type: 'nonsense' }, T0), state);
   assert.equal(reduce(state, null, T0), state);
@@ -176,7 +176,7 @@ test('unknown hooks and event types change nothing', () => {
 });
 
 test('reduce never mutates its input', () => {
-  const s0 = createEngineState({}, T0);
+  const s0 = createEngineState({});
   const s1 = reduce(s0, { type: 'claude', hook: 'UserPromptSubmit', sessionId: 'a' }, T0);
   const s2 = reduce(s1, { type: 'claude', hook: 'Stop', sessionId: 'a' }, T0 + 1);
   assert.deepEqual(s0.sessions, {});

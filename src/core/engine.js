@@ -3,7 +3,7 @@
  * pet's current mood. It has no clock of its own: every call takes `now` (ms since the
  * epoch), so tests can drive it with a fake clock and the app can replay events.
  *
- *   let state = createEngineState(config, now);
+ *   let state = createEngineState(config);    // config: already validated (config.js)
  *   state = reduce(state, event, now);      // never mutates `state`
  *   selectMood(state, now);                 // -> { mood, intensity, modifiers, claude }
  *
@@ -73,7 +73,7 @@ function engineConfig(config) {
   return Object.freeze(out);
 }
 
-export function createEngineState(config = {}, _now = 0) {
+export function createEngineState(config = {}) {
   const cfg = engineConfig(config);
   return Object.freeze({
     config: cfg,
@@ -369,8 +369,8 @@ export function selectMood(state, now) {
 }
 
 /** A small stateful wrapper for callers that don't want to thread state themselves. */
-export function createEngine(config = {}, now = 0) {
-  let state = createEngineState(config, now);
+export function createEngine(config = {}) {
+  let state = createEngineState(config);
   return {
     dispatch(event, at) {
       state = reduce(state, event, at);

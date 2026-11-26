@@ -52,16 +52,23 @@ same commit whenever a decision, convention or command changes.
 - **CI:** GitHub Actions on `ubuntu-latest` and `windows-latest`, from M1 on.
 
 ## Architecture rules
-- `src/core/` is pure: no DOM, Electron, `fs` or network imports. The app, the preview
-  page and the tests all use it.
+- `src/core/` is pure: it imports only other `src/core` modules (no `node:*`, Electron,
+  DOM or npm packages) and uses no `process`/`window` globals. It runs in the main
+  process, the renderer, the browser preview and the tests. ESLint and
+  `test/unit/core-purity.test.js` both enforce this.
+- The engine is a reducer: `reduce(state, event, now)` and `selectMood(state, now)`.
+  The event types are documented at the top of `src/core/engine.js`. The engine trusts
+  its config, so validate with `src/core/config.js` first.
 - The renderer code is the same in the browser preview and in Electron. Anything
   Electron-specific goes through the preload bridge only.
 - Windows-only code (the foreground-app monitor) sits behind a `process.platform` check
   with a no-op fallback.
 - Electron security: `contextIsolation: true`, `sandbox: true`, `nodeIntegration: false`,
   a content security policy, no remote content, and IPC handlers that validate input.
-- **Paths:** use `path` helpers; never hard-code separators. Cross-platform logic tests
-  use `path.win32` and `path.posix` explicitly.
+- **Paths:** outside `src/core`, use `path` helpers and never hard-code separators.
+  Inside `src/core`, `paths.js` does its own Windows/WSL/POSIX handling because
+  `node:path` isn't available in the browser. Use its `isInside()` and
+  `findContainingFolder()` for every "is this in a watched folder?" question.
 - **Hook server:** binds to `127.0.0.1` only, requires the token, limits body size, and
   replies `204` with an **empty body**. A hook's output can end up in Claude's context.
 - **Hooks installer:**
