@@ -52,6 +52,11 @@ export function createPetWindow({ petSize = 1, webPreferences = {} } = {}) {
     screen.off('display-removed', onDisplayChange);
   });
 
+  // Click-through: the window ignores the mouse (clicks reach whatever is behind it) but
+  // still gets mouse moves, so the renderer can tell us when the pointer is on the pet.
+  let interactive = false;
+  win.setIgnoreMouseEvents(true, { forward: true });
+
   win.once('ready-to-show', () => win.showInactive());
 
   return {
@@ -60,6 +65,16 @@ export function createPetWindow({ petSize = 1, webPreferences = {} } = {}) {
     setPetSize(next) {
       size = next;
       relayout();
+    },
+    /** true while the pointer is over the pet (or dragging it): catch clicks then. */
+    setInteractive(over) {
+      if (over === interactive || win.isDestroyed()) return;
+      interactive = over;
+      if (over) win.setIgnoreMouseEvents(false);
+      else win.setIgnoreMouseEvents(true, { forward: true });
+    },
+    get interactive() {
+      return interactive;
     },
   };
 }

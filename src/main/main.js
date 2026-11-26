@@ -35,6 +35,10 @@ function registerIpc() {
     return { config: state.config };
   });
   ipcMain.on('pet:ready', () => {});
+  ipcMain.on('pet:interactive', (event, over) => {
+    if (!fromPetWindow(event) || typeof over !== 'boolean') return;
+    state.petWindow.setInteractive(over);
+  });
 }
 
 async function start() {
