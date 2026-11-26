@@ -62,3 +62,19 @@
   from { transform: rotate(7deg); }
   to { transform: rotate(-6deg); }
 }
+
+/* Bolt: the antenna light blinks (fast when busy), and the wind-up key turns. */
+.pet-view[data-pet="robot"] .antenna-light { animation: antenna-blink 1.6s ease-in-out infinite; }
+.pet-view[data-pet="robot"][data-state="working"] .antenna-light,
+.pet-view[data-pet="robot"][data-state="alert"] .antenna-light { animation-duration: 0.4s; }
+.pet-view[data-pet="robot"] .tail { animation: key-turn 3s linear infinite; }
+
+@keyframes antenna-blink {
+  0%, 45%, 100% { opacity: 1; }
+  55%, 90% { opacity: 0.25; }
+}
+
+@keyframes key-turn {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-14deg); }
+}
