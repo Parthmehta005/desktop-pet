@@ -1,0 +1,9 @@
+/* The desktop window: everything but the pet is see-through. */
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+}
