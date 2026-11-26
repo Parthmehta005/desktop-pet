@@ -1,0 +1,12 @@
+/* Each pet's signature touches, on top of the shared animations. */
+
+/* Mochi: an ear twitch now and then, and a livelier tail. */
+.pet-view[data-pet="cat"] .ear-r { animation: cat-ear-twitch 5.5s ease-in-out infinite; }
+.pet-view[data-pet="cat"] .tail { animation-duration: 2.2s; }
+
+@keyframes cat-ear-twitch {
+  0%, 86%, 100% { transform: rotate(0deg); }
+  89% { transform: rotate(10deg); }
+  92% { transform: rotate(-4deg); }
+  95% { transform: rotate(6deg); }
+}

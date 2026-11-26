@@ -31,3 +31,25 @@ body {
 .page-header p { margin: 0; color: var(--muted); }
 
 #gallery { max-width: 1200px; margin: 0 auto; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.cell {
+  margin: 0;
+  padding: 40px 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.cell figcaption { text-align: center; font-size: 0.85rem; }
+.cell figcaption code { color: var(--muted); font-size: 0.8rem; }

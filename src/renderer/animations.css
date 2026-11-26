@@ -1,0 +1,48 @@
+/*
+ * Pet animations. Only `transform` and `opacity` are animated (cheap to composite and
+ * checked by test/unit/css.test.js). Lengths are in viewBox units: 1px = 1 unit.
+ *
+ * Every part has an idle animation below; each state then overrides the parts it uses
+ * with `.pet-view[data-state="..."]` rules further down.
+ */
+
+/* ---------- Idle: breathing, blinking, tail ---------- */
+
+.pet-view .body { animation: breathe 3.2s ease-in-out infinite; }
+.pet-view .tail { animation: tail-swish 2.6s ease-in-out infinite; }
+.pet-view .eyes-open .eye,
+.pet-view .eyes-worried .eye,
+.pet-view .eyes-wide .eye { animation: blink 4.8s ease-in-out infinite; }
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.02, 1.035); }
+}
+
+@keyframes tail-swish {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(9deg); }
+}
+
+@keyframes blink {
+  0%, 93%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.1); }
+}
+
+/* ---------- Walking (any state the walker moves in) ---------- */
+
+.pet-view[data-moving="true"] .rig { animation: walk-bob 0.5s ease-in-out infinite; }
+.pet-view[data-moving="true"] .foot-l,
+.pet-view[data-moving="true"] .paw-r { animation: step 0.5s ease-in-out infinite; }
+.pet-view[data-moving="true"] .foot-r,
+.pet-view[data-moving="true"] .paw-l { animation: step 0.5s ease-in-out -0.25s infinite; }
+
+@keyframes walk-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes step {
+  0%, 50%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(2px, -5px) rotate(-8deg); }
+}
