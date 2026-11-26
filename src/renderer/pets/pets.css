@@ -24,3 +24,26 @@
   from { transform: rotate(-12deg); }
   to { transform: rotate(12deg); }
 }
+
+/* Pip: waddles side to side when walking, and flaps now and then. */
+.pet-view[data-pet="penguin"][data-moving="true"] .rig { animation: penguin-waddle 0.5s ease-in-out infinite; }
+.pet-view[data-pet="penguin"][data-state="wander"] .paw-l { animation: penguin-flap-l 3.4s ease-in-out infinite; }
+.pet-view[data-pet="penguin"][data-state="wander"] .paw-r { animation: penguin-flap-r 3.4s ease-in-out infinite; }
+
+@keyframes penguin-waddle {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  25%, 75% { transform: translateY(-2px) rotate(0deg); }
+  50% { transform: translateY(0) rotate(6deg); }
+}
+
+@keyframes penguin-flap-l {
+  0%, 80%, 100% { transform: rotate(0deg); }
+  85%, 95% { transform: rotate(28deg); }
+  90% { transform: rotate(8deg); }
+}
+
+@keyframes penguin-flap-r {
+  0%, 80%, 100% { transform: rotate(0deg); }
+  85%, 95% { transform: rotate(-28deg); }
+  90% { transform: rotate(-8deg); }
+}
