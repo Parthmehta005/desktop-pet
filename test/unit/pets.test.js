@@ -17,6 +17,10 @@ test('every drawn pet is in the core pet list with the same name', () => {
   }
 });
 
+test('all six pets are drawn', () => {
+  assert.deepEqual(Object.keys(PET_DEFINITIONS), [...PET_IDS]);
+});
+
 test('getPet falls back to Mochi', () => {
   assert.equal(getPet('cat').id, 'cat');
   assert.equal(getPet('nope').id, 'cat');
