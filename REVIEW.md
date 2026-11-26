@@ -160,24 +160,24 @@ app is complete.
 - [x] Light and dark wallpaper toggle works; screenshot reviewed for both.
 
 ### M5 — Electron shell
-- [ ] The app launches under `xvfb-run`, and a second launch exits because of the
+- [x] The app launches under `xvfb-run`, and a second launch exits because of the
       single-instance lock.
-- [ ] The pet window is transparent, frameless, always-on-top and hidden from the
+- [x] The pet window is transparent, frameless, always-on-top and hidden from the
       taskbar, and its bounds are on the primary display's work area along the bottom.
       Properties are checked through Playwright `_electron`.
-- [ ] The renderer is the same M4 controller: no Electron-specific branches beyond the
+- [x] The renderer is the same M4 controller: no Electron-specific branches beyond the
       preload bridge.
-- [ ] Click-through: with the cursor away from the pet, the window ignores mouse events;
+- [x] Click-through: with the cursor away from the pet, the window ignores mouse events;
       over the pet, it accepts them. Checked by IPC state in a test.
-- [ ] Each tray "test reactions" item changes the pet's state.
-- [ ] Config store:
-  - [ ] It's created with defaults on first run.
-  - [ ] A corrupt file is moved aside and replaced with the defaults.
-  - [ ] A pet change from the tray survives a restart.
-- [ ] Display changes (simulated) move and resize the strip.
-- [ ] Resource check: memory and CPU from `app.getAppMetrics()` are recorded in the log.
+- [x] Each tray "test reactions" item changes the pet's state.
+- [x] Config store:
+  - [x] It's created with defaults on first run.
+  - [x] A corrupt file is moved aside and replaced with the defaults.
+  - [x] A pet change from the tray survives a restart.
+- [x] Display changes (simulated) move and resize the strip.
+- [x] Resource check: memory and CPU from `app.getAppMetrics()` are recorded in the log.
       Under xvfb this uses software rendering, so it's a sanity check, not a target.
-- [ ] Security section E passes.
+- [x] Security section E passes.
 
 ### M6 — Claude Code integration
 - [ ] Hook server tests:
@@ -297,3 +297,4 @@ column.
 | M2 | `9c05023` | 2026-11-26 | Pass | 315/315, 3 runs in a row | 8/8, 3 runs in a row | n/a | Pass | Pass (unit on Windows, browser tests on Linux) | All 9 M2 commits pass lint, unit and browser tests on their own. I looked at the gallery at several animation frames and on both backgrounds; per-state screenshots are in `test-results/screenshots/`. Changes from the plan: `rig.js` and `props.js` are single files rather than folders; added a `headSize` anchor for headphones; landing squash is a `.landing` class the controller adds in M4 |
 | M3 | `3497a25` | 2026-11-26 | Pass | 316/316, 3 runs in a row | 48/48, 3 runs in a row | n/a | Pass | Pass (unit on Windows, browser tests on Linux) | All 7 M3 commits pass lint, unit and browser tests on their own. I looked at every pet's full state grid and a side-by-side lineup on dark; all six are distinct. Nimbus is lavender with a cloud crest, mint ear pods, a dark LED visor and a chest heart. One slip: an M3 commit was first made with a failing test (the pipe hid the exit code); it was amended before pushing, and commits now go through a script that checks real exit codes |
 | M4 | `437c4d4` | 2026-11-26 | Pass | 317/317, 3 runs in a row | 79/79, 3 runs in a row | n/a | Pass | Pass (unit on Windows, browser tests on Linux) | All 6 M4 commits pass on their own. The stage is its own page, `preview/stage.html`. For deterministic tests the stage takes `?time=HH:MM` (tests start at noon, so real-world bedtime can't leak in) and the controller keeps a short mood history (brief moods flash by at high clock speeds). Two first-run test failures were test-timing assumptions, not app bugs: a session going stale at 1 hour/second, and a 12s reminder lasting milliseconds. Screenshots of both wallpapers reviewed. README "Browser preview" section written |
+| M5 | `7f3c951` | 2026-11-26 | Pass | 337/337, 3 runs in a row | 79/79, 3 runs in a row | 26/26, 3 runs in a row | Pass (unit + Electron on Linux) | Pass (unit) | All 7 M5 commits pass every suite on their own. Resource use under xvfb with software rendering: about 3% CPU and 560 MB across 4 Electron processes while wandering (`test-results/electron-metrics.json`). The window screenshot was reviewed. Additions beyond the plan: windows load over a privileged `app://` protocol that only serves `src/renderer` and `src/core` (so CSP `'self'` works without `file://`); Chromium background networking is off; an engine `reset` event lets "Pause reactions" calm the pet at once. Test-only: Electron launches with `--no-sandbox` when running as root or on CI, never in the app. The Windows Electron smoke test comes in M9 as planned |

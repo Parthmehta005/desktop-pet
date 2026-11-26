@@ -20,7 +20,7 @@ completed in the last milestone.
 | M2 | Pet rig, first pet, every animation | Done |
 | M3 | The other five pets | Done |
 | M4 | Interactive browser preview | Done |
-| M5 | Electron shell | Not started |
+| M5 | Electron shell | Done |
 | M6 | Claude Code integration | Not started |
 | M7 | Local activity sources | Not started |
 | M8 | Settings window and polish | Not started |

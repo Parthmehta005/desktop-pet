@@ -71,6 +71,11 @@ same commit whenever a decision, convention or command changes.
   Inside `src/core`, `paths.js` does its own Windows/WSL/POSIX handling because
   `node:path` isn't available in the browser. Use its `isInside()` and
   `findContainingFolder()` for every "is this in a watched folder?" question.
+- **Main process:** windows load `app://desktop-pet/<dir>/<file>`, served from
+  `src/renderer` and `src/core` only (`src/main/app-paths.js`). Every event for the pet
+  goes through the event bus (`src/main/event-bus.js`), with a `source` so pausing can
+  drop it. Tests reach the main process through `globalThis.__desktopPet`, which only
+  exists when `DESKTOP_PET_TEST=1`.
 - **Hook server:** binds to `127.0.0.1` only, requires the token, limits body size, and
   replies `204` with an **empty body**. A hook's output can end up in Claude's context.
 - **Hooks installer:**
