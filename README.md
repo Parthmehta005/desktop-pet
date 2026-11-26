@@ -119,8 +119,49 @@ The stage also accepts URL options, for example
 
 ## Development and tests
 
-_Added in M5: the project layout, `npm test`, `npm run test:browser`,
-`npm run test:electron`, and CI._
+### Project layout
+
+```
+src/core/       Pure logic shared by everything (no Node, Electron or DOM imports):
+                the mood engine, moods, walker, path matching, app rules, config schema
+src/renderer/   What you see: the pet rig, the six pets, props, animations, the
+                controller that walks the pet, and the desktop window's page
+src/main/       Electron main process: lifecycle, the pet window, the app:// protocol
+                and security, config storage, the tray, and the event bus
+preview/        Browser preview pages (gallery and stage)
+assets/         Icons (SVG sources and rendered PNGs)
+scripts/        Preview server, icon builder, Electron test runner
+test/unit/      node:test unit tests
+test/browser/   Playwright tests against the preview pages
+test/electron/  Playwright tests that launch the real app
+```
+
+### Commands
+
+| Command | What it does |
+|---|---|
+| `npm start` | Runs the desktop app |
+| `npm run preview` | Serves the browser preview at http://127.0.0.1:4173/preview/ |
+| `npm run lint` | ESLint |
+| `npm test` | Unit tests |
+| `npm run test:browser` | Browser tests (starts the preview server itself) |
+| `npm run test:electron` | Electron tests. On Linux without a display they run inside `xvfb-run` |
+| `npm run test:all` | All of the above |
+| `npm run build:icons` | Re-renders the PNG icons from `assets/*.svg` |
+
+The tests never touch your real settings. Each Electron test launches the app with its
+own temporary settings folder, through the `DESKTOP_PET_USER_DATA` environment variable.
+
+On Linux, the browser tests need Playwright's Chromium (`npx playwright install
+chromium`), and the Electron tests need `xvfb` (`apt-get install xvfb`).
+
+### CI
+
+GitHub Actions runs on every push:
+
+- lint and unit tests on Ubuntu and Windows
+- browser tests on Ubuntu
+- Electron tests on Ubuntu, under xvfb
 
 ## Troubleshooting
 
