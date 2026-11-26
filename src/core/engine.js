@@ -23,11 +23,16 @@
  *       Files changed in a watched repo (already debounced by the watcher).
  *   { type: 'commit', folder? }
  *       A new commit landed in a watched repo.
+ *   { type: 'app', process, title, path?, fullscreen? }
+ *       The foreground window changed. Matched against the app rules.
+ *   { type: 'config', config }
+ *       Settings changed; `config` holds the changed keys.
  *   { type: 'tick' }
  *       Time passed. Lets timed moods expire.
  */
 
 import { MOODS, intensityFor } from './moods.js';
+import { DEFAULT_APP_RULES, compileRules, matchApp } from './app-rules.js';
 
 const MINUTE = 60 * 1000;
 
@@ -35,7 +40,12 @@ export const ENGINE_DEFAULTS = Object.freeze({
   idleMinutes: 5,
   workingStaleMinutes: 10,
   alertTimeoutMinutes: 30,
+  quietDuringMeetings: true,
+  hideWhenFullscreen: true,
+  appRules: DEFAULT_APP_RULES,
 });
+
+const APP_MOODS = new Set(['vibing', 'gaming', 'watching']);
 
 /** Sessions silent for this long are forgotten entirely. */
 const SESSION_FORGET_MS = 24 * 60 * MINUTE;
@@ -52,8 +62,13 @@ function engineConfig(config) {
 }
 
 export function createEngineState(config = {}, _now = 0) {
+  const cfg = engineConfig(config);
   return Object.freeze({
-    config: engineConfig(config),
+    config: cfg,
+    rules: compileRules(cfg.appRules).compiled,
+    // The foreground window and the mood its rule gives (null if none).
+    app: null,
+    appMood: null,
     // sessionId -> { status: 'working' | 'waiting' | 'idle', lastEventAt }
     sessions: Object.freeze({}),
     // timed mood id -> time (ms) at which it ends
@@ -139,6 +154,30 @@ function onCommit(next, _event, now) {
   startTimer(next, 'celebrating', now);
 }
 
+function onApp(next, event) {
+  const text = (v) => (typeof v === 'string' ? v : '');
+  next.app = Object.freeze({
+    process: text(event.process),
+    title: text(event.title),
+    path: text(event.path),
+    fullscreen: event.fullscreen === true,
+  });
+  next.appMood = matchApp(next.rules, next.app);
+}
+
+function onConfig(next, event, now) {
+  if (!event.config || typeof event.config !== 'object') return;
+  const before = next.config;
+  next.config = engineConfig({ ...before, ...event.config });
+  if (next.config.appRules !== before.appRules) {
+    next.rules = compileRules(next.config.appRules).compiled;
+    next.appMood = next.app ? matchApp(next.rules, next.app) : null;
+  }
+  if (!next.user.locked) {
+    setIdle(next, next.user.idleSeconds >= next.config.idleMinutes * 60, now);
+  }
+}
+
 function onClaude(next, event, now) {
   const id = typeof event.sessionId === 'string' && event.sessionId !== '' ? event.sessionId : 'default';
   const prev = next.sessions[id];
@@ -175,6 +214,8 @@ const HANDLERS = {
   'app-start': onAppStart,
   'file-activity': onFileActivity,
   commit: onCommit,
+  app: onApp,
+  config: onConfig,
   tick: () => {},
 };
 
@@ -226,7 +267,15 @@ export function applicableMoods(state, now) {
   if (state.lastFileActivityAt !== null && now - state.lastFileActivityAt < FOCUS_WINDOW_MS) {
     moods.push('focused');
   }
+  if (APP_MOODS.has(state.appMood)) moods.push(state.appMood);
   return moods;
+}
+
+function modifiersFor(state) {
+  return {
+    meeting: state.config.quietDuringMeetings && state.appMood === 'meeting',
+    hidden: state.config.hideWhenFullscreen && state.app?.fullscreen === true,
+  };
 }
 
 /**
@@ -249,7 +298,7 @@ export function selectMood(state, now) {
   return {
     mood,
     intensity: mood === 'working' ? intensityFor(claude.working) : 1,
-    modifiers: { meeting: false, hidden: false },
+    modifiers: modifiersFor(state),
     claude,
   };
 }
