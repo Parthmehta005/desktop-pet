@@ -17,7 +17,7 @@ completed in the last milestone.
 |---|---|---|
 | M0 | Planning docs | Done |
 | M1 | Project scaffold and core logic | Done |
-| M2 | Pet rig, first pet, every animation | Not started |
+| M2 | Pet rig, first pet, every animation | In progress |
 | M3 | The other five pets | Not started |
 | M4 | Interactive browser preview | Not started |
 | M5 | Electron shell | Not started |

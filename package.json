@@ -10,10 +10,13 @@
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "test": "node --test \"test/unit/**/*.test.js\"",
-    "test:all": "npm run lint && npm test"
+    "preview": "node scripts/preview-server.js",
+    "test:browser": "playwright test --trace off",
+    "test:all": "npm run lint && npm test && npm run test:browser"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@playwright/test": "1.63.0",
     "eslint": "10.15.0",
     "globals": "17.14.0"
   }

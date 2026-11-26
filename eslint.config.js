@@ -38,7 +38,17 @@ export default [
     },
   },
   {
-    files: ['test/**/*.js', 'scripts/**/*.js', 'eslint.config.js'],
+    files: ['test/**/*.js', 'scripts/**/*.js', '*.config.js'],
     languageOptions: { globals: { ...globals.node } },
+  },
+  {
+    // Code that runs in a web page: the renderer and the preview page.
+    files: ['src/renderer/**/*.js', 'preview/**/*.js'],
+    languageOptions: { globals: { ...globals.browser } },
+  },
+  {
+    // Browser tests run in Node but pass callbacks to page.evaluate().
+    files: ['test/browser/**/*.js'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
 ];

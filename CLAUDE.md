@@ -29,6 +29,8 @@ same commit whenever a decision, convention or command changes.
      verified on Linux, and any known issues.
   5. Then continue to the next milestone, unless the user asked to pause, a gate fails
      for a reason that can't be fixed, or a decision is the user's to make.
+     After M1 the user asked for M2 to M9 to run straight through, stopping only for a
+     real blocker.
 - **Scope creep** goes in the ROADMAP backlog, never into the current milestone.
 - Never skip, disable or `.only` a test to get a pass.
 
@@ -96,9 +98,9 @@ Each is added by the milestone shown.
 
 ## Environment notes (cloud container)
 - Node 22 and npm 10.
-- Chromium and Playwright are preinstalled; don't run `playwright install`. If the
-  project's `@playwright/test` version doesn't find the browser, launch with
-  `executablePath: '/opt/pw-browsers/chromium'`.
+- Chromium and Playwright 1.63.0 are preinstalled in `/opt/pw-browsers`; don't run
+  `playwright install` here. `@playwright/test` is pinned to `1.63.0` to match those
+  browsers. CI installs its own copy with `npx playwright install --with-deps chromium`.
 - Run Playwright with `--trace off`. With npm that's `npm run test:browser -- --trace off`.
 - `xvfb-run` is available for the Electron tests, and the Electron binary download from
   GitHub works.
