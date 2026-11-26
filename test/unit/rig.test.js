@@ -14,7 +14,7 @@ const boxPet = () => ({
   species: 'Box',
   colors: { line: '#333', ink: '#111' },
   anchors: {
-    head: [100, 100], headTop: [100, 60], eyeL: [85, 100], eyeR: [115, 100],
+    head: [100, 100], headSize: [40, 35], headTop: [100, 60], eyeL: [85, 100], eyeR: [115, 100],
     mouth: [100, 115], hands: [100, 165], sweat: [140, 80],
   },
   pivots: {

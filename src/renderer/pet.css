@@ -63,11 +63,17 @@
 .pet-view[data-props~="muted"] .prop-muted,
 .pet-view[data-props~="speedlines"] .prop-speedlines { display: inline; }
 
+/* Sweat follows how many Claude sessions are busy; steam only at the top level. */
+.pet-view[data-intensity="1"] .drop-2,
+.pet-view[data-intensity="1"] .drop-3,
+.pet-view[data-intensity="2"] .drop-3,
+.pet-view:not([data-intensity="3"]) .prop-steam { display: none; }
+
 /* Speech bubble, above the pet's head. */
 .pet-bubble {
   position: absolute;
   left: 50%;
-  bottom: 80%;
+  bottom: 94%;
   z-index: 1;
   padding: 4px 10px;
   border: 2px solid #3b302a;

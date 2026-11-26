@@ -20,6 +20,7 @@ export default definePet({
   colors: C,
   anchors: {
     head: [100, 98],
+    headSize: [46, 40],
     headTop: [100, 58],
     eyeL: [82, 99],
     eyeR: [118, 99],

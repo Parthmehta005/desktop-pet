@@ -6,7 +6,8 @@
  *   definePet({
  *     id: 'cat', name: 'Mochi', species: 'Cat',
  *     colors:  { line, ink, ... }          // line = outlines, ink = eyes and mouth
- *     anchors: { name: [x, y], ... }       // where faces and props attach (see REQUIRED_ANCHORS)
+ *     anchors: { name: [x, y], ... }       // where faces and props attach (see REQUIRED_ANCHORS;
+ *                                          // headSize is the head's [x radius, y radius])
  *     pivots:  { part: [x, y], ... }       // what each part rotates/scales around
  *     parts:   { part: '<svg markup>' }    // drawn in absolute viewBox coordinates
  *     eyes?:   { variant: (side, colors) => markup }   // override default eye shapes
@@ -40,7 +41,7 @@ export const PART_NAMES = Object.freeze([
   'shadow', 'tail', 'footL', 'footR', 'body', 'earL', 'earR', 'head', 'faceExtras', 'pawL', 'pawR',
 ]);
 export const REQUIRED_PARTS = Object.freeze(['shadow', 'footL', 'footR', 'body', 'head', 'pawL', 'pawR']);
-export const REQUIRED_ANCHORS = Object.freeze(['head', 'headTop', 'eyeL', 'eyeR', 'mouth', 'hands', 'sweat']);
+export const REQUIRED_ANCHORS = Object.freeze(['head', 'headSize', 'headTop', 'eyeL', 'eyeR', 'mouth', 'hands', 'sweat']);
 export const REQUIRED_PIVOTS = Object.freeze(['rig', 'body', 'head', 'pawL', 'pawR', 'footL', 'footR']);
 export const REQUIRED_COLORS = Object.freeze(['line', 'ink']);
 
