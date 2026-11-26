@@ -84,7 +84,38 @@ _Added in M9: `npm run dist:win` and what it produces._
 
 ## Browser preview
 
-_Added in M4: `npm run preview`, the gallery, and the interactive stage._
+You can see and play with every pet without Windows or Electron. The preview runs the
+same renderer code and mood engine as the desktop app.
+
+```sh
+npm install
+npm run preview
+```
+
+Then open <http://127.0.0.1:4173/preview/>. The preview server only serves the
+`preview/` and `src/` folders, and only to your own machine.
+
+There are two pages:
+
+- **Gallery** (`/preview/`): every pet in all 18 animation states, each labelled with
+  what triggers it.
+  - Use the **Pet** menu to pick one pet. A single pet also shows its three sweat levels
+    (one, two, or three or more busy Claude sessions).
+  - **Dark background** checks how the pets look on a dark desktop.
+- **Stage** (`/preview/stage.html`): the real pet walking along a pretend desktop. It has:
+  - **Event buttons** for everything the app reacts to: Claude Code sessions (start
+    working, a second session, permission prompts, tool finished, finished), you (go idle,
+    come back, lock, unlock), coding (file edits, commits), and apps (Spotify, a Zoom
+    meeting, a Steam game, YouTube, a fullscreen game).
+  - **Click, drag and drop:** click the pet to pet it. Drag it to carry it around, and let
+    go to drop it.
+  - **Time speed:** up to an hour per second, so you can see it fall asleep, nudge you to
+    stretch, or (with the **Night** clock) put on its nightcap.
+  - **A status panel** showing the current mood, animation, modifiers, Claude sessions and
+    the clock.
+
+The stage also accepts URL options, for example
+`stage.html?pet=softbot&speed=60&wallpaper=dark&time=00:45`.
 
 ## Development and tests
 
