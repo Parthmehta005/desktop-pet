@@ -63,3 +63,65 @@ test('a fullscreen app hides the pet and it comes back afterwards', async ({ pag
   await send(page, { type: 'app', process: 'Code', title: 'editor' });
   await expect.poll(async () => (await snapshot(page)).opacity).toBe('1');
 });
+
+async function petCenter(page) {
+  const box = await page.locator('.pet-actor .pet-view').boundingBox();
+  return { x: box.x + box.width / 2, y: box.y + box.height * 0.6 };
+}
+
+test('clicking the pet pets it', async ({ page }) => {
+  await openStage(page);
+  const c = await petCenter(page);
+  await page.mouse.click(c.x, c.y);
+  await expect(page.locator('.pet-view')).toHaveAttribute('data-state', 'petted');
+});
+
+test('dragging holds the pet under the pointer; letting go drops it to the ground', async ({ page }) => {
+  await openStage(page);
+  const strip = await page.locator('#strip').boundingBox();
+  const c = await petCenter(page);
+  await page.mouse.move(c.x, c.y);
+  await page.mouse.down();
+  const target = { x: strip.x + strip.width / 2, y: strip.y + 70 };
+  await page.mouse.move(target.x, target.y, { steps: 8 });
+  await expect(page.locator('.pet-view')).toHaveAttribute('data-state', 'held');
+  const held = await snapshot(page);
+  expect(held.dragging).toBe(true);
+  expect(held.lift).toBeGreaterThan(40);
+  const after = await petCenter(page);
+  expect(Math.abs(after.x - target.x), 'the pet follows the pointer').toBeLessThan(8);
+  await page.mouse.up();
+  await expect.poll(async () => (await snapshot(page)).falling).toBe(false);
+  const landed = await snapshot(page);
+  expect(landed.lift).toBe(0);
+  expect(landed.mood).not.toBe('held');
+  expect(landed.mood).not.toBe('falling');
+});
+
+test('the pet cannot be dragged or dropped outside the stage', async ({ page }) => {
+  await openStage(page);
+  const strip = await page.locator('#strip').boundingBox();
+  const c = await petCenter(page);
+  await page.mouse.move(c.x, c.y);
+  await page.mouse.down();
+  await page.mouse.move(strip.x + strip.width + 400, strip.y - 300, { steps: 10 });
+  const s = await snapshot(page);
+  expect(s.x).toBeCloseTo(s.width - s.petSize, 0);
+  expect(s.lift).toBeLessThanOrEqual(strip.height - s.petSize + 0.5);
+  await page.mouse.up();
+  await expect.poll(async () => (await snapshot(page)).lift).toBe(0);
+  const end = await snapshot(page);
+  expect(end.x).toBeLessThanOrEqual(end.width - end.petSize);
+});
+
+test('hovering over the pet is reported, and moving away clears it', async ({ page }) => {
+  await openStage(page);
+  const strip = await page.locator('#strip').boundingBox();
+  const c = await petCenter(page);
+  await page.mouse.move(c.x, c.y);
+  await expect.poll(async () => (await snapshot(page)).hovering).toBe(true);
+  await page.mouse.move(strip.x + 2, strip.y + 2);
+  // The pet may have walked under that corner; move somewhere it can't be.
+  await page.mouse.move(10, 10);
+  await expect.poll(async () => (await snapshot(page)).hovering).toBe(false);
+});

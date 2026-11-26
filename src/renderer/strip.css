@@ -13,3 +13,10 @@
   bottom: 0;
   will-change: transform;
 }
+
+.pet-actor .pet-view {
+  cursor: grab;
+  touch-action: none;
+}
+
+.pet-actor.dragging .pet-view { cursor: grabbing; }

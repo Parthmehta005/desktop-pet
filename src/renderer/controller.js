@@ -13,7 +13,7 @@
 
 import { createEngine } from '../core/engine.js';
 import { MOODS, presentation, animationStateFor } from '../core/moods.js';
-import { createWalker, stepWalker, resizeWalker } from '../core/walker.js';
+import { createWalker, stepWalker, resizeWalker, placeWalker } from '../core/walker.js';
 import { createPetView } from './pet-view.js';
 
 /** Pet size in CSS pixels at petSize 1. */
@@ -22,6 +22,14 @@ export const BASE_PET_SIZE = 140;
 const TICK_MS = 250;
 /** How long a speech bubble stays up, in real time. */
 export const BUBBLE_MS = 3500;
+/** Falling acceleration in px/s². */
+const GRAVITY = 2600;
+/** Pointer travel (px) that turns a click into a drag. */
+const DRAG_THRESHOLD = 5;
+/** Length of the landing squash. */
+const LANDING_MS = 350;
+/** Fraction of the pet's box, on each side, that doesn't count as "on the pet". */
+const HIT_INSET = 0.14;
 
 function petSizePx(config) {
   const scale = Number(config.petSize);
@@ -35,8 +43,13 @@ function petSizePx(config) {
  * @param {object} [options.config]       Validated config (see src/core/config.js).
  * @param {() => number} [options.now]    Clock in ms; the preview passes a faster one.
  * @param {() => number} [options.rng]    Random source for walking.
+ * @param {(over: boolean) => void} [options.onHoverChange]
+ *   Called when the pointer moves onto or off the pet (or a drag starts or ends). The
+ *   desktop window uses it to stop letting clicks through while the pet is under them.
  */
-export function createController({ strip, pet, config = {}, now = Date.now, rng = Math.random }) {
+export function createController({
+  strip, pet, config = {}, now = Date.now, rng = Math.random, onHoverChange = () => {},
+}) {
   const actor = document.createElement('div');
   actor.className = 'pet-actor';
   const view = createPetView(pet, {});
@@ -48,7 +61,12 @@ export function createController({ strip, pet, config = {}, now = Date.now, rng 
   const engine = createEngine(settings);
   let result = engine.mood(now());
   let walker = createWalker({ width: strip.clientWidth, petWidth: size, rng });
-  const lift = 0; // height above the ground; dragging (M4 step 3) lifts the pet
+  let lift = 0; // height above the ground while held or falling
+  let velocity = 0;
+  let falling = false;
+  let drag = null;
+  let hovering = false;
+  let landingTimer = null;
   let lastFrame = null;
   let lastTick = -Infinity;
   let frameId = null;
@@ -100,26 +118,128 @@ export function createController({ strip, pet, config = {}, now = Date.now, rng 
     }
   }
 
+  function dispatch(event) {
+    result = engine.dispatch(event, now());
+    render();
+    return result;
+  }
+
+  function maxLift() {
+    return Math.max(0, strip.clientHeight - size);
+  }
+
+  function land() {
+    falling = false;
+    velocity = 0;
+    lift = 0;
+    dispatch({ type: 'land' });
+    // Restart the squash even if the last one hasn't finished.
+    view.element.classList.remove('landing');
+    void view.element.offsetWidth;
+    view.element.classList.add('landing');
+    clearTimeout(landingTimer);
+    landingTimer = setTimeout(() => view.element.classList.remove('landing'), LANDING_MS);
+  }
+
   function frame(time) {
-    const dt = lastFrame === null ? 0 : time - lastFrame;
+    const dt = lastFrame === null ? 0 : Math.min(time - lastFrame, 1000);
     lastFrame = time;
     const t = now();
     if (t - lastTick >= TICK_MS) {
       result = engine.dispatch({ type: 'tick' }, t);
       lastTick = t;
     }
-    walker = stepWalker(walker, {
-      dtMs: dt,
-      speed: presentation(result).speed,
-      walkSpeed: settings.walkSpeed,
-      rng,
-    });
+    if (falling) {
+      velocity += (GRAVITY * dt) / 1000;
+      lift = Math.max(0, lift - (velocity * dt) / 1000);
+      if (lift === 0) land();
+    } else if (!drag?.active) {
+      walker = stepWalker(walker, {
+        dtMs: dt,
+        speed: presentation(result).speed,
+        walkSpeed: settings.walkSpeed,
+        rng,
+      });
+    }
     render();
     frameId = requestAnimationFrame(frame);
   }
 
+  // ---------- Pointer: click to pet, drag to carry, release to drop ----------
+
+  function isOverPet(clientX, clientY) {
+    if (result.modifiers.hidden) return false;
+    const r = view.element.getBoundingClientRect();
+    const dx = r.width * HIT_INSET;
+    const dy = r.height * HIT_INSET;
+    return clientX >= r.left + dx && clientX <= r.right - dx && clientY >= r.top + dy && clientY <= r.bottom;
+  }
+
+  function setHover(over) {
+    if (over === hovering) return;
+    hovering = over;
+    onHoverChange(over);
+  }
+
+  function onPointerDown(e) {
+    if (e.button !== 0 || !isOverPet(e.clientX, e.clientY)) return;
+    const r = strip.getBoundingClientRect();
+    drag = {
+      id: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      offsetX: e.clientX - r.left - walker.x,
+      offsetY: r.bottom - e.clientY - lift,
+      active: false,
+    };
+    view.element.setPointerCapture?.(e.pointerId);
+    e.preventDefault();
+  }
+
+  function onPointerMove(e) {
+    if (!drag || e.pointerId !== drag.id) {
+      setHover(isOverPet(e.clientX, e.clientY));
+      return;
+    }
+    if (!drag.active && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) >= DRAG_THRESHOLD) {
+      drag.active = true;
+      falling = false;
+      actor.classList.add('dragging');
+      dispatch({ type: 'grab' });
+    }
+    if (drag.active) {
+      const r = strip.getBoundingClientRect();
+      walker = placeWalker(walker, e.clientX - r.left - drag.offsetX);
+      lift = Math.min(Math.max(r.bottom - e.clientY - drag.offsetY, 0), maxLift());
+      render();
+    }
+  }
+
+  function onPointerUp(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    const wasDragging = drag.active;
+    drag = null;
+    actor.classList.remove('dragging');
+    view.element.releasePointerCapture?.(e.pointerId);
+    if (wasDragging) {
+      dispatch({ type: 'drop' });
+      falling = true;
+      velocity = 0;
+      if (lift === 0) land();
+    } else if (e.type === 'pointerup') {
+      dispatch({ type: 'pet' });
+    }
+    setHover(isOverPet(e.clientX, e.clientY));
+  }
+
+  view.element.addEventListener('pointerdown', onPointerDown);
+  window.addEventListener('pointermove', onPointerMove);
+  window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('pointercancel', onPointerUp);
+
   const resizeObserver = new ResizeObserver(() => {
     walker = resizeWalker(walker, strip.clientWidth, size);
+    lift = Math.min(lift, maxLift());
     render();
   });
   resizeObserver.observe(strip);
@@ -127,11 +247,9 @@ export function createController({ strip, pet, config = {}, now = Date.now, rng 
 
   return {
     /** Sends an engine event (see src/core/engine.js) and returns the new mood. */
-    dispatch(event) {
-      result = engine.dispatch(event, now());
-      render();
-      return result;
-    },
+    dispatch,
+    /** True if a screen point is over the pet (used for click-through on the desktop). */
+    isOverPet,
     /** Swaps the pet drawing; the mood and position carry on. */
     setPet(next) {
       view.update({ pet: next });
@@ -163,11 +281,19 @@ export function createController({ strip, pet, config = {}, now = Date.now, rng 
         moving: walker.moving,
         bubble: view.state.bubble,
         opacity: getComputedStyle(view.element).opacity,
+        dragging: Boolean(drag?.active),
+        falling,
+        hovering,
       };
     },
     destroy() {
       cancelAnimationFrame(frameId);
+      clearTimeout(landingTimer);
       resizeObserver.disconnect();
+      view.element.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
       actor.remove();
     },
   };
