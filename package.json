@@ -4,19 +4,23 @@
   "private": true,
   "description": "A Windows desktop pet that walks along your taskbar and reacts to your coding and to Claude Code.",
   "type": "module",
+  "main": "src/main/main.js",
   "engines": {
     "node": ">=22.13"
   },
   "scripts": {
+    "start": "electron .",
     "lint": "eslint . --max-warnings 0",
     "test": "node --test \"test/unit/**/*.test.js\"",
     "preview": "node scripts/preview-server.js",
     "test:browser": "playwright test --trace off",
-    "test:all": "npm run lint && npm test && npm run test:browser"
+    "test:electron": "node scripts/run-electron-tests.js",
+    "test:all": "npm run lint && npm test && npm run test:browser && npm run test:electron"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.63.0",
+    "electron": "45.5.0",
     "eslint": "10.15.0",
     "globals": "17.14.0"
   }

@@ -42,6 +42,15 @@ export default [
     languageOptions: { globals: { ...globals.node } },
   },
   {
+    // The Electron main process (Node).
+    files: ['src/main/**/*.js', 'src/main/**/*.cjs'],
+    languageOptions: { globals: { ...globals.node } },
+  },
+  {
+    files: ['**/*.cjs'],
+    languageOptions: { sourceType: 'commonjs' },
+  },
+  {
     // Code that runs in a web page: the renderer and the preview page.
     files: ['src/renderer/**/*.js', 'preview/**/*.js'],
     languageOptions: { globals: { ...globals.browser } },

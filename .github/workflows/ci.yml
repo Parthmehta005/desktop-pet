@@ -21,6 +21,8 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -35,6 +37,8 @@ jobs:
     name: Browser tests (ubuntu-latest)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -48,5 +52,25 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: browser-test-results
+          path: test-results/
+          retention-days: 7
+
+  electron:
+    name: Electron tests (ubuntu-latest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: sudo apt-get update && sudo apt-get install -y xvfb
+      - run: npm ci
+      - run: npm run test:electron
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-test-results
           path: test-results/
           retention-days: 7
