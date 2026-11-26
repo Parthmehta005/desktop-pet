@@ -156,9 +156,10 @@ M6 and M7 both build on M5 and don't depend on each other.
 
 **Goal:** agree on the plan before writing any code.
 
-- **Scope:** this file, `REVIEW.md`, and a `README.md` skeleton.
+- **Scope:** this file, `REVIEW.md`, `CLAUDE.md` (working notes and decisions for
+  Claude), and a `README.md` skeleton.
 - **Boundary:** no code, no `package.json`.
-- **Done when:** all three files are committed and pushed, and you've approved them.
+- **Done when:** all four files are committed and pushed, and you've approved them.
 
 ---
 

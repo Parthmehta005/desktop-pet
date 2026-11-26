@@ -66,6 +66,7 @@ app is complete.
 
 ### F. Docs
 - [ ] The ROADMAP status table is updated.
+- [ ] `CLAUDE.md` is updated if a decision, convention or command changed.
 - [ ] The README sections this milestone affects are updated (from M5 on, as the app
       becomes usable).
 - [ ] The review log entry is added (§4).
