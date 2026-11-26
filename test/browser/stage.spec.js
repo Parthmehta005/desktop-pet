@@ -1,16 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { watchForErrors } from './helpers.js';
-
-export async function openStage(page, query = '') {
-  await page.goto(`/preview/stage.html${query}`);
-  await page.locator('#stage[data-ready="true"]').waitFor({ state: 'attached' });
-}
-
-export const snapshot = (page) => page.evaluate(() => window.__stage.controller.snapshot());
+import { watchForErrors, openStage, snapshot } from './helpers.js';
 
 test('the stage loads cleanly and the pet greets, then walks', async ({ page }) => {
   const errors = watchForErrors(page);
-  await openStage(page);
+  await openStage(page, '?time=12:00');
   expect((await snapshot(page)).mood).toBe('greeting');
   await expect.poll(async () => (await snapshot(page)).mood, { timeout: 6000 }).toBe('wander');
   const xs = [];
@@ -23,7 +16,7 @@ test('the stage loads cleanly and the pet greets, then walks', async ({ page }) 
 });
 
 test('the pet view follows the engine', async ({ page }) => {
-  await openStage(page);
+  await openStage(page, '?time=12:00');
   await page.evaluate(() => window.__stage.controller.dispatch({ type: 'claude', hook: 'UserPromptSubmit', sessionId: 'a' }));
   await expect(page.locator('.pet-view')).toHaveAttribute('data-state', 'working');
   await page.evaluate(() => window.__stage.controller.dispatch({ type: 'claude', hook: 'UserPromptSubmit', sessionId: 'b' }));
@@ -33,7 +26,7 @@ test('the pet view follows the engine', async ({ page }) => {
 const send = (page, event) => page.evaluate((e) => window.__stage.controller.dispatch(e), event);
 
 test('a mood with a bubble shows it for a few seconds, then hides it', async ({ page }) => {
-  await openStage(page);
+  await openStage(page, '?time=12:00');
   await expect(page.locator('.pet-bubble')).toHaveText('Hi!');
   await send(page, { type: 'claude', hook: 'Stop', sessionId: 'a' });
   await expect(page.locator('.pet-bubble')).toHaveText('Done!');
@@ -42,7 +35,7 @@ test('a mood with a bubble shows it for a few seconds, then hides it', async ({ 
 });
 
 test('meeting mode dims the pet and hides bubbles; leaving restores both', async ({ page }) => {
-  await openStage(page);
+  await openStage(page, '?time=12:00');
   await send(page, { type: 'app', process: 'Zoom', title: 'Zoom Meeting' });
   await expect(page.locator('.pet-view')).toHaveAttribute('data-meeting', 'true');
   await expect(page.locator('.pet-view')).toHaveAttribute('data-state', 'meeting');
@@ -56,7 +49,7 @@ test('meeting mode dims the pet and hides bubbles; leaving restores both', async
 });
 
 test('a fullscreen app hides the pet and it comes back afterwards', async ({ page }) => {
-  await openStage(page);
+  await openStage(page, '?time=12:00');
   await send(page, { type: 'app', process: 'game', title: 'Game', fullscreen: true });
   await expect(page.locator('.pet-view')).toHaveAttribute('data-hidden', 'true');
   await expect.poll(async () => (await snapshot(page)).opacity).toBe('0');
@@ -70,14 +63,14 @@ async function petCenter(page) {
 }
 
 test('clicking the pet pets it', async ({ page }) => {
-  await openStage(page);
+  await openStage(page, '?time=12:00');
   const c = await petCenter(page);
   await page.mouse.click(c.x, c.y);
   await expect(page.locator('.pet-view')).toHaveAttribute('data-state', 'petted');
 });
 
 test('dragging holds the pet under the pointer; letting go drops it to the ground', async ({ page }) => {
-  await openStage(page);
+  await openStage(page, '?time=12:00');
   const strip = await page.locator('#strip').boundingBox();
   const c = await petCenter(page);
   await page.mouse.move(c.x, c.y);
@@ -99,7 +92,7 @@ test('dragging holds the pet under the pointer; letting go drops it to the groun
 });
 
 test('the pet cannot be dragged or dropped outside the stage', async ({ page }) => {
-  await openStage(page);
+  await openStage(page, '?time=12:00');
   const strip = await page.locator('#strip').boundingBox();
   const c = await petCenter(page);
   await page.mouse.move(c.x, c.y);
@@ -115,7 +108,7 @@ test('the pet cannot be dragged or dropped outside the stage', async ({ page }) 
 });
 
 test('hovering over the pet is reported, and moving away clears it', async ({ page }) => {
-  await openStage(page);
+  await openStage(page, '?time=12:00');
   const strip = await page.locator('#strip').boundingBox();
   const c = await petCenter(page);
   await page.mouse.move(c.x, c.y);

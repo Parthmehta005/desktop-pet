@@ -1,7 +1,8 @@
 // The preview stage: the real controller running on a pretend desktop, with buttons for
 // every event the desktop app reacts to and a clock you can speed up.
 //
-// Query parameters: pet=<id>, speed=<1|10|60|600|3600>, wallpaper=dark
+// Query parameters: pet=<id>, speed=<1|10|60|600|3600>, wallpaper=dark, time=HH:MM (start the
+// clock at that time today; tests use it so results don't depend on when they run)
 import { PET_DEFINITIONS, getPet } from '../src/renderer/pets/index.js';
 import { createController } from '../src/renderer/controller.js';
 import { MOODS } from '../src/core/moods.js';
@@ -31,6 +32,13 @@ const clock = {
     this.realBase = performance.now();
   },
 };
+
+const startTime = (params.get('time') ?? '').match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+if (startTime) {
+  const start = new Date();
+  start.setHours(Number(startTime[1]), Number(startTime[2]), 0, 0);
+  clock.setTime(start.getTime());
+}
 
 const SPEEDS = [1, 10, 60, 600, 3600];
 const startSpeed = Number(params.get('speed'));

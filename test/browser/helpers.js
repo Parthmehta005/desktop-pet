@@ -21,3 +21,11 @@ export async function openGallery(page, query = '') {
   await page.goto(`/preview/${query}`);
   await page.locator('#gallery[data-ready="true"]').waitFor({ state: 'attached' });
 }
+
+export async function openStage(page, query = '') {
+  await page.goto(`/preview/stage.html${query}`);
+  await page.locator('#stage[data-ready="true"]').waitFor({ state: 'attached' });
+}
+
+/** What the stage's pet is doing right now (see controller.snapshot()). */
+export const snapshot = (page) => page.evaluate(() => window.__stage.controller.snapshot());

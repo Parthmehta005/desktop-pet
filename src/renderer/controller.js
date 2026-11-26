@@ -30,6 +30,8 @@ const DRAG_THRESHOLD = 5;
 const LANDING_MS = 350;
 /** Fraction of the pet's box, on each side, that doesn't count as "on the pet". */
 const HIT_INSET = 0.14;
+/** How many recent mood changes snapshot() reports. */
+const HISTORY_LENGTH = 50;
 
 function petSizePx(config) {
   const scale = Number(config.petSize);
@@ -74,6 +76,7 @@ export function createController({
   // Speech bubble: shown when a mood starts, and again every bubbleEveryMs (engine clock)
   // for long moods like bedtime; it stays up for BUBBLE_MS of real time.
   const bubble = { mood: null, text: null, until: 0, lastAt: -Infinity };
+  const history = [];
 
   function applySize() {
     view.element.style.setProperty('--pet-size', `${size}px`);
@@ -100,6 +103,10 @@ export function createController({
   }
 
   function render() {
+    if (history.at(-1) !== result.mood) {
+      history.push(result.mood);
+      if (history.length > HISTORY_LENGTH) history.shift();
+    }
     const look = presentation(result);
     actor.style.transform = `translate(${walker.x}px, ${-lift}px)`;
     const props = {
@@ -284,6 +291,7 @@ export function createController({
         dragging: Boolean(drag?.active),
         falling,
         hovering,
+        history: [...history],
       };
     },
     destroy() {
