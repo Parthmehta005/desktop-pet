@@ -12,7 +12,7 @@
  */
 
 import { createEngine } from '../core/engine.js';
-import { presentation, animationStateFor } from '../core/moods.js';
+import { MOODS, presentation, animationStateFor } from '../core/moods.js';
 import { createWalker, stepWalker, resizeWalker } from '../core/walker.js';
 import { createPetView } from './pet-view.js';
 
@@ -20,6 +20,8 @@ import { createPetView } from './pet-view.js';
 export const BASE_PET_SIZE = 140;
 /** How often the engine is ticked so timed moods expire. */
 const TICK_MS = 250;
+/** How long a speech bubble stays up, in real time. */
+export const BUBBLE_MS = 3500;
 
 function petSizePx(config) {
   const scale = Number(config.petSize);
@@ -51,12 +53,33 @@ export function createController({ strip, pet, config = {}, now = Date.now, rng 
   let lastTick = -Infinity;
   let frameId = null;
   let lastViewProps = '';
+  // Speech bubble: shown when a mood starts, and again every bubbleEveryMs (engine clock)
+  // for long moods like bedtime; it stays up for BUBBLE_MS of real time.
+  const bubble = { mood: null, text: null, until: 0, lastAt: -Infinity };
 
   function applySize() {
     view.element.style.setProperty('--pet-size', `${size}px`);
     walker = resizeWalker(walker, strip.clientWidth, size);
   }
   applySize();
+
+  function showBubble(text) {
+    bubble.text = text;
+    bubble.until = performance.now() + BUBBLE_MS;
+    bubble.lastAt = now();
+  }
+
+  function currentBubble(look) {
+    const def = MOODS[result.mood];
+    if (result.mood !== bubble.mood) {
+      bubble.mood = result.mood;
+      if (def.bubble) showBubble(def.bubble);
+      else bubble.until = 0;
+    } else if (def.bubble && def.bubbleEveryMs && now() - bubble.lastAt >= def.bubbleEveryMs) {
+      showBubble(def.bubble);
+    }
+    return look.showBubbles && performance.now() < bubble.until ? bubble.text : null;
+  }
 
   function render() {
     const look = presentation(result);
@@ -68,6 +91,7 @@ export function createController({ strip, pet, config = {}, now = Date.now, rng 
       moving: walker.moving && look.speed > 0,
       meeting: result.modifiers.meeting,
       hidden: result.modifiers.hidden,
+      bubble: currentBubble(look),
     };
     const key = JSON.stringify(props);
     if (key !== lastViewProps) {
@@ -137,6 +161,8 @@ export function createController({ strip, pet, config = {}, now = Date.now, rng 
         petSize: size,
         facing: walker.facing,
         moving: walker.moving,
+        bubble: view.state.bubble,
+        opacity: getComputedStyle(view.element).opacity,
       };
     },
     destroy() {
