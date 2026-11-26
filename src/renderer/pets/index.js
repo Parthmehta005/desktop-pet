@@ -4,8 +4,9 @@ import corgi from './corgi.js';
 import penguin from './penguin.js';
 import axolotl from './axolotl.js';
 import robot from './robot.js';
+import softbot from './softbot.js';
 
-export const PET_DEFINITIONS = Object.freeze({ cat, corgi, penguin, axolotl, robot });
+export const PET_DEFINITIONS = Object.freeze({ cat, corgi, penguin, axolotl, robot, softbot });
 
 /** The pet with this id, or Mochi if there's no such pet. */
 export function getPet(id) {

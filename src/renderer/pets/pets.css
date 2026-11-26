@@ -78,3 +78,26 @@
   0%, 100% { transform: rotate(0deg); }
   50% { transform: rotate(-14deg); }
 }
+
+/* Nimbus: puffs up and settles as it breathes; its heart beats faster the harder Claude works. */
+.pet-view[data-pet="softbot"] .body { animation: nimbus-puff 3.6s ease-in-out infinite; }
+.pet-view[data-pet="softbot"] .heart-light {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: heartbeat 1.6s ease-in-out infinite;
+}
+.pet-view[data-pet="softbot"][data-state="working"] .heart-light { animation-duration: 0.7s; }
+.pet-view[data-pet="softbot"][data-state="working"][data-intensity="2"] .heart-light { animation-duration: 0.5s; }
+.pet-view[data-pet="softbot"][data-state="working"][data-intensity="3"] .heart-light { animation-duration: 0.35s; }
+.pet-view[data-pet="softbot"][data-state="sleeping"] .heart-light { animation-duration: 3s; }
+
+@keyframes nimbus-puff {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.05, 1.06); }
+}
+
+@keyframes heartbeat {
+  0%, 40%, 100% { transform: scale(1); opacity: 0.9; }
+  12% { transform: scale(1.18); opacity: 1; }
+  24% { transform: scale(1.05); opacity: 0.95; }
+}
