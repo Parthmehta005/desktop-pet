@@ -47,3 +47,18 @@
   85%, 95% { transform: rotate(-28deg); }
   90% { transform: rotate(-8deg); }
 }
+
+/* Axo: gills that sway gently like they're under water. */
+.pet-view[data-pet="axolotl"] .ear-l { animation: gill-sway-l 1.8s ease-in-out infinite alternate; }
+.pet-view[data-pet="axolotl"] .ear-r { animation: gill-sway-r 1.8s ease-in-out infinite alternate; }
+.pet-view[data-pet="axolotl"][data-state="working"] .ear { animation-duration: 0.5s; }
+
+@keyframes gill-sway-l {
+  from { transform: rotate(-7deg); }
+  to { transform: rotate(6deg); }
+}
+
+@keyframes gill-sway-r {
+  from { transform: rotate(7deg); }
+  to { transform: rotate(-6deg); }
+}
