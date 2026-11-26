@@ -1,6 +1,7 @@
 // Launching the real app for tests.
 import { _electron as electron } from '@playwright/test';
-import { mkdtemp } from 'node:fs/promises';
+import { mkdtemp, writeFile, readFile } from 'node:fs/promises';
+import net from 'node:net';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,4 +31,49 @@ export async function launchApp({ userData, env = {} } = {}) {
     env: { ...process.env, DESKTOP_PET_USER_DATA: dir, DESKTOP_PET_TEST: '1', ...env },
   });
   return { app, userData: dir };
+}
+
+/** A TCP port nothing is listening on right now. */
+export function freePort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      const { port } = server.address();
+      server.close(() => resolve(port));
+    });
+  });
+}
+
+/** Writes a config.json (defaults plus `changes`) before the app starts. */
+export async function writeConfig(userData, changes) {
+  const { defaultConfig } = await import('../../src/core/config.js');
+  await writeFile(path.join(userData, 'config.json'), JSON.stringify({ ...defaultConfig(), ...changes }, null, 2));
+}
+
+export async function readConfig(userData) {
+  return JSON.parse(await readFile(path.join(userData, 'config.json'), 'utf8'));
+}
+
+/** Launches the app on a free hook port and waits for the pet and the hook server. */
+export async function launchWithHooks(changes = {}) {
+  const userData = await tempUserData();
+  const hookPort = await freePort();
+  await writeConfig(userData, { hookPort, ...changes });
+  const { app } = await launchApp({ userData });
+  const page = await app.firstWindow();
+  await page.locator('body[data-ready="true"]').waitFor({ state: 'attached' });
+  const { expect } = await import('@playwright/test');
+  await expect.poll(() => app.evaluate(() => globalThis.__desktopPet.state.hooks.listening)).toBe(true);
+  const config = await readConfig(userData);
+  return { app, page, userData, port: hookPort, token: config.hookToken };
+}
+
+/** Posts a hook payload the way the installed curl command does. */
+export function postHook({ port, token }, payload) {
+  return fetch(`http://127.0.0.1:${port}/desktop-pet/claude-hook`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Pet-Token': token },
+    body: JSON.stringify(payload),
+  });
 }

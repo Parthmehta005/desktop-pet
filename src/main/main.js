@@ -1,6 +1,7 @@
 // Electron main process: app lifecycle, the pet window and its IPC.
 import { app, ipcMain } from 'electron';
 import { fileURLToPath } from 'node:url';
+import { randomBytes } from 'node:crypto';
 import { createPetWindow, PET_WINDOW_OPTIONS } from './pet-window.js';
 import { registerAppScheme, handleAppProtocol, hardenApp, secureWebPreferences } from './security.js';
 import { rendererUrl } from './app-paths.js';
@@ -9,6 +10,8 @@ import { createEventBus } from './event-bus.js';
 import { createTray } from './tray.js';
 import { buildTrayMenu, TEST_REACTIONS } from './tray-menu.js';
 import { PETS } from '../core/pets.js';
+import { createHookServer } from './sources/hook-server.js';
+import { hookToEvent } from '../core/claude-hooks.js';
 
 // Tests (and anyone who wants a separate profile) can point the app at another folder
 // for its settings, so they never touch the real ones.
@@ -19,7 +22,15 @@ app.commandLine.appendSwitch('disable-background-networking');
 app.commandLine.appendSwitch('disable-component-update');
 const PRELOAD = fileURLToPath(new URL('./preload.cjs', import.meta.url));
 
-const state = { petWindow: null, store: null, bus: null, tray: null };
+const state = {
+  petWindow: null,
+  store: null,
+  bus: null,
+  tray: null,
+  hookServer: null,
+  // Whether Claude Code hooks can reach the pet: { listening, port, error }.
+  hooks: { listening: false, port: null, error: null },
+};
 
 /** Sends an engine event to the pet. */
 function sendToPet(event) {
@@ -43,7 +54,38 @@ async function setConfig(changes) {
   const win = state.petWindow?.win;
   if (win && !win.isDestroyed()) win.webContents.send('pet:config', changes);
   if ('petSize' in changes) state.petWindow.setPetSize(result.config.petSize);
+  if ('hookPort' in changes) await startHookServer();
   return { ok: true, errors: [] };
+}
+
+/** Starts (or restarts) the local server the Claude Code hook command posts to. */
+async function startHookServer() {
+  await state.hookServer?.stop();
+  const port = state.store.config.hookPort;
+  state.hookServer = createHookServer({
+    getToken: () => state.store.config.hookToken,
+    onHook(payload) {
+      const result = hookToEvent(payload, state.store.config);
+      if (result.event) state.bus.emit(result.event, { source: 'claude' });
+    },
+  });
+  try {
+    await state.hookServer.start(port);
+    state.hooks = { listening: true, port, error: null };
+  } catch (err) {
+    const error = err.code === 'EADDRINUSE'
+      ? `Port ${port} is already in use by another program. Pick another port in settings.`
+      : `Could not listen on port ${port}: ${err.message}`;
+    state.hooks = { listening: false, port, error };
+    console.warn(`Desktop Pet: ${error}`);
+  }
+  state.tray?.refresh();
+}
+
+/** The hook command authenticates with this; it's made once and kept in config.json. */
+async function ensureHookToken() {
+  if (state.store.config.hookToken) return;
+  await state.store.update({ hookToken: randomBytes(24).toString('hex') });
 }
 
 /** What the tray menu can do. */
@@ -89,6 +131,8 @@ async function start() {
   });
   await state.petWindow.win.loadURL(rendererUrl('pet.html'));
   state.tray = createTray({ getState: trayState, actions });
+  await ensureHookToken();
+  await startHookServer();
 }
 
 registerAppScheme();
@@ -110,7 +154,10 @@ if (!isFirstInstance) {
   });
   // The pet lives in the tray, so closing windows doesn't quit the app.
   app.on('window-all-closed', () => {});
-  app.on('before-quit', () => state.tray?.destroy());
+  app.on('before-quit', () => {
+    state.tray?.destroy();
+    state.hookServer?.stop();
+  });
   app.whenReady().then(start).catch((err) => {
     console.error('Desktop Pet failed to start:', err);
     app.exit(1);

@@ -11,12 +11,18 @@ async function openPet(userData) {
   return { app, page };
 }
 
-test('first run writes config.json with the defaults', async () => {
+/** The defaults, plus the hook token the app makes on first run. */
+function expectDefaultsWithToken(saved) {
+  expect(saved.hookToken).toMatch(/^[0-9a-f]{48}$/);
+  expect({ ...saved, hookToken: '' }).toEqual(defaultConfig());
+}
+
+test('first run writes config.json with the defaults (and a new hook token)', async () => {
   const userData = await tempUserData();
   const { app } = await openPet(userData);
+  await expect.poll(() => app.evaluate(() => globalThis.__desktopPet.state.store.config.hookToken)).not.toBe('');
   await app.close();
-  const saved = JSON.parse(await readFile(path.join(userData, 'config.json'), 'utf8'));
-  expect(saved).toEqual(defaultConfig());
+  expectDefaultsWithToken(JSON.parse(await readFile(path.join(userData, 'config.json'), 'utf8')));
 });
 
 test('a corrupt config.json is moved aside and the pet still starts', async () => {
@@ -24,10 +30,11 @@ test('a corrupt config.json is moved aside and the pet still starts', async () =
   await writeFile(path.join(userData, 'config.json'), '{ definitely not json', 'utf8');
   const { app, page } = await openPet(userData);
   await expect(page.locator('.pet-view')).toHaveAttribute('data-pet', 'cat');
+  await expect.poll(() => app.evaluate(() => globalThis.__desktopPet.state.store.config.hookToken)).not.toBe('');
   await app.close();
   const files = await readdir(userData);
   expect(files.some((f) => /^config\.corrupt-\d+\.json$/.test(f))).toBe(true);
-  expect(JSON.parse(await readFile(path.join(userData, 'config.json'), 'utf8'))).toEqual(defaultConfig());
+  expectDefaultsWithToken(JSON.parse(await readFile(path.join(userData, 'config.json'), 'utf8')));
 });
 
 test('a pet change is applied live and survives a restart', async () => {
