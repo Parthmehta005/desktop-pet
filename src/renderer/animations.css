@@ -46,3 +46,129 @@
   0%, 50%, 100% { transform: translate(0, 0) rotate(0deg); }
   25% { transform: translate(2px, -5px) rotate(-8deg); }
 }
+
+/* ---------- Shared helpers ---------- */
+
+/* Small props scale and spin around their own centre; rig parts use their pivots. */
+.pet-svg .prop g,
+.pet-svg .shadow { transform-box: fill-box; transform-origin: center; }
+
+/* ---------- Claude: working (sweating), happy, alert, away-done ---------- */
+
+.pet-view[data-state="working"] .head { animation: work-nod 0.9s ease-in-out infinite; }
+.pet-view[data-state="working"] .paw-l { animation: type 0.18s ease-in-out infinite; }
+.pet-view[data-state="working"] .paw-r { animation: type 0.18s ease-in-out -0.09s infinite; }
+.pet-view[data-state="working"][data-intensity="2"] .paw-l,
+.pet-view[data-state="working"][data-intensity="2"] .paw-r { animation-duration: 0.14s; }
+.pet-view[data-state="working"][data-intensity="3"] .paw-l,
+.pet-view[data-state="working"][data-intensity="3"] .paw-r { animation-duration: 0.11s; }
+.pet-view[data-state="working"][data-intensity="3"] .rig { animation: panic-shake 0.24s linear infinite; }
+.pet-view .drop { animation: sweat-drip 1.4s ease-in infinite; }
+.pet-view .drop-2 { animation-delay: -0.5s; }
+.pet-view .drop-3 { animation-delay: -0.95s; }
+.pet-view .puff { animation: steam-rise 1.6s ease-out infinite; }
+.pet-view .puff-2 { animation-delay: -0.55s; }
+.pet-view .puff-3 { animation-delay: -1.1s; }
+
+@keyframes work-nod {
+  0%, 100% { transform: translateY(4px) rotate(0deg); }
+  50% { transform: translateY(5px) rotate(-2deg); }
+}
+
+@keyframes type {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes panic-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-1.5px); }
+  75% { transform: translateX(1.5px); }
+}
+
+@keyframes sweat-drip {
+  0% { transform: translate(0, -2px) scale(0.5); opacity: 0; }
+  15% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(3px, 22px) scale(0.8); opacity: 0; }
+}
+
+@keyframes steam-rise {
+  0% { transform: translateY(4px) scale(0.5); opacity: 0; }
+  30% { opacity: 0.95; }
+  100% { transform: translateY(-22px) scale(1.2); opacity: 0; }
+}
+
+.pet-view[data-state="happy"] .rig { animation: hop 0.7s cubic-bezier(0.3, 0.7, 0.4, 1) infinite; }
+.pet-view[data-state="happy"] .shadow { animation: shadow-hop 0.7s cubic-bezier(0.3, 0.7, 0.4, 1) infinite; }
+.pet-view[data-state="happy"] .paw-l { animation: cheer-l 0.7s ease-in-out infinite; }
+.pet-view[data-state="happy"] .paw-r { animation: cheer-r 0.7s ease-in-out infinite; }
+.pet-view .sparkle { animation: twinkle 1.2s ease-in-out infinite; }
+.pet-view .sparkle-2 { animation-delay: -0.3s; }
+.pet-view .sparkle-3 { animation-delay: -0.6s; }
+.pet-view .sparkle-4 { animation-delay: -0.9s; }
+.pet-view .sparkle-5 { animation-delay: -0.45s; }
+
+@keyframes hop {
+  0%, 100% { transform: translateY(0) scale(1.05, 0.93); }
+  15% { transform: translateY(0) scale(0.96, 1.05); }
+  50% { transform: translateY(-22px) scale(1, 1); }
+  85% { transform: translateY(0) scale(1, 1); }
+}
+
+@keyframes shadow-hop {
+  0%, 15%, 85%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(0.65); opacity: 0.5; }
+}
+
+@keyframes cheer-l {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-6px, -30px) rotate(25deg); }
+}
+
+@keyframes cheer-r {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(6px, -30px) rotate(-25deg); }
+}
+
+@keyframes twinkle {
+  0%, 100% { transform: scale(0.3) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1.15) rotate(45deg); opacity: 1; }
+}
+
+.pet-view[data-state="alert"] .rig { animation: alert-hop 0.6s ease-in-out infinite; }
+.pet-view[data-state="alert"] .paw-r { animation: wave-high 0.4s ease-in-out infinite alternate; }
+.pet-view .badge { animation: badge-bounce 0.6s ease-in-out infinite; }
+
+@keyframes alert-hop {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes wave-high {
+  from { transform: translate(8px, -36px) rotate(-35deg); }
+  to { transform: translate(8px, -36px) rotate(10deg); }
+}
+
+@keyframes badge-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-5px) scale(1.12); }
+}
+
+.pet-view[data-state="away-done"] .rig { animation: sway 2.4s ease-in-out infinite; }
+.pet-view[data-state="away-done"] .head { animation: head-tilt 4.8s ease-in-out infinite; }
+.pet-view .prop-flag .cloth { transform-origin: left center; animation: flag-wave 1.1s ease-in-out infinite; }
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+
+@keyframes head-tilt {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-5deg); }
+}
+
+@keyframes flag-wave {
+  0%, 100% { transform: scaleX(1) skewY(0deg); }
+  50% { transform: scaleX(0.88) skewY(-7deg); }
+}
