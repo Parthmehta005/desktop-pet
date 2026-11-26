@@ -19,6 +19,10 @@
  *       The screen was locked / unlocked.
  *   { type: 'app-start' }
  *       The pet just launched.
+ *   { type: 'file-activity', folder? }
+ *       Files changed in a watched repo (already debounced by the watcher).
+ *   { type: 'commit', folder? }
+ *       A new commit landed in a watched repo.
  *   { type: 'tick' }
  *       Time passed. Lets timed moods expire.
  */
@@ -35,6 +39,9 @@ export const ENGINE_DEFAULTS = Object.freeze({
 
 /** Sessions silent for this long are forgotten entirely. */
 const SESSION_FORGET_MS = 24 * 60 * MINUTE;
+
+/** File edits keep the pet `focused` for this long. */
+export const FOCUS_WINDOW_MS = 2 * MINUTE;
 
 function engineConfig(config) {
   const out = { ...ENGINE_DEFAULTS };
@@ -54,6 +61,8 @@ export function createEngineState(config = {}, _now = 0) {
     user: Object.freeze({ idleSeconds: 0, locked: false, idle: false }),
     // Claude finished while the user was away; cleared when they come back.
     awayDone: false,
+    // When files last changed in a watched repo, or null.
+    lastFileActivityAt: null,
   });
 }
 
@@ -122,6 +131,14 @@ function onAppStart(next, _event, now) {
   startTimer(next, 'greeting', now);
 }
 
+function onFileActivity(next, _event, now) {
+  next.lastFileActivityAt = now;
+}
+
+function onCommit(next, _event, now) {
+  startTimer(next, 'celebrating', now);
+}
+
 function onClaude(next, event, now) {
   const id = typeof event.sessionId === 'string' && event.sessionId !== '' ? event.sessionId : 'default';
   const prev = next.sessions[id];
@@ -156,6 +173,8 @@ const HANDLERS = {
   lock: onLock,
   unlock: onUnlock,
   'app-start': onAppStart,
+  'file-activity': onFileActivity,
+  commit: onCommit,
   tick: () => {},
 };
 
@@ -204,6 +223,9 @@ export function applicableMoods(state, now) {
   if (claude.waiting > 0) moods.push('alert');
   if (state.awayDone) moods.push('away-done');
   if (state.user.idle) moods.push('sleeping');
+  if (state.lastFileActivityAt !== null && now - state.lastFileActivityAt < FOCUS_WINDOW_MS) {
+    moods.push('focused');
+  }
   return moods;
 }
 
