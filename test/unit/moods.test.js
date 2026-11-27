@@ -5,18 +5,18 @@ import {
   intensityFor, presentation, animationStateFor,
 } from '../../src/core/moods.js';
 
-test('the catalogue has the 17 moods and 2 modifiers from the roadmap', () => {
+test('the catalogue has the 18 moods and 2 modifiers from the roadmap', () => {
   assert.deepEqual([...MOOD_IDS].sort(), [
     'alert', 'away-done', 'bedtime', 'celebrating', 'falling', 'focused', 'gaming',
-    'greeting', 'happy', 'held', 'petted', 'sleeping', 'stretch', 'vibing', 'wander',
+    'greeting', 'happy', 'held', 'low-battery', 'petted', 'sleeping', 'stretch', 'vibing', 'wander',
     'watching', 'working',
   ]);
   assert.deepEqual([...MODIFIER_IDS].sort(), ['hidden', 'meeting']);
 });
 
-test('there are 18 animation states: every mood plus the meeting look', () => {
-  assert.equal(ANIMATION_STATE_IDS.length, 18);
-  assert.equal(new Set(ANIMATION_STATE_IDS).size, 18);
+test('there are 19 animation states: every mood plus the meeting look', () => {
+  assert.equal(ANIMATION_STATE_IDS.length, 19);
+  assert.equal(new Set(ANIMATION_STATE_IDS).size, 19);
   assert.ok(ANIMATION_STATE_IDS.includes('meeting'));
   assert.ok(!ANIMATION_STATE_IDS.includes('hidden'));
 });
@@ -40,7 +40,9 @@ test('priorities are unique and follow the roadmap order', () => {
   assert.equal(new Set(priorities).size, priorities.length);
 
   const order = [
-    ['held', 'falling', 'petted'],
+    ['held', 'falling'],
+    ['low-battery'],
+    ['petted'],
     ['alert'],
     ['celebrating', 'happy'],
     ['working'],
@@ -109,10 +111,19 @@ test('animationStateFor: meetings quieten everyday moods but not urgent ones', (
   for (const mood of ['wander', 'focused', 'bedtime', 'stretch', 'vibing', 'gaming', 'watching']) {
     assert.equal(animationStateFor({ mood, modifiers: meeting }), 'meeting', mood);
   }
-  for (const mood of ['greeting', 'sleeping', 'away-done', 'working', 'happy', 'celebrating', 'alert', 'petted', 'held', 'falling']) {
+  for (const mood of ['greeting', 'sleeping', 'away-done', 'working', 'happy', 'celebrating', 'alert', 'petted', 'held', 'falling', 'low-battery']) {
     assert.equal(animationStateFor({ mood, modifiers: meeting }), mood, mood);
   }
   assert.equal(animationStateFor({ mood: 'working' }), 'working');
   assert.equal(animationStateFor({ mood: 'wander', modifiers: { hidden: true } }), 'wander');
   assert.equal(animationStateFor({ mood: 'nope' }), 'wander');
+});
+
+test('low battery heads for the right-hand end and ignores the meeting and fullscreen modifiers', () => {
+  assert.equal(MOODS['low-battery'].goesTo, 'right');
+  assert.deepEqual(MOOD_IDS.filter((id) => MOODS[id].goesTo !== null), ['low-battery']);
+  assert.deepEqual(MOOD_IDS.filter((id) => MOODS[id].overridesModifiers), ['low-battery']);
+  const both = { meeting: true, hidden: true };
+  assert.deepEqual(presentation({ mood: 'low-battery', modifiers: both }), { speed: 0, opacity: 1, showBubbles: true });
+  assert.equal(animationStateFor({ mood: 'low-battery', modifiers: both }), 'low-battery');
 });

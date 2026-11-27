@@ -176,6 +176,27 @@ export const PROPS = Object.freeze({
     ].join('')),
   },
 
+  // Low battery: a nearly empty battery by the head, and an arrow down to the bottom
+  // right, where Windows shows its battery icon (the pet runs to that end of the strip).
+  battery: {
+    layer: 'fx',
+    render: ({ anchors: { headTop: [x, y] } }) => [
+      at(x + 48, y + 4, [
+        '<g class="battery-icon">',
+        `<rect x="-17" y="-10" width="31" height="20" rx="4" fill="#fff" stroke="${OUTLINE}" stroke-width="2.6"/>`,
+        `<rect x="14" y="-4.5" width="5" height="9" rx="1.5" fill="${OUTLINE}"/>`,
+        '<rect x="-13.5" y="-6.5" width="7" height="13" rx="1.5" fill="#e5484d"/>',
+        '</g>',
+      ].join('')),
+      at(176, 166, [
+        '<g class="point-arrow">',
+        '<path d="M-20 -22 Q -4 -18 4 -2" fill="none" stroke="#e5484d" stroke-width="5" stroke-linecap="round"/>',
+        '<path d="M-4 -3 L 9 6 L 11 -9 Z" fill="#e5484d" stroke="#e5484d" stroke-width="2.5" stroke-linejoin="round"/>',
+        '</g>',
+      ].join('')),
+    ].join(''),
+  },
+
   speedlines: {
     layer: 'fx',
     render: ({ anchors: { headTop: [x, y] } }) => [-26, 0, 26].map((dx, i) => at(x + dx, y - 14 + Math.abs(dx) / 3,

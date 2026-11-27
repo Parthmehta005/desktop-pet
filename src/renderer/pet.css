@@ -61,7 +61,8 @@
 .pet-view[data-props~="nightcap"] .prop-nightcap,
 .pet-view[data-props~="flag"] .prop-flag,
 .pet-view[data-props~="muted"] .prop-muted,
-.pet-view[data-props~="speedlines"] .prop-speedlines { display: inline; }
+.pet-view[data-props~="speedlines"] .prop-speedlines,
+.pet-view[data-props~="battery"] .prop-battery { display: inline; }
 
 /* Sweat follows how many Claude sessions are busy; steam only at the top level. */
 .pet-view[data-intensity="1"] .drop-2,

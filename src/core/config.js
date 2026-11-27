@@ -37,6 +37,7 @@ export const CONFIG_SCHEMA = Object.freeze({
   walkSpeed: { type: 'number', min: 0.25, max: 3, default: 1 },
   quietDuringMeetings: { type: 'boolean', default: true },
   hideWhenFullscreen: { type: 'boolean', default: true },
+  lowBatteryPercent: { type: 'integer', min: 0, max: 50, default: 10 },
   appRules: { type: 'appRules', max: 100, default: DEFAULT_APP_RULES },
   launchAtLogin: { type: 'boolean', default: false },
   toggleShortcut: { type: 'shortcut', nullable: true, default: DEFAULT_TOGGLE_SHORTCUT },

@@ -10,7 +10,11 @@ export const SECTIONS = Object.freeze([
     title: 'Claude Code',
     fields: ['watchedFolders', 'reactToAllSessions', 'workingStaleMinutes', 'alertTimeoutMinutes', 'hookPort'],
   },
-  { id: 'you', title: 'You', fields: ['idleMinutes', 'breakReminderMinutes', 'breakMinutes', 'bedtime', 'wakeTime'] },
+  {
+    id: 'you',
+    title: 'You',
+    fields: ['idleMinutes', 'breakReminderMinutes', 'breakMinutes', 'bedtime', 'wakeTime', 'lowBatteryPercent'],
+  },
   { id: 'apps', title: 'Apps', fields: ['quietDuringMeetings', 'hideWhenFullscreen', 'appRules'] },
   { id: 'system', title: 'System', fields: ['toggleShortcut', 'launchAtLogin', 'disableHardwareAcceleration'] },
 ].map((s) => Object.freeze({ ...s, fields: Object.freeze(s.fields) })));
@@ -39,6 +43,12 @@ export const FIELDS = Object.freeze({
   breakMinutes: { label: 'A break is at least', control: 'number', unit: 'minutes away', help: 'Being idle this long resets the stretch reminder.' },
   bedtime: { label: 'Bedtime', control: 'time', nullable: true, help: 'After this the pet wears its nightcap. Untick to turn it off.' },
   wakeTime: { label: 'Morning', control: 'time', help: 'When bedtime ends.' },
+  lowBatteryPercent: {
+    label: 'Panic about the battery at',
+    control: 'number',
+    unit: '% or less (0 = off)',
+    help: 'Unplugged and this low, the pet runs to the battery icon and points at it. Click it to open battery settings.',
+  },
 
   quietDuringMeetings: { label: 'Quiet during meetings', control: 'checkbox', help: 'Fades the pet, keeps it still and hides its speech bubbles in Zoom, Teams, Meet and Webex.' },
   hideWhenFullscreen: { label: 'Hide when something is fullscreen', control: 'checkbox', help: 'Games, videos and presentations.' },

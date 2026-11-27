@@ -14,6 +14,10 @@
  *   speed        Walking-speed multiplier: 1 = normal wander, 0 = stays put.
  *   bubble       Speech-bubble text shown when the mood starts, or null.
  *   bubbleEveryMs  For long-lasting moods, repeat the bubble at most this often.
+ *   goesTo       null, or 'right': the pet runs to that end of the strip and stays there
+ *                facing it (low battery: the battery icon is at the bottom right).
+ *   overridesModifiers  true if the meeting and fullscreen modifiers don't apply while
+ *                this mood shows (low battery beats even a meeting).
  */
 
 const SECOND = 1000;
@@ -21,7 +25,9 @@ const MINUTE = 60 * SECOND;
 
 function define(moods) {
   for (const [id, def] of Object.entries(moods)) {
-    moods[id] = Object.freeze({ id, bubble: null, bubbleEveryMs: null, durationMs: null, ...def });
+    moods[id] = Object.freeze({
+      id, bubble: null, bubbleEveryMs: null, durationMs: null, goesTo: null, overridesModifiers: false, ...def,
+    });
   }
   return Object.freeze(moods);
 }
@@ -131,6 +137,16 @@ export const MOODS = define({
     durationMs: 2 * SECOND,
     speed: 0,
   },
+  'low-battery': {
+    label: 'Low battery',
+    trigger: 'On battery and nearly out (10% or less by default)',
+    priority: 102,
+    speed: 0,
+    goesTo: 'right',
+    overridesModifiers: true,
+    bubble: 'Low battery!',
+    bubbleEveryMs: 20 * SECOND,
+  },
   falling: {
     label: 'Falling',
     trigger: 'You dropped the pet',
@@ -196,6 +212,7 @@ export function presentation(result) {
   let speed = def.speed;
   let opacity = 1;
   let showBubbles = true;
+  if (def.overridesModifiers) return { speed, opacity, showBubbles };
   for (const id of MODIFIER_IDS) {
     if (!result.modifiers?.[id]) continue;
     const mod = MODIFIERS[id];
@@ -215,6 +232,6 @@ export function presentation(result) {
  */
 export function animationStateFor(result) {
   const def = MOODS[result.mood] ?? MOODS.wander;
-  if (result.modifiers?.meeting && def.priority < MOODS.greeting.priority) return 'meeting';
+  if (result.modifiers?.meeting && !def.overridesModifiers && def.priority < MOODS.greeting.priority) return 'meeting';
   return def.id;
 }

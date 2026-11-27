@@ -427,3 +427,44 @@
   55% { transform: scale(0.95, 1.06); }
   100% { transform: scale(1, 1); }
 }
+
+/* ---------- Low battery: panicking, pointing at the battery in the corner ---------- */
+
+.pet-view[data-state="low-battery"] .rig { animation: panic-shake 0.16s linear infinite; }
+.pet-view[data-state="low-battery"] .head { animation: panic-head 0.5s ease-in-out infinite alternate; }
+.pet-view[data-state="low-battery"] .paw-r { animation: point-battery 0.4s ease-in-out infinite alternate; }
+.pet-view[data-state="low-battery"] .paw-l { animation: panic-paw 0.22s ease-in-out infinite alternate; }
+.pet-view[data-state="low-battery"] .drop { animation-duration: 0.7s; }
+.pet-view .prop-battery .battery-icon { animation: battery-blink 0.9s steps(1, end) infinite; }
+.pet-view .prop-battery .point-arrow { animation: nudge-down-right 0.45s ease-in-out infinite alternate; }
+
+@keyframes panic-shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(-2px) rotate(-1.2deg); }
+  75% { transform: translateX(2px) rotate(1.2deg); }
+}
+
+@keyframes panic-head {
+  from { transform: rotate(4deg); }
+  to { transform: rotate(9deg); }
+}
+
+@keyframes point-battery {
+  from { transform: translate(22px, -14px) rotate(-60deg); }
+  to { transform: translate(28px, -10px) rotate(-72deg); }
+}
+
+@keyframes panic-paw {
+  from { transform: translate(-2px, -34px) rotate(25deg); }
+  to { transform: translate(-6px, -40px) rotate(-5deg); }
+}
+
+@keyframes battery-blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(1.12); }
+}
+
+@keyframes nudge-down-right {
+  from { transform: translate(-3px, -3px); }
+  to { transform: translate(2px, 2px); }
+}

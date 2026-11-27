@@ -27,6 +27,9 @@
  *       The foreground window changed. Matched against the app rules.
  *   { type: 'config', config }
  *       Settings changed; `config` holds the changed keys.
+ *   { type: 'battery', percent, charging, present }
+ *       The battery: charge 0..100, whether it's charging (or plugged in), and whether
+ *       the computer has one at all. A desktop PC sends present: false.
  *   { type: 'pet' }
  *       The user clicked the pet.
  *   { type: 'grab' }, { type: 'drop' }, { type: 'land' }
@@ -59,6 +62,8 @@ export const ENGINE_DEFAULTS = Object.freeze({
   // Local "HH:MM" window for the bedtime nudge; null (or equal times) turns it off.
   bedtime: '00:30',
   wakeTime: '06:00',
+  // Panic at or below this battery percentage while unplugged; 0 turns it off.
+  lowBatteryPercent: 10,
 });
 
 const APP_MOODS = new Set(['vibing', 'gaming', 'watching']);
@@ -98,6 +103,8 @@ export function createEngineState(config = {}) {
     nextStretchAt: null,
     // null, 'held' or 'falling'.
     interaction: null,
+    // The last battery report: { percent, charging, present }, or null before the first.
+    battery: null,
   });
 }
 
@@ -222,6 +229,23 @@ function onConfig(next, event, now) {
   }
 }
 
+function onBattery(next, event) {
+  const percent = Number(event.percent);
+  if (!Number.isFinite(percent)) return;
+  next.battery = Object.freeze({
+    percent: Math.min(100, Math.max(0, percent)),
+    charging: event.charging === true,
+    present: event.present !== false,
+  });
+}
+
+/** On battery, with one fitted, at or below the threshold (0 = never). */
+export function batteryLow(state) {
+  const { battery, config } = state;
+  const threshold = Number(config.lowBatteryPercent);
+  return Boolean(battery && battery.present && !battery.charging && threshold > 0 && battery.percent <= threshold);
+}
+
 function onPet(next, _event, now) {
   startTimer(next, 'petted', now);
 }
@@ -285,6 +309,7 @@ const HANDLERS = {
   'file-activity': onFileActivity,
   commit: onCommit,
   app: onApp,
+  battery: onBattery,
   config: onConfig,
   pet: onPet,
   grab: onGrab,
@@ -348,6 +373,7 @@ export function applicableMoods(state, now) {
     moods.push('bedtime');
   }
   if (state.interaction !== null) moods.push(state.interaction);
+  if (batteryLow(state)) moods.push('low-battery');
   return moods;
 }
 
@@ -375,10 +401,12 @@ export function selectMood(state, now) {
     if (MOODS[id].priority > MOODS[mood].priority) mood = id;
   }
   const claude = claudeCounts(state, now);
+  // Low battery beats even a meeting or a fullscreen app.
+  const modifiers = MOODS[mood].overridesModifiers ? { meeting: false, hidden: false } : modifiersFor(state);
   return {
     mood,
     intensity: mood === 'working' ? intensityFor(claude.working) : 1,
-    modifiers: modifiersFor(state),
+    modifiers,
     claude,
   };
 }

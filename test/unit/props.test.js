@@ -5,9 +5,9 @@ import { STATE_LOOKS } from '../../src/renderer/rig.js';
 import { PET_DEFINITIONS } from '../../src/renderer/pets/index.js';
 import { assertSafeMarkup } from './helpers/markup.js';
 
-test('the 16 props exist, each on a known layer', () => {
+test('the 17 props exist, each on a known layer', () => {
   assert.deepEqual([...PROP_NAMES].sort(), [
-    'confetti', 'controller', 'exclaim', 'flag', 'headphones', 'hearts', 'laptop', 'muted',
+    'battery', 'confetti', 'controller', 'exclaim', 'flag', 'headphones', 'hearts', 'laptop', 'muted',
     'nightcap', 'notes', 'popcorn', 'sparkles', 'speedlines', 'steam', 'sweat', 'zzz',
   ]);
   for (const name of PROP_NAMES) assert.ok(['head', 'front', 'fx'].includes(PROPS[name].layer), name);

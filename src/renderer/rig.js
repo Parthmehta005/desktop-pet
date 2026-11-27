@@ -94,6 +94,7 @@ export const STATE_LOOKS = Object.freeze({
   held: { eyes: 'wide', mouth: 'worried', props: [] },
   falling: { eyes: 'wide', mouth: 'o', props: ['speedlines'] },
   meeting: { eyes: 'open', mouth: 'flat', props: ['muted'] },
+  'low-battery': { eyes: 'wide', mouth: 'o', props: ['sweat', 'battery'] },
 });
 
 function isPoint(p) {

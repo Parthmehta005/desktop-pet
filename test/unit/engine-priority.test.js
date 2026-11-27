@@ -39,6 +39,7 @@ const SCENARIOS = {
   petted: { setup: (h) => h.send({ type: 'pet' }) },
   falling: { setup: (h) => h.send({ type: 'grab' }).send({ type: 'drop' }) },
   held: { setup: (h) => h.send({ type: 'grab' }) },
+  'low-battery': { setup: (h) => h.send({ type: 'battery', percent: 8, charging: false, present: true }) },
 };
 
 /** Pairs that can never hold at the same time, and why. */

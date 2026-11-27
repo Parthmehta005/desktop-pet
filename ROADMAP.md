@@ -599,16 +599,17 @@ a click on it opens Windows' battery settings.
 
 **Boundary:** no other new features. A desktop PC without a battery never panics.
 
-**Planned commits**
+**Planned commits** (revised while building: a new mood needs its look, and a new setting
+its control in the settings window, in the same commit, or the tests that check every
+state has a look and every setting has a control fail)
 1. Plan (this section, REVIEW §M12, the states table)
-2. Engine and config: the battery event, the `low-battery` mood and its priority, the
-   setting
-3. Art: the `low-battery` animation for all six pets, in the gallery
-4. Controller and stage: running to the corner, pointing, the click, and the stage
+2. The `low-battery` mood: the battery event, its priority, the setting and its control,
+   and its animation for all six pets
+3. Controller and stage: running to the corner, pointing, the click, and the stage
    buttons
-5. Windows battery source, opening battery settings, showing a hidden pet, getting
-   through pause, and the setting in the settings window
-6. README, GUIDE and review
+4. Windows battery source, opening battery settings, showing a hidden pet, and getting
+   through pause
+5. README, GUIDE and review
 
 **Done when:** every pet has the new animation, the panic starts at the threshold only
 on battery and stops when plugged in, it wins over every other mood and over meetings,
