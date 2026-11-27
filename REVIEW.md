@@ -232,19 +232,19 @@ app is complete.
       events once the initial scan finishes.
 
 ### M8 — Settings window and polish
-- [ ] Every field in the config schema has a control in the settings window. A test
+- [x] Every field in the config schema has a control in the settings window. A test
       compares the schema keys against the form fields.
-- [ ] Invalid input (for example a bad regex, or idle minutes of 0) is rejected with a
+- [x] Invalid input (for example a bad regex, or idle minutes of 0) is rejected with a
       message and never saved.
-- [ ] Adding a folder through the folder picker (stubbed in tests) saves it, and the
+- [x] Adding a folder through the folder picker (stubbed in tests) saves it, and the
       watcher picks it up without a restart.
-- [ ] Changing the pet swaps it live, and shuffle daily picks a different pet when the
+- [x] Changing the pet swaps it live, and shuffle daily picks a different pet when the
       date changes (fake clock).
-- [ ] The hooks panel shows the true status, and install/remove work from the UI.
-- [ ] Launch at login calls `app.setLoginItemSettings` (spied in tests).
-- [ ] Settings survive an app restart.
-- [ ] The settings window passes security section E.
-- [ ] Screenshot of the settings window reviewed.
+- [x] The hooks panel shows the true status, and install/remove work from the UI.
+- [x] Launch at login calls `app.setLoginItemSettings` (spied in tests).
+- [x] Settings survive an app restart.
+- [x] The settings window passes security section E.
+- [x] Screenshot of the settings window reviewed.
 
 ### M9 — Packaging, Windows CI, final README
 - [ ] `electron-builder` produces an NSIS installer and a portable `.exe` on Windows CI,
@@ -300,3 +300,4 @@ column.
 | M5 | `7f3c951` | 2026-11-26 | Pass | 337/337, 3 runs in a row | 79/79, 3 runs in a row | 26/26, 3 runs in a row | Pass (unit + Electron on Linux) | Pass (unit) | All 7 M5 commits pass every suite on their own. Resource use under xvfb with software rendering: about 3% CPU and 560 MB across 4 Electron processes while wandering (`test-results/electron-metrics.json`). The window screenshot was reviewed. Additions beyond the plan: windows load over a privileged `app://` protocol that only serves `src/renderer` and `src/core` (so CSP `'self'` works without `file://`); Chromium background networking is off; an engine `reset` event lets "Pause reactions" calm the pet at once. Test-only: Electron launches with `--no-sandbox` when running as root or on CI, never in the app. The Windows Electron smoke test comes in M9 as planned |
 | M6 | `0817beb` | 2026-11-27 | Pass | 378/378, 3 runs in a row | 79/79, 3 runs in a row | 33/33, 3 runs in a row | Pass (unit, browser, Electron) | Pass (unit) | All 10 M6 commits pass every suite on their own. The per-commit re-run used `TZ=Pacific/Honolulu` (daytime) because commits before `acf4a1d` contain an M5 test that assumed daytime; the three full runs were at real UTC night time. Found and fixed along the way: that time-of-day test flaw (`acf4a1d`), and curl honouring `http_proxy` (the hook command now passes `--noproxy`). Additions: the settings folder is pinned to `<appData>/desktop-pet` so the command-line tool can find the token; `--wsl` installs; with no watched folders, every Claude session counts. Process slip: a commit was made with a failing test (the check output was piped, hiding its exit code); it was undone before pushing and redone after the fix |
 | M7 | `7f525ce` | 2026-11-27 | Pass | 411/411, 3 runs in a row | 79/79, 3 runs in a row | 51/51, 3 runs in a row | Pass (unit, browser, Electron) | Pass (unit) | Every M7 commit passes every suite on its own, re-checked after the fixes below. The three full runs were at `c0327ef`, which includes all of M7 and the M8 work that came between its fixes. A 10,000-file folder: first scan about 1.1 s, then 0.3 ms of CPU over 3 s idle and no events. The PowerShell script was reviewed by reading: no admin rights or network, started with `-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand`, checks once a second, and exits with the pet; it runs for real on Windows CI in M9. CI found three real bugs after the M7 commits, each fixed with a test that fails on the old code: settings reported as saved before they were on disk (`5fb1d5f`), commits missed on Windows because paths were compared as raw strings (`0c83396`), and a commit made straight after another going unnoticed because chokidar drops a change within 50 ms of the last one (`7f525ce`). One gate run failed because two test runs shared ports; runs now pick free ports (`5043278`), and three quiet reruns were green |
+| M8 | `97cad29` | 2026-11-27 | Pass | 411/411, 3 runs in a row | 79/79, 3 runs in a row | 51/51, 3 runs in a row | Pass (unit, browser, Electron) | Pass (unit) | Every M8 commit passes every suite on its own; the three full runs were at `c0327ef`, and the last commit (`97cad29`, CSS only) passed every suite too. The commit list was revised: the form is generated from one field list, so the window and the simple controls came together. The settings window's own tests found an accessibility bug (labels named the wrong element, and the folder and rule fields' titles replaced their buttons' names), fixed in `fd8eda5`. CI found two quick list edits losing one (each built on a stale copy of the settings); saves now run one at a time and build on the latest settings (`c0327ef`), tested with deliberately slowed saves that fail on the old code. The settings window screenshot was reviewed; the pet cards now sit in one row of six (`97cad29`). Launch at login is recorded rather than applied in tests, and the hooks panel is tested against a temporary Claude folder |

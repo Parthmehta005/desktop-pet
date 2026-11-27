@@ -23,7 +23,7 @@ completed in the last milestone.
 | M5 | Electron shell | Done |
 | M6 | Claude Code integration | Done |
 | M7 | Local activity sources | Done |
-| M8 | Settings window and polish | In progress |
+| M8 | Settings window and polish | Done |
 | M9 | Packaging, Windows CI, final README | Not started |
 
 Status values: `Not started` · `In progress` · `In review` · `Done`.
@@ -448,6 +448,7 @@ so the window and the simple controls came together)
 6. Hooks panel and launch at login
 7. Apply config changes live, and Electron end-to-end tests for the settings window
 8. README sections and review
+9. Fixes from CI and the review: quick list edits losing one, and the pet card layout
 
 **Done when:** every config field can be edited and is validated, changes apply
 immediately, the settings survive a restart, and REVIEW.md §M8 passes.
