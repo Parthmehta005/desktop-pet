@@ -5,6 +5,7 @@ import { mkdtemp, writeFile, mkdir, appendFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { watch as chokidarWatch } from 'chokidar';
 import { createRepoWatcher } from '../../src/main/sources/repo-watcher.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -196,4 +197,26 @@ test('a folder that does not exist does not crash the watcher', async () => {
   const w = await watching([path.join(tmpdir(), 'definitely-not-here-desktop-pet')], { onError: (e) => errors.push(e) });
   await w.watcher.close();
   assert.ok(true);
+});
+
+test('overlapping folder changes never watch a folder twice', async () => {
+  const a = await mkdtemp(path.join(tmpdir(), 'desktop-pet-a-'));
+  const b = await mkdtemp(path.join(tmpdir(), 'desktop-pet-b-'));
+  const opened = [];
+  const watcher = createRepoWatcher({
+    onActivity: () => {},
+    onCommit: () => {},
+    watch: (target, options) => {
+      opened.push(target);
+      return chokidarWatch(target, options);
+    },
+  });
+  try {
+    // The settings window saving twice in a row, before the first change has finished.
+    await Promise.all([watcher.setFolders([a]), watcher.setFolders([a, b])]);
+    assert.deepEqual(watcher.folders, [a, b]);
+    assert.deepEqual(opened, [a, b], 'each folder is watched once');
+  } finally {
+    await watcher.close();
+  }
 });

@@ -194,12 +194,23 @@ export function createRepoWatcher({
     await Promise.all(entry.watchers.map((w) => w.close()));
   }
 
+  // Changes run one at a time: two overlapping setFolders calls would otherwise both
+  // start watching a new folder, and the first set of watchers would never be closed.
+  let queue = Promise.resolve();
+  function serial(task) {
+    const run = queue.then(task, task);
+    queue = run.catch(() => {});
+    return run;
+  }
+
   return {
     /** Watches exactly these folders, starting and stopping watchers as needed. */
-    async setFolders(folders) {
-      const wanted = new Set(folders);
-      for (const folder of [...watched.keys()]) if (!wanted.has(folder)) await remove(folder);
-      for (const folder of wanted) if (!watched.has(folder)) await add(folder);
+    setFolders(folders) {
+      return serial(async () => {
+        const wanted = new Set(folders);
+        for (const folder of [...watched.keys()]) if (!wanted.has(folder)) await remove(folder);
+        for (const folder of wanted) if (!watched.has(folder)) await add(folder);
+      });
     },
     /** Resolves when every watcher has finished its initial scan. */
     async whenReady() {
@@ -208,8 +219,10 @@ export function createRepoWatcher({
     get folders() {
       return [...watched.keys()];
     },
-    async close() {
-      for (const folder of [...watched.keys()]) await remove(folder);
+    close() {
+      return serial(async () => {
+        for (const folder of [...watched.keys()]) await remove(folder);
+      });
     },
   };
 }
