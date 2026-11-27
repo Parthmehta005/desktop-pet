@@ -149,3 +149,41 @@ test('watched folders: add with the folder picker, remove, and the watcher follo
     await app.close();
   }
 });
+
+test('the pet picker shows every pet alive, and picking one swaps the pet at once', async () => {
+  const { app, pet, userData } = await launch();
+  try {
+    const win = await openSettings(app);
+    const cards = win.locator('.pet-card');
+    await expect(cards).toHaveCount(6);
+    await expect(win.locator('.pet-card .pet-svg')).toHaveCount(6);
+    await expect(win.locator('.pet-card.selected')).toHaveAttribute('data-pet', 'cat');
+    await win.getByText('Biscuit').click();
+    await expect(pet.locator('.pet-view')).toHaveAttribute('data-pet', 'corgi');
+    await expect(win.locator('.pet-card.selected')).toHaveAttribute('data-pet', 'corgi');
+    await expect.poll(async () => (await readConfig(userData)).pet).toBe('corgi');
+  } finally {
+    await app.close();
+  }
+});
+
+test('"a different pet every day" switches pets when the date changes', async () => {
+  const { app, pet } = await launch();
+  const { petForDay } = await import('../../src/core/pets.js');
+  try {
+    const win = await openSettings(app);
+    await win.getByLabel('A different pet every day').check();
+    const today = petForDay(new Date());
+    await expect(pet.locator('.pet-view')).toHaveAttribute('data-pet', today);
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    await app.evaluate((_, ms) => globalThis.__desktopPet.checkShuffle(ms), tomorrow.getTime());
+    const next = petForDay(tomorrow);
+    expect(next).not.toBe(today);
+    await expect(pet.locator('.pet-view')).toHaveAttribute('data-pet', next);
+    await expect(win.locator('.pet-card.selected')).toHaveAttribute('data-pet', next);
+  } finally {
+    await app.close();
+  }
+});

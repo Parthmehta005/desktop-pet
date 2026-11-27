@@ -198,3 +198,13 @@ test('serializeConfig round-trips through parseConfig', () => {
   assert.deepEqual(parsed.config, config);
   assert.deepEqual(parsed.errors, []);
 });
+
+test('petForDay: same day, same pet; consecutive days always differ; all six come round', async () => {
+  const { petForDay, localDateKey } = await import('../../src/core/pets.js');
+  const day = (d, h = 9) => new Date(2026, 10, d, h, 0);
+  assert.equal(petForDay(day(27, 0)), petForDay(day(27, 23)), 'the whole day is one pet');
+  const week = [21, 22, 23, 24, 25, 26].map((d) => petForDay(day(d)));
+  assert.deepEqual([...week].sort(), [...PET_IDS].sort(), 'six days, six pets');
+  for (let d = 1; d < 60; d++) assert.notEqual(petForDay(new Date(2026, 0, d)), petForDay(new Date(2026, 0, d + 1)));
+  assert.equal(localDateKey(new Date(2026, 0, 5)), '2026-01-05');
+});

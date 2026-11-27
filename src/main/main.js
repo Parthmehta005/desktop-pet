@@ -12,7 +12,7 @@ import { USER_DATA_FOLDER } from './user-data.js';
 import { createEventBus } from './event-bus.js';
 import { createTray } from './tray.js';
 import { buildTrayMenu, TEST_REACTIONS } from './tray-menu.js';
-import { PETS } from '../core/pets.js';
+import { PETS, petForDay } from '../core/pets.js';
 import { CONFIG_KEYS, CONFIG_SCHEMA } from '../core/config.js';
 import { createHookServer } from './sources/hook-server.js';
 import { createSources, enabledSources } from './sources/index.js';
@@ -46,7 +46,15 @@ const state = {
   hookInstall: { status: 'unknown', settingsPath: null, error: null },
   // Tests can't click through a native folder picker; in test mode they queue answers here.
   testFolderPicks: [],
+  shuffleTimer: null,
 };
+
+/** "A different pet every day": switches to today's pet if it isn't showing already. */
+async function checkShuffle(now = new Date()) {
+  if (!state.store.config.shuffleDaily) return;
+  const pet = petForDay(now);
+  if (pet !== state.store.config.pet) await setConfig({ pet });
+}
 
 /** Sends an engine event to the pet. */
 function sendToPet(event) {
@@ -92,6 +100,7 @@ async function setConfig(changes) {
   if ('petSize' in changes) state.petWindow.setPetSize(result.config.petSize);
   if ('hookPort' in changes) await startHookServer();
   await state.sources?.applyConfig(changes, result.config);
+  if (changes.shuffleDaily === true) await checkShuffle();
   state.tray?.refresh();
   broadcastSettings();
   return { ok: true, errors: [] };
@@ -261,6 +270,8 @@ async function start() {
     enabled: enabledSources(process.env.DESKTOP_PET_SOURCES),
   });
   await state.sources.start(state.store.config);
+  await checkShuffle();
+  state.shuffleTimer = setInterval(() => checkShuffle().catch(() => {}), 60_000);
 }
 
 registerAppScheme();
@@ -283,6 +294,7 @@ if (!isFirstInstance) {
   // The pet lives in the tray, so closing windows doesn't quit the app.
   app.on('window-all-closed', () => {});
   app.on('before-quit', () => {
+    clearInterval(state.shuffleTimer);
     state.settings?.close();
     state.tray?.destroy();
     state.hookServer?.stop();
@@ -305,5 +317,6 @@ if (testing) {
     trayMenu: () => buildTrayMenu(trayState(), actions),
     refreshHookStatus,
     settingsState,
+    checkShuffle: (ms) => checkShuffle(new Date(ms)),
   };
 }

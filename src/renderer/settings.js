@@ -3,6 +3,9 @@
 // next to the field. Talks to the main process only through window.petSettings.
 import { SECTIONS, FIELDS } from './settings-fields.js';
 import { CONFIG_SCHEMA, validateConfig } from '../core/config.js';
+import { PETS } from '../core/pets.js';
+import { PET_DEFINITIONS } from './pets/index.js';
+import { createPetView } from './pet-view.js';
 
 const bridge = window.petSettings;
 const form = document.getElementById('settings');
@@ -119,6 +122,30 @@ function time(key, info) {
   return wrap;
 }
 
+function pets(key, info) {
+  const group = el('div', { className: 'pet-cards', role: 'radiogroup', 'aria-label': info.label });
+  const cards = PETS.map((pet) => {
+    const radio = el('input', { type: 'radio', name: 'pet', value: pet.id, id: `pet-${pet.id}` });
+    radio.addEventListener('change', () => save({ pet: pet.id }));
+    const view = createPetView(PET_DEFINITIONS[pet.id], { state: 'wander' });
+    view.element.style.setProperty('--pet-size', '84px');
+    const card = el('label', { className: 'pet-card', htmlFor: radio.id, dataset: { pet: pet.id } },
+      radio, view.element, el('span', { className: 'pet-name' }, pet.name), el('span', { className: 'pet-species' }, pet.species));
+    group.append(card);
+    return { radio, card };
+  });
+  const wrap = el('div', { className: 'field field-pets', dataset: { field: key } },
+    el('p', { className: 'field-label' }, info.label), group,
+    el('p', { className: 'field-help' }, info.help), el('p', { className: 'field-error', role: 'alert', hidden: true }));
+  wrap.update = () => {
+    for (const { radio, card } of cards) {
+      radio.checked = radio.value === state.config.pet;
+      card.classList.toggle('selected', radio.checked);
+    }
+  };
+  return wrap;
+}
+
 function folders(key, info) {
   const list = el('ul', { className: 'folder-list' });
   const add = el('button', { type: 'button', className: 'add-folder' }, 'Add folder...');
@@ -140,7 +167,7 @@ function folders(key, info) {
   return wrap;
 }
 
-const BUILDERS = { checkbox, number, range, time, folders };
+const BUILDERS = { checkbox, number, range, time, pets, folders };
 
 // ---------- Build and refresh ----------
 
