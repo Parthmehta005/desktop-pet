@@ -65,7 +65,15 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: sudo apt-get update && sudo apt-get install -y xvfb
+      # A third-party package list on the runner image (packages.microsoft.com) sometimes
+      # fails to refresh, which makes `apt-get update` fail before any test runs. xvfb
+      # comes from Ubuntu's own lists, so carry on if only some lists failed, and skip
+      # apt entirely when the image already has xvfb.
+      - name: Install xvfb
+        run: |
+          if command -v xvfb-run >/dev/null; then echo "xvfb-run is already installed"; exit 0; fi
+          sudo apt-get update || echo "::warning::some package lists failed to refresh; installing xvfb anyway"
+          sudo apt-get install -y xvfb
       - run: npm ci
       - run: npm run test:electron
       - name: Build the app unpacked and test the build
