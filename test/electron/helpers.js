@@ -22,9 +22,17 @@ export async function tempUserData() {
   return mkdtemp(path.join(tmpdir(), 'desktop-pet-test-'));
 }
 
-/** Launches the app with its own settings folder. */
+/**
+ * Launches the app with its own settings folder. When the test doesn't bring one, the
+ * new folder gets a config on a free hook port, so test runs can share a machine (and a
+ * real pet can keep running) without fighting over the default port.
+ */
 export async function launchApp({ userData, claudeDir, env = {} } = {}) {
-  const dir = userData ?? await tempUserData();
+  let dir = userData;
+  if (!dir) {
+    dir = await tempUserData();
+    await writeConfig(dir, { hookPort: await freePort() });
+  }
   // Claude Code's settings folder too, so tray actions never touch the real ~/.claude.
   const claude = claudeDir ?? path.join(dir, 'claude-config');
   const app = await electron.launch({
