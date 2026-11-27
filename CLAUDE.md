@@ -6,7 +6,8 @@ same commit whenever a decision, convention or command changes.
 ## Read first
 - **[ROADMAP.md](ROADMAP.md)** is the source of truth for the plan, the milestone status
   table, and the canonical pet IDs and state IDs. Check the status table to see where
-  work stands before doing anything.
+  work stands before doing anything. All milestones (M0 to M9) are done; new work starts
+  from the ROADMAP backlog, planned and reviewed the same way.
 - **[REVIEW.md](REVIEW.md)** is the gate every milestone must pass. Results go in its §4
   review log.
 - **[README.md](README.md)** is for the user. Fill in its sections as the milestones that

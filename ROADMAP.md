@@ -24,7 +24,7 @@ completed in the last milestone.
 | M6 | Claude Code integration | Done |
 | M7 | Local activity sources | Done |
 | M8 | Settings window and polish | Done |
-| M9 | Packaging, Windows CI, final README | In progress |
+| M9 | Packaging, Windows CI, final README | Done |
 
 Status values: `Not started` · `In progress` · `In review` · `Done`.
 
@@ -119,7 +119,7 @@ case) and WSL paths (`/mnt/c/...`).
 | Unit tests | Node's built-in `node:test` |
 | Browser and Electron tests | Playwright (Chromium for the preview page; Playwright's `_electron` under `xvfb-run` for the app) |
 | Lint | ESLint (flat config) |
-| Packaging | `electron-builder`: Windows NSIS installer and a portable `.exe` |
+| Packaging | `electron-builder` (26.18.1, dev only): Windows NSIS installer and a portable `.exe` |
 | CI | GitHub Actions on `ubuntu-latest` and `windows-latest` |
 
 ---
@@ -473,10 +473,12 @@ complete docs.
 **Boundary:** no new features.
 
 **Planned commits**
-1. electron-builder config and app icon
-2. Windows CI: Electron smoke test, foreground-monitor smoke test, installer artifact
+1. electron-builder config and app icon (plus a test suite for the built app, which
+   also checks the foreground monitor on Windows)
+2. Windows CI: the whole Electron suite, the installer and portable build, the built-app
+   tests, and the installer artifact
 3. README
-4. Fixes from the final review
+4. Fixes from the final review (two commits)
 5. Final review log
 
 **Done when:** CI is green on both operating systems, including the Windows-only checks;
@@ -495,6 +497,23 @@ Ideas to pick up if time allows, or later:
 - Optional sounds (off by default)
 - `tired` on low battery
 - Two pets at once that interact with each other
+- **Next up (asked for after M9): quick hide and show.** A tray item ("Hide pet" /
+  "Show pet") and a global keyboard shortcut that toggle the pet's window at once.
+  While hidden, the pet keeps tracking Claude, idle and apps so it's in the right mood
+  when it comes back. To decide: whether "hidden" survives a restart, and the default
+  shortcut (one that doesn't clash with common apps), which should be changeable in
+  Settings.
+- From the M9 review:
+  - Electron fuses (no `ELECTRON_RUN_AS_NODE`, no `NODE_OPTIONS`, no inspector) for
+    release builds. They'd stop Playwright driving the built app, so they need a
+    separate release configuration.
+  - Code signing, so SmartScreen doesn't warn on first run.
+  - Installing hooks into WSL's Claude Code from the settings window (today it needs the
+    command-line tool from a copy of the repository).
+  - Remembering which Claude sessions are busy across a reload of the pet's page (after
+    a crash it forgets until each session's next hook).
+  - `actions/upload-artifact@v4` runs on a deprecated Node version on CI; move to a newer
+    major when one is available.
 
 ## Risks
 
