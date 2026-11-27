@@ -180,30 +180,30 @@ app is complete.
 - [x] Security section E passes.
 
 ### M6 — Claude Code integration
-- [ ] Hook server tests:
-  - [ ] Missing or wrong token → 401.
-  - [ ] Bad JSON → 400.
-  - [ ] An oversized body is rejected.
-  - [ ] A valid event → 204 with an empty body.
-  - [ ] The server isn't reachable on any address except `127.0.0.1`.
-- [ ] Events from a `cwd` outside the watched folders are ignored, unless "react to all"
+- [x] Hook server tests:
+  - [x] Missing or wrong token → 401.
+  - [x] Bad JSON → 400.
+  - [x] An oversized body is rejected.
+  - [x] A valid event → 204 with an empty body.
+  - [x] The server isn't reachable on any address except `127.0.0.1`.
+- [x] Events from a `cwd` outside the watched folders are ignored, unless "react to all"
       is on.
-- [ ] A Windows `cwd` from a real hook payload matches a watched folder configured in a
+- [x] A Windows `cwd` from a real hook payload matches a watched folder configured in a
       different letter case.
-- [ ] Installer, against a temporary HOME:
-  - [ ] It creates `settings.json` if it's missing.
-  - [ ] It keeps existing hooks and other settings.
-  - [ ] A second install changes nothing.
-  - [ ] Uninstall gives a file equivalent to the original.
-  - [ ] A backup file is created.
-  - [ ] It refuses to touch malformed JSON.
-- [ ] `npm run hooks:status` reports installed, not installed, and port/token mismatch
+- [x] Installer, against a temporary HOME:
+  - [x] It creates `settings.json` if it's missing.
+  - [x] It keeps existing hooks and other settings.
+  - [x] A second install changes nothing.
+  - [x] Uninstall gives a file equivalent to the original.
+  - [x] A backup file is created.
+  - [x] It refuses to touch malformed JSON.
+- [x] `npm run hooks:status` reports installed, not installed, and port/token mismatch
       correctly.
-- [ ] End-to-end: the installed hook command, run through a real shell with recorded
+- [x] End-to-end: the installed hook command, run through a real shell with recorded
       payloads, moves the Electron pet through `working → alert → working → happy`.
-- [ ] With the pet **not running**, the hook command exits within its timeout and
+- [x] With the pet **not running**, the hook command exits within its timeout and
       without blocking (time measured).
-- [ ] Security section E (hook server and settings writes) passes.
+- [x] Security section E (hook server and settings writes) passes.
 
 ### M7 — Local activity sources
 - [ ] Repo watcher, using temporary folders:
@@ -298,3 +298,4 @@ column.
 | M3 | `3497a25` | 2026-11-26 | Pass | 316/316, 3 runs in a row | 48/48, 3 runs in a row | n/a | Pass | Pass (unit on Windows, browser tests on Linux) | All 7 M3 commits pass lint, unit and browser tests on their own. I looked at every pet's full state grid and a side-by-side lineup on dark; all six are distinct. Nimbus is lavender with a cloud crest, mint ear pods, a dark LED visor and a chest heart. One slip: an M3 commit was first made with a failing test (the pipe hid the exit code); it was amended before pushing, and commits now go through a script that checks real exit codes |
 | M4 | `437c4d4` | 2026-11-26 | Pass | 317/317, 3 runs in a row | 79/79, 3 runs in a row | n/a | Pass | Pass (unit on Windows, browser tests on Linux) | All 6 M4 commits pass on their own. The stage is its own page, `preview/stage.html`. For deterministic tests the stage takes `?time=HH:MM` (tests start at noon, so real-world bedtime can't leak in) and the controller keeps a short mood history (brief moods flash by at high clock speeds). Two first-run test failures were test-timing assumptions, not app bugs: a session going stale at 1 hour/second, and a 12s reminder lasting milliseconds. Screenshots of both wallpapers reviewed. README "Browser preview" section written |
 | M5 | `7f3c951` | 2026-11-26 | Pass | 337/337, 3 runs in a row | 79/79, 3 runs in a row | 26/26, 3 runs in a row | Pass (unit + Electron on Linux) | Pass (unit) | All 7 M5 commits pass every suite on their own. Resource use under xvfb with software rendering: about 3% CPU and 560 MB across 4 Electron processes while wandering (`test-results/electron-metrics.json`). The window screenshot was reviewed. Additions beyond the plan: windows load over a privileged `app://` protocol that only serves `src/renderer` and `src/core` (so CSP `'self'` works without `file://`); Chromium background networking is off; an engine `reset` event lets "Pause reactions" calm the pet at once. Test-only: Electron launches with `--no-sandbox` when running as root or on CI, never in the app. The Windows Electron smoke test comes in M9 as planned |
+| M6 | `0817beb` | 2026-11-27 | Pass | 378/378, 3 runs in a row | 79/79, 3 runs in a row | 33/33, 3 runs in a row | Pass (unit, browser, Electron) | Pass (unit) | All 10 M6 commits pass every suite on their own. The per-commit re-run used `TZ=Pacific/Honolulu` (daytime) because commits before `acf4a1d` contain an M5 test that assumed daytime; the three full runs were at real UTC night time. Found and fixed along the way: that time-of-day test flaw (`acf4a1d`), and curl honouring `http_proxy` (the hook command now passes `--noproxy`). Additions: the settings folder is pinned to `<appData>/desktop-pet` so the command-line tool can find the token; `--wsl` installs; with no watched folders, every Claude session counts. Process slip: a commit was made with a failing test (the check output was piped, hiding its exit code); it was undone before pushing and redone after the fix |

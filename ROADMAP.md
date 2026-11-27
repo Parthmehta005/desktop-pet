@@ -21,7 +21,7 @@ completed in the last milestone.
 | M3 | The other five pets | Done |
 | M4 | Interactive browser preview | Done |
 | M5 | Electron shell | Done |
-| M6 | Claude Code integration | In progress |
+| M6 | Claude Code integration | Done |
 | M7 | Local activity sources | Not started |
 | M8 | Settings window and polish | Not started |
 | M9 | Packaging, Windows CI, final README | Not started |

@@ -33,6 +33,11 @@ same commit whenever a decision, convention or command changes.
      real blocker.
 - **Scope creep** goes in the ROADMAP backlog, never into the current milestone.
 - Never skip, disable or `.only` a test to get a pass.
+- Decide whether to commit from the real exit codes of lint and every test suite. Never
+  pipe a test command into `tail` or `grep` and then chain `&& git commit`: the pipe hides
+  the failure.
+- Tests must not depend on the time of day. The bedtime window (00:30 to 06:00 by
+  default) changes the mood. Use fixed times (`T0`, `?time=12:00`) or `bedtime: null`.
 
 ## Decisions already made (don't reopen these)
 - **Claude detection uses Claude Code hooks**, not transcript parsing. Each hook is a
@@ -98,7 +103,8 @@ Each is added by the milestone shown.
 | `npm start` | M5 | Runs the Electron app |
 | `npm run test:electron` | M5 | Electron tests under `xvfb-run` |
 | `npm run test:all` | M5 | Every suite |
-| `npm run hooks:install` / `hooks:uninstall` / `hooks:status` | M6 | Manage the Claude Code hooks |
+| `npm run hooks:install` / `hooks:uninstall` / `hooks:status` | M6 | Manage the Claude Code hooks (`-- --settings <file> --user-data <dir> --wsl --host <h>`) |
+| `npm run build:icons` | M5 | Re-renders `assets/*.png` from the SVGs |
 | `npm run dist:win` | M9 | Builds the Windows installer and portable `.exe` |
 
 ## Environment notes (cloud container)
