@@ -356,6 +356,8 @@ function refresh() {
   for (const u of updaters) u.update();
 }
 
+document.querySelector('.app-version').textContent = state.version ? `Version ${state.version}.` : '';
+
 bridge.onState((next) => {
   state = next;
   refresh();

@@ -6,6 +6,7 @@
 // DESKTOP_PET_EXECUTABLE points at another build.
 import { test, expect } from '@playwright/test';
 import { existsSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { launchWithHooks, postHook, ROOT } from '../electron/helpers.js';
 
@@ -30,10 +31,12 @@ test('the built app runs from its archive, shows the pet and listens for Claude 
       packaged: electronApp.isPackaged,
       appPath: electronApp.getAppPath(),
       name: electronApp.getName(),
+      version: electronApp.getVersion(),
     }));
     expect(info.packaged).toBe(true);
     expect(path.basename(info.appPath)).toBe('app.asar');
     expect(info.name).toBe('Desktop Pet');
+    expect(info.version).toBe(JSON.parse(await readFile(path.join(ROOT, 'package.json'), 'utf8')).version);
     await expect(page.locator('.pet-view svg')).toBeVisible();
 
     const hook = (name) => postHook({ port, token }, { session_id: 'packaged', cwd: ROOT, hook_event_name: name });

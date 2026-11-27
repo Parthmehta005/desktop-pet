@@ -87,6 +87,9 @@ test('the tray menu: pet radio list, pause checkbox, test reactions, quit', () =
     ['setPet', 'penguin'], ['setPaused', true], ['test', 'claude-working'],
     ['installHooks'], ['uninstallHooks'], ['openSettings'], ['quit'], ['toggleHidden'],
   ]);
+  assert.equal(menu[0].label, 'Desktop Pet', 'no version given, just the name');
+  assert.equal(buildTrayMenu({ config: { pet: 'cat' }, paused: false, pets: PETS, version: '1.2.3' }, actions)[0].label,
+    'Desktop Pet 1.2.3', 'the version shows at the top');
   const hiddenMenu = buildTrayMenu({ config: { pet: 'cat' }, paused: false, pets: PETS, hidden: true }, actions);
   assert.equal(hiddenMenu[1].label, 'Show pet', 'the item says what it will do');
   assert.equal(hiddenMenu[1].accelerator, undefined, 'no shortcut, no hint');

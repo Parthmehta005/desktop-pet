@@ -163,6 +163,7 @@ function settingsState() {
     config,
     hooks: { ...state.hookInstall, serverError: state.hooks.error, port: state.hooks.port },
     shortcut: { ...state.shortcut },
+    version: app.getVersion(),
   };
 }
 
@@ -313,6 +314,7 @@ const trayState = () => ({
   hooks: { status: state.hookInstall.status, serverError: state.hooks.error },
   hidden: state.petWindow?.hidden ?? false,
   shortcut: state.shortcut.registered ? state.shortcut.shortcut : null,
+  version: app.getVersion(),
 });
 
 function registerIpc() {

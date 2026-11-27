@@ -1,7 +1,7 @@
 {
   "name": "desktop-pet",
   "productName": "Desktop Pet",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "A Windows desktop pet that walks along your taskbar and reacts to your coding and to Claude Code.",
   "author": "Desktop Pet",

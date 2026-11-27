@@ -346,3 +346,15 @@ test('a save the app cannot complete is reported in the window, and nothing chan
     await app.close();
   }
 });
+
+test('the settings window shows the app version', async () => {
+  const { app } = await launch();
+  try {
+    const win = await openSettings(app);
+    const version = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8')).version;
+    await expect(win.locator('.app-version')).toHaveText(`Version ${version}.`);
+    expect(await app.evaluate(({ app: electronApp }) => electronApp.getVersion())).toBe(version);
+  } finally {
+    await app.close();
+  }
+});

@@ -4,6 +4,8 @@ import path from 'node:path';
 import { launchApp } from './helpers.js';
 import { TEST_REACTIONS } from '../../src/main/tray-menu.js';
 
+const pkg = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8'));
+
 let app;
 let page;
 let userData;
@@ -25,7 +27,7 @@ test('the tray icon exists with its menu', async () => {
   });
   expect(tray.destroyed).toBe(false);
   expect(await menuLabels()).toEqual([
-    'Desktop Pet', 'Hide pet', '---', 'Claude Code: hooks not installed', 'Install Claude Code hooks', 'Remove Claude Code hooks',
+    `Desktop Pet ${pkg.version}`, 'Hide pet', '---', 'Claude Code: hooks not installed', 'Install Claude Code hooks', 'Remove Claude Code hooks',
     '---', 'Pet', 'Pause reactions', 'Test reactions', '---', 'Settings...', 'Quit Desktop Pet',
   ]);
 });
