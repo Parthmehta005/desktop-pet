@@ -4,10 +4,12 @@ A little animated pet that lives along the bottom of your Windows desktop and re
 your coding. It sweats while Claude Code works, cheers when Claude finishes, waves when
 Claude needs you, and falls asleep when you step away.
 
-> **Status: in development.** This README is a skeleton. Each section gets filled in as
-> the milestones that build it are finished, and the whole thing is completed in M9.
-> See [ROADMAP.md](ROADMAP.md) for the plan and progress, and [REVIEW.md](REVIEW.md) for
-> how each milestone is tested.
+![Mochi the cat sweating over its laptop while two Claude Code sessions work](docs/images/stage.webp)
+
+Quick links: [Windows setup](#windows-setup) · [Connecting Claude Code](#connecting-claude-code)
+· [Choosing watched folders](#choosing-watched-folders) · [Troubleshooting](#troubleshooting)
+· [Browser preview](#browser-preview). How it was planned and tested: [ROADMAP.md](ROADMAP.md)
+and [REVIEW.md](REVIEW.md).
 
 ---
 
@@ -29,31 +31,117 @@ Claude needs you, and falls asleep when you step away.
 
 ## Pets
 
-| Pet | Name |
-|---|---|
-| Cat | Mochi |
-| Corgi | Biscuit |
-| Penguin | Pip |
-| Axolotl | Axo |
-| Robot | Bolt |
-| Soft care-bot | Nimbus |
+![The six pets: Mochi, Biscuit, Pip, Axo, Bolt and Nimbus](docs/images/pets.webp)
 
-_Screenshots are added in M3._
+| Pet | Name | Looks like |
+|---|---|---|
+| Cat | Mochi | A cream calico with an orange patch and a curly tail |
+| Corgi | Biscuit | An orange-and-white corgi with big ears and a stubby tail |
+| Penguin | Pip | A round navy penguin with orange feet |
+| Axolotl | Axo | A pink axolotl with frilly gills and a long tail |
+| Robot | Bolt | A boxy grey robot with a screen face, an antenna and a wind-up key |
+| Soft care-bot | Nimbus | A soft lavender bot with an LED visor, a cloud crest and a glowing heart |
+
+Pick one in **Settings → Your pet** or from the tray's **Pet** menu, or turn on **A
+different pet every day**. Every pet has all 18 animations.
 
 ## Animation states
 
-_The full table of states, what triggers each one, and what it looks like is added in
-M9. Until then, see [ROADMAP.md → Animation states](ROADMAP.md#animation-states-18)._
+| State | When | What the pet does |
+|---|---|---|
+| `wander` | Nothing else is going on | Walks, pauses, sits, looks around, blinks |
+| `working` | A Claude Code session is working | Types frantically on a tiny laptop and sweats. More sweat with two sessions, steam with three or more |
+| `happy` | Claude finished | Jumps with sparkles and a "Done!" bubble (about 8 seconds) |
+| `alert` | Claude is waiting for your permission or an answer | Waves with a "Need you!" bubble until you respond |
+| `away-done` | Claude finished while you were away | Waits with a little "done" flag, then cheers when you're back |
+| `sleeping` | No keyboard or mouse for 5 minutes, or the screen is locked | Curls up with Zzz and slow breathing |
+| `greeting` | The pet starts, you unlock, or you come back | Waves with a "Hi!" bubble (about 3 seconds) |
+| `focused` | You edited files in a watched folder in the last 2 minutes, and Claude isn't working | Types calmly on its laptop |
+| `celebrating` | You made a commit in a watched repo | Confetti and a "Commit!" bubble (about 4 seconds) |
+| `vibing` | A music app is in front | Headphones and a head-bob |
+| `gaming` | A game is in front | Mashes the buttons on a controller |
+| `watching` | A video app or site is in front | Eats popcorn |
+| `meeting` | A meeting app is in front | Holds still at half opacity with no bubbles |
+| `bedtime` | You're still at it after 00:30 | A nightcap, yawns and the odd "Bed?" bubble |
+| `stretch` | 90 minutes busy without a 5-minute break | Stretches with a "Break?" bubble |
+| `petted` | You click the pet | Hearts (about 2 seconds) |
+| `held` | You drag the pet | Dangles with its legs kicking |
+| `falling` | You let go of it | Falls to the taskbar and squashes as it lands |
+
+When several apply, the first of these wins: being held, dropped or petted; Claude
+needing you; a celebration or Claude finishing; Claude working; Claude finished while you
+were away; sleeping; greeting; an app mood; a stretch or bedtime nudge; focused;
+wandering. `meeting` (and hiding while something is fullscreen) apply on top of whatever
+wins. The times above are the defaults, and all of them can be changed in Settings.
+
+<details>
+<summary>All 18 states for Mochi</summary>
+
+![Mochi in each of the 18 animation states](docs/images/states.webp)
+
+</details>
+
+The [browser preview](#browser-preview) shows every pet in every state, animated.
 
 ---
 
 ## Requirements
 
-_Added in M9: Windows 10 or 11, Node.js 22+, Git, and Claude Code (native or in WSL)._
+- **Windows 10 (version 1803 or later) or Windows 11**, 64-bit. The hooks use the
+  `curl.exe` that comes with Windows.
+- **Claude Code**, running natively on Windows or inside WSL, for the Claude reactions.
+  Everything else works without it.
+- **To run from source or build the installer:** [Node.js](https://nodejs.org) 22.13 or
+  later, and [Git](https://git-scm.com).
+- **For Claude Code in WSL:** Windows 11 22H2 or later (see
+  [Using Claude Code in WSL](#using-claude-code-in-wsl)).
 
 ## Windows setup
 
-_Added in M9: step-by-step instructions to clone, install, run, and start at login._
+### 1. Get the app
+
+**Option A: the installer.** Each CI run on GitHub builds it: open the repository's
+**Actions** tab, pick the latest green **CI** run, and download the
+**desktop-pet-windows** artifact. It holds two files:
+
+- `DesktopPet-Setup-<version>.exe` installs the app for your user (no admin rights
+  needed), with Start menu and desktop shortcuts and an entry in **Apps**.
+- `DesktopPet-<version>-portable.exe` runs without installing. Keep it somewhere
+  permanent, such as `Documents`, if you want it to start when you sign in.
+
+You can also [build them yourself](#building-an-installer). The app isn't code-signed,
+so Windows SmartScreen will warn you the first time: choose **More info → Run anyway**.
+
+**Option B: run from source.** In PowerShell or Command Prompt:
+
+```sh
+git clone https://github.com/Parthmehta005/desktop-pet.git
+cd desktop-pet
+npm install
+npm start
+```
+
+### 2. Say hello
+
+The pet appears just above the taskbar and waves. Its tray icon sits by the clock
+(look under the **^** arrow if it's hidden; you can drag it out to keep it visible).
+Click it for the menu: pick a pet, pause reactions, try **Test reactions**, or open
+**Settings...**.
+
+### 3. Connect Claude Code
+
+In the tray menu choose **Install Claude Code hooks**, then start a new Claude Code
+session. Details are in [Connecting Claude Code](#connecting-claude-code); for Claude
+Code in WSL, follow [Using Claude Code in WSL](#using-claude-code-in-wsl) instead.
+
+### 4. Pick your folders
+
+In **Settings → Claude Code → Watched folders**, add the folders you code in. See
+[Choosing watched folders](#choosing-watched-folders).
+
+### 5. Start it when you sign in
+
+In **Settings → System**, turn on **Start when I sign in**.
 
 ## Connecting Claude Code
 
@@ -64,7 +152,8 @@ is one line of `curl` that passes Claude's event on to the pet. The pet listens 
 
 ### Install the hooks
 
-From the tray icon choose **Install Claude Code hooks**, or run:
+From the tray icon (or **Settings → Claude Code**) choose **Install Claude Code hooks**.
+From a copy of this repository you can also run:
 
 ```sh
 npm run hooks:install
@@ -126,15 +215,16 @@ private token, and is set to bypass any proxy.
 - **The tray says the pet can't listen:** another program is using port 47321. Change
   `hookPort` in the pet's settings, then install the hooks again so they use the new
   port.
-- **Status says "out of date":** the port or token changed since you installed. Run
-  `npm run hooks:install` again.
+- **Status says "out of date":** the port or token changed since you installed. Install
+  the hooks again.
 - **The pet isn't running:** the hooks give up in under two seconds, print nothing, and
   never get in Claude's way.
 
 ### Remove the hooks
 
-From the tray choose **Remove Claude Code hooks**, or run `npm run hooks:uninstall`. Only
-the pet's own entries are removed, and a backup is saved first.
+From the tray (or Settings) choose **Remove Claude Code hooks**, or run
+`npm run hooks:uninstall`. Only the pet's own entries are removed, and a backup is saved
+first.
 
 ## Choosing watched folders
 
@@ -262,8 +352,11 @@ If you run Claude Code inside WSL, its hooks need to reach the pet running on Wi
 
    Then run `wsl --shutdown` and open WSL again.
 2. **Make sure curl is installed inside WSL:** `sudo apt install curl`.
-3. **Install the hooks into WSL's Claude Code settings.** Run this from the pet's folder
-   on Windows, with your distro and user name:
+3. **Install the hooks into WSL's Claude Code settings.** This uses the command-line tool
+   from a copy of this repository on Windows (the installed app's menu only covers
+   Windows' own Claude Code). It needs Node.js but no `npm install`. With the pet running
+   at least once first (it makes the hook token), run this in the repository's folder,
+   with your distro and user name:
 
    ```sh
    npm run hooks:install -- --wsl --settings "\\wsl.localhost\Ubuntu\home\<you>\.claude\settings.json"
@@ -278,7 +371,30 @@ counts as `C:\Users\you\code\app`. A folder inside the WSL filesystem can be add
 
 ## Building an installer
 
-_Added in M9: `npm run dist:win` and what it produces._
+On Windows, from a copy of this repository:
+
+```sh
+npm install
+npm run dist:win
+```
+
+This writes to `dist\`:
+
+| File | What it is |
+|---|---|
+| `DesktopPet-Setup-<version>.exe` | The installer. Installs for the current user, lets you choose the folder, and adds Start menu and desktop shortcuts and an uninstaller |
+| `DesktopPet-<version>-portable.exe` | The whole app in one file, no installing |
+| `win-unpacked\` | The app unpacked, as the installer would install it |
+
+Both keep their settings in `%APPDATA%\desktop-pet`, so switching between them keeps your
+settings. Neither is code-signed.
+
+`npm run dist:dir` builds just the unpacked app, on any OS (on Linux it goes to
+`dist/linux-unpacked/`), and `npm run test:packaged` then tests that build: it starts
+from its archive, shows the pet, opens the settings window, finds its icons and answers
+Claude Code hooks, and on Windows the foreground-app monitor reports within 10 seconds.
+Building the Windows installer on Linux needs Wine; CI builds it on Windows instead and
+uploads it as the **desktop-pet-windows** artifact.
 
 ## Browser preview
 
@@ -328,10 +444,12 @@ src/main/       Electron main process: lifecycle, the pet window, the app:// pro
                 and security, config storage, the tray, and the event bus
 preview/        Browser preview pages (gallery and stage)
 assets/         Icons (SVG sources and rendered PNGs)
-scripts/        Preview server, icon builder, Electron test runner
+docs/images/    The pictures in this README
+scripts/        Preview server, icon builder, Electron test runner, hooks command line
 test/unit/      node:test unit tests
 test/browser/   Playwright tests against the preview pages
 test/electron/  Playwright tests that launch the real app
+test/packaged/  Playwright tests that launch the built app
 ```
 
 ### Commands
@@ -346,6 +464,10 @@ test/electron/  Playwright tests that launch the real app
 | `npm run test:electron` | Electron tests. On Linux without a display they run inside `xvfb-run` |
 | `npm run test:all` | All of the above |
 | `npm run build:icons` | Re-renders the PNG icons from `assets/*.svg` |
+| `npm run hooks:install` / `hooks:uninstall` / `hooks:status` | Manage the Claude Code hooks (options: `--settings <file> --user-data <dir> --wsl --host <h>`) |
+| `npm run dist:win` | Builds the Windows installer and portable app (on Windows) |
+| `npm run dist:dir` | Builds the unpacked app for the current OS |
+| `npm run test:packaged` | Tests the built app (after `dist:dir` or `dist:win`) |
 
 The tests never touch your real settings. Each Electron test launches the app with its
 own temporary settings folder, through the `DESKTOP_PET_USER_DATA` environment variable.
@@ -359,13 +481,70 @@ GitHub Actions runs on every push:
 
 - lint and unit tests on Ubuntu and Windows
 - browser tests on Ubuntu
-- Electron tests on Ubuntu, under xvfb
+- Electron tests on Ubuntu (under xvfb) and on Windows
+- on Ubuntu, the unpacked app is built and tested
+- on Windows, the installer and portable app are built, the built app is tested
+  (including the foreground-app monitor), and both files are uploaded as the
+  **desktop-pet-windows** artifact
 
 ## Troubleshooting
 
-_Added in M9: no transparency (GPU), SmartScreen, hooks not firing, the pet behind the
-taskbar, and the foreground-app monitor._
+**A black or white box around the pet.** Some graphics drivers can't draw transparent
+windows. Turn on **Settings → System → Turn off hardware acceleration** and restart the
+pet.
+
+**"Windows protected your PC".** The app isn't code-signed. Choose **More info → Run
+anyway**.
+
+**The pet doesn't react to Claude Code.**
+
+1. Look at the tray menu. **Claude Code: connected** means the hooks are installed. If it
+   says the pet can't listen, another program has its port: change **Hook port** in
+   Settings and install the hooks again.
+2. Start a *new* Claude Code session after installing the hooks.
+3. With watched folders set, only sessions inside them count. Add the folder, or turn
+   on **React to all Claude sessions**.
+4. **Test reactions** in the tray menu should make the pet move. If it doesn't, check
+   that **Pause reactions** is off.
+5. For Claude Code in WSL, check that WSL can reach the pet. Inside WSL,
+   `curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:47321/` prints `404` when
+   it can (that's the pet answering) and `000` when it can't: turn on mirrored
+   networking.
+
+**The pet doesn't notice my edits or commits.** Edits and commits count only in
+watched folders, and not in ignored folders such as `node_modules` or `dist`.
+
+**The pet is in the wrong place.** It lives on the primary display, just above the
+taskbar, and moves when the display or taskbar changes. With an auto-hiding taskbar it
+sits at the very bottom of the screen.
+
+**The pet disappeared.** Something is fullscreen (a game, a video, a presentation, or a
+borderless window covering the screen), and **Hide when something is fullscreen** is on.
+It comes back when that window isn't in front.
+
+**App moods don't change.** They only work on Windows. The pet asks a hidden
+`powershell.exe` which window is in front once a second; if PowerShell is blocked on
+your computer, app moods are off but everything else works. Check the rule under
+**Settings → Apps → App rules**: the first matching rule wins.
+
+**Start over.** Quit the pet and delete `%APPDATA%\desktop-pet\config.json`. The next start
+writes fresh defaults (and a new hook token, so install the hooks again).
+
+**See what it's saying.** Warnings go to the console. Run the pet from source with
+`npm start` to see them in the terminal.
 
 ## Uninstalling
 
-_Added in M9: removing the hooks first, then the app and its data folder._
+1. **Remove the hooks** while the pet is still installed: tray → **Remove Claude Code
+   hooks**. For WSL, run `npm run hooks:uninstall -- --settings <the same file>` from the
+   repository. Claude Code's settings are then as they were, apart from your own changes.
+2. **Turn off Start when I sign in** in Settings, so Windows doesn't keep a sign-in
+   entry for an app that's gone.
+3. **Quit** the pet: tray → **Quit Desktop Pet**.
+4. **Remove the app:** **Settings → Apps → Installed apps → Desktop Pet → Uninstall**.
+   For the portable app, delete the `.exe`. From source, delete the folder.
+5. **Delete its settings**, if you don't plan to come back: the
+   `%APPDATA%\desktop-pet` folder. The uninstaller leaves it so a reinstall remembers
+   your pet and folders.
+6. Optionally delete the backups the hooks installer made:
+   `%USERPROFILE%\.claude\settings.json.desktop-pet-backup-*`.
