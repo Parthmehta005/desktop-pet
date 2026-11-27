@@ -154,3 +154,29 @@ test('nonsense step input does not move the pet or break it', () => {
     assert.equal(next.x, 300, JSON.stringify(opts));
   }
 });
+
+test('goTo right: runs to the right-hand end at running speed, faces right and stays', async () => {
+  const { RUN_FACTOR, BASE_SPEED } = await import('../../src/core/walker.js');
+  let w = createWalker({ width: 1000, petWidth: 100, x: 500, facing: -1, rng: () => 0.5 });
+  w = stepWalker(w, { dtMs: 1000, speed: 0, goTo: 'right' });
+  assert.equal(w.x, 500 + BASE_SPEED * RUN_FACTOR, 'runs even though the mood itself keeps still');
+  assert.equal(w.facing, 1);
+  assert.equal(w.moving, true);
+  for (let i = 0; i < 10; i++) w = stepWalker(w, { dtMs: 1000, speed: 0, goTo: 'right' });
+  assert.equal(w.x, 900, 'stops at the end');
+  assert.equal(w.moving, false);
+  assert.equal(w.facing, 1);
+  const again = stepWalker(w, { dtMs: 1000, speed: 0, goTo: 'right' });
+  assert.equal(again, w, 'standing there changes nothing');
+});
+
+test('goTo respects the walking-speed setting, and walking resumes where it left off', () => {
+  const start = createWalker({ width: 1000, petWidth: 100, x: 0, rng: () => 0.5 });
+  const slow = stepWalker(start, { dtMs: 1000, walkSpeed: 0.5, goTo: 'right' });
+  const fast = stepWalker(start, { dtMs: 1000, walkSpeed: 2, goTo: 'right' });
+  assert.ok(fast.x > slow.x);
+  assert.equal(slow.phase, start.phase, 'the wander phase is kept for later');
+  const left = stepWalker(fast, { dtMs: 1000, goTo: 'left' });
+  assert.equal(left.facing, -1);
+  assert.ok(left.x < fast.x);
+});

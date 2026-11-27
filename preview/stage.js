@@ -44,10 +44,14 @@ const SPEEDS = [1, 10, 60, 600, 3600];
 const startSpeed = Number(params.get('speed'));
 if (SPEEDS.includes(startSpeed)) clock.setScale(startSpeed);
 
+// Clicking the pet while it panics about the battery would open Windows' battery
+// settings; here it is counted and shown in the status panel.
+const battery = { percent: 80, charging: true, clicks: 0 };
 const controller = createController({
   strip,
   pet: getPet(params.get('pet') ?? 'cat'),
   now: () => clock.now(),
+  onBatteryClick: () => { battery.clicks += 1; },
 });
 const send = (event) => controller.dispatch(event);
 
@@ -113,6 +117,16 @@ const GROUPS = [
   ]],
   ['Pet', [
     ['pet', 'Pet it', () => send({ type: 'pet' })],
+  ]],
+  ['Battery', [
+    ['battery-low', 'Low battery', () => {
+      Object.assign(battery, { percent: 7, charging: false });
+      send({ type: 'battery', percent: battery.percent, charging: false, present: true });
+    }],
+    ['battery-plug', 'Plug in', () => {
+      battery.charging = true;
+      send({ type: 'battery', percent: battery.percent, charging: true, present: true });
+    }],
   ]],
 ];
 
@@ -192,6 +206,7 @@ function updateStatus() {
     modifiers: mods.length ? mods.join(', ') : 'none',
     claude: `${s.claude.working} working, ${s.claude.waiting} waiting`,
     you: you.away ? 'away' : 'here',
+    battery: `${battery.percent}%, ${battery.charging ? 'plugged in' : 'on battery'}${battery.clicks ? `; battery settings asked for ${battery.clicks}x` : ''}`,
     clock: `${time} (${clock.scale === 1 ? 'real time' : `${clock.scale}x`})`,
   };
   for (const [key, value] of Object.entries(fields)) {
@@ -205,5 +220,5 @@ updateStatus();
 send({ type: 'app-start' });
 
 // For tests and curious developers.
-window.__stage = { controller, clock, sessions, you };
+window.__stage = { controller, clock, sessions, you, battery };
 stage.dataset.ready = 'true';

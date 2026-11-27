@@ -46,9 +46,13 @@ function petSizePx(config) {
  * @param {(over: boolean) => void} [options.onHoverChange]
  *   Called when the pointer moves onto or off the pet (or a drag starts or ends). The
  *   desktop window uses it to stop letting clicks through while the pet is under them.
+ * @param {() => void} [options.onBatteryClick]
+ *   Called instead of petting when the pet is clicked while it panics about the battery;
+ *   the desktop window opens Windows' battery settings.
  */
 export function createController({
   strip, pet, config = {}, now = Date.now, rng = Math.random, onHoverChange = () => {},
+  onBatteryClick = () => {},
 }) {
   const actor = document.createElement('div');
   actor.className = 'pet-actor';
@@ -111,7 +115,7 @@ export function createController({
       state: animationStateFor(result),
       intensity: result.intensity,
       facing: walker.facing,
-      moving: walker.moving && look.speed > 0,
+      moving: walker.moving && (look.speed > 0 || MOODS[result.mood].goesTo !== null),
       meeting: result.modifiers.meeting,
       hidden: result.modifiers.hidden,
       bubble: currentBubble(look),
@@ -163,6 +167,7 @@ export function createController({
         dtMs: dt,
         speed: presentation(result).speed,
         walkSpeed: settings.walkSpeed,
+        goTo: MOODS[result.mood].goesTo,
         rng,
       });
     }
@@ -232,7 +237,9 @@ export function createController({
       velocity = 0;
       if (lift === 0) land();
     } else if (e.type === 'pointerup') {
-      dispatch({ type: 'pet' });
+      // While it panics about the battery, a click asks for the battery settings.
+      if (result.mood === 'low-battery') onBatteryClick();
+      else dispatch({ type: 'pet' });
     }
     setHover(isOverPet(e.clientX, e.clientY));
   }
