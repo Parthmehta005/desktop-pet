@@ -52,12 +52,26 @@ async function save(changes) {
 
 // ---------- Controls ----------
 
-function fieldShell(key, info, control) {
+/**
+ * Wraps a control with its label, help text and error line. `labelled` is the input the
+ * label names, even when `control` is a row around it. Pass null for compound fields
+ * (folder list, rules table): their title then names the group, so buttons inside keep
+ * their own names.
+ */
+function fieldShell(key, info, control, labelled = control) {
   const id = `field-${key}`;
-  const label = el('label', { htmlFor: id, className: 'field-label' }, info.label);
   const help = info.help ? el('p', { className: 'field-help', id: `${id}-help` }, info.help) : null;
-  if (control.id === undefined || control.id === '') control.id = id;
-  if (help) control.setAttribute('aria-describedby', help.id);
+  let label;
+  if (labelled) {
+    labelled.id = id;
+    label = el('label', { htmlFor: id, className: 'field-label' }, info.label);
+    if (help) labelled.setAttribute('aria-describedby', help.id);
+  } else {
+    label = el('p', { className: 'field-label', id: `${id}-label` }, info.label);
+    control.setAttribute('role', 'group');
+    control.setAttribute('aria-labelledby', label.id);
+    if (help) control.setAttribute('aria-describedby', help.id);
+  }
   return el('div', { className: `field field-${info.control}`, dataset: { field: key } },
     label, control, help, el('p', { className: 'field-error', role: 'alert', hidden: true }));
 }
@@ -76,10 +90,7 @@ function number(key, info) {
   input.addEventListener('change', () => save({ [key]: input.value === '' ? Number.NaN : Number(input.value) }));
   const unit = info.unit ? el('span', { className: 'unit' }, info.unit) : null;
   const row = el('span', { className: 'number-row' }, input, unit);
-  row.id = `field-${key}-row`;
-  input.id = `field-${key}`;
-  const wrap = fieldShell(key, info, row);
-  wrap.querySelector('label').htmlFor = input.id;
+  const wrap = fieldShell(key, info, row, input);
   wrap.update = () => { if (document.activeElement !== input) input.value = String(state.config[key]); };
   return wrap;
 }
@@ -91,9 +102,7 @@ function range(key, info) {
   input.addEventListener('input', () => { value.textContent = `${Number(input.value).toFixed(2)}${info.unit}`; });
   input.addEventListener('change', () => save({ [key]: Number(input.value) }));
   const row = el('span', { className: 'range-row' }, input, value);
-  input.id = `field-${key}`;
-  const wrap = fieldShell(key, info, row);
-  wrap.querySelector('label').htmlFor = input.id;
+  const wrap = fieldShell(key, info, row, input);
   wrap.update = () => {
     input.value = String(state.config[key]);
     value.textContent = `${Number(state.config[key]).toFixed(2)}${info.unit}`;
@@ -112,9 +121,7 @@ function time(key, info) {
   }
   input.addEventListener('change', () => { if (input.value) save({ [key]: input.value }); });
   const row = el('span', { className: 'time-row' }, ...parts);
-  input.id = `field-${key}`;
-  const wrap = fieldShell(key, info, row);
-  wrap.querySelector('.field-label').htmlFor = input.id;
+  const wrap = fieldShell(key, info, row, input);
   wrap.update = () => {
     const v = state.config[key];
     input.disabled = v === null;
@@ -156,8 +163,7 @@ function folders(key, info) {
     if (folder) save({ watchedFolders: [...state.config.watchedFolders, folder] });
   });
   const box = el('div', { className: 'folders' }, list, add);
-  const wrap = fieldShell(key, info, box);
-  wrap.querySelector('label').htmlFor = add.id = `field-${key}`;
+  const wrap = fieldShell(key, info, box, null);
   wrap.update = () => {
     list.replaceChildren(...state.config.watchedFolders.map((folder, i) => {
       const remove = el('button', { type: 'button', className: 'remove', 'aria-label': `Stop watching ${folder}` }, 'Remove');
@@ -181,8 +187,7 @@ function rules(key, info) {
   addRule.addEventListener('click', () => saveRules([...state.config.appRules, { name: 'New rule', process: '^app-name$', mood: 'vibing' }]));
   reset.addEventListener('click', () => saveRules(DEFAULT_APP_RULES.map((r) => ({ ...r }))));
   const box = el('div', { className: 'rules-box' }, table, el('div', { className: 'rules-actions' }, addRule, reset));
-  const wrap = fieldShell(key, info, box);
-  wrap.querySelector('label').htmlFor = addRule.id = `field-${key}`;
+  const wrap = fieldShell(key, info, box, null);
 
   wrap.update = () => {
     const current = state.config.appRules;
