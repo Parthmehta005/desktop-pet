@@ -1,0 +1,112 @@
+// Which app is in the foreground (Windows only). Runs foreground.ps1 in a hidden,
+// long-lived PowerShell and turns each JSON line it prints into an engine 'app' event.
+// Elsewhere it does nothing and starts no process.
+import { spawn as nodeSpawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import readline from 'node:readline';
+
+export const SCRIPT_PATH = fileURLToPath(new URL('./foreground.ps1', import.meta.url));
+/** Wait before restarting a crashed monitor: 1s, then 5s, then every 30s. */
+export const RESTART_DELAYS = Object.freeze([1000, 5000, 30000]);
+
+/** One line of monitor output -> { process, title, path, fullscreen }, or null if it isn't one. */
+export function parseForegroundLine(line) {
+  let data;
+  try {
+    data = JSON.parse(line);
+  } catch {
+    return null;
+  }
+  if (data === null || typeof data !== 'object' || Array.isArray(data)) return null;
+  if (typeof data.process !== 'string' || typeof data.title !== 'string') return null;
+  const text = (v) => (typeof v === 'string' ? v.slice(0, 1000) : '');
+  return { process: text(data.process), title: text(data.title), path: text(data.path), fullscreen: data.fullscreen === true };
+}
+
+/**
+ * PowerShell arguments that run `script` without a script file (so execution policy and
+ * packaged-app paths don't matter), with $ParentPid set so it exits with the pet.
+ */
+export function powerShellArgs(script, parentPid) {
+  const encoded = Buffer.from(`$ParentPid = ${Number(parentPid)}\n${script}`, 'utf16le').toString('base64');
+  return ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', encoded];
+}
+
+/**
+ * @param {object} options
+ * @param {(event: object) => void} options.emit
+ * Everything else can be swapped in tests.
+ */
+export function createAppMonitor({
+  emit,
+  platform = process.platform,
+  spawn = nodeSpawn,
+  readScript = () => readFileSync(SCRIPT_PATH, 'utf8'),
+  parentPid = process.pid,
+  setTimer = setTimeout,
+  clearTimer = clearTimeout,
+  restartDelays = RESTART_DELAYS,
+  onError = (err) => console.warn('Desktop Pet: foreground-app monitor:', err.message),
+}) {
+  let child = null;
+  let stopped = true;
+  let failures = 0;
+  let timer = null;
+
+  function scheduleRestart() {
+    const delay = restartDelays[Math.min(failures, restartDelays.length - 1)];
+    failures++;
+    timer = setTimer(() => {
+      timer = null;
+      if (!stopped) launch();
+    }, delay);
+  }
+
+  function launch() {
+    let ended = false;
+    const current = spawn('powershell.exe', powerShellArgs(readScript(), parentPid), {
+      windowsHide: true,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    child = current;
+    const end = () => {
+      if (ended) return;
+      ended = true;
+      if (child === current) child = null;
+      if (!stopped) scheduleRestart();
+    };
+    readline.createInterface({ input: current.stdout }).on('line', (line) => {
+      const app = parseForegroundLine(line);
+      if (!app) return;
+      failures = 0;
+      emit({ type: 'app', ...app });
+    });
+    current.on('error', (err) => {
+      onError(err);
+      end();
+    });
+    current.on('exit', end);
+  }
+
+  return {
+    /** Starts watching. Returns false (and starts nothing) off Windows. */
+    start() {
+      if (platform !== 'win32' || !stopped) return false;
+      stopped = false;
+      failures = 0;
+      launch();
+      return true;
+    },
+    stop() {
+      stopped = true;
+      clearTimer(timer);
+      timer = null;
+      child?.kill();
+      child = null;
+    },
+    get running() {
+      return child !== null;
+    },
+  };
+}
