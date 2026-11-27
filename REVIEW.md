@@ -273,6 +273,15 @@ app is complete.
 - [x] After a restart the pet is shown, whatever it was before.
 - [x] The settings window passes security section E, and its screenshot is reviewed.
 
+### M11 — A short GUIDE.md
+- [ ] `GUIDE.md` is at most 80 lines and gives one path through setup, with anything
+      less common linked to the README.
+- [ ] Every name it tells you to click (tray items, settings, buttons) exists in the app
+      exactly as written; a test checks this.
+- [ ] Every step was followed against the running app (the settings window and the
+      tray menu), and each Windows-only step against what CI builds.
+- [ ] The README links to it near the top.
+
 ---
 
 ## 3. Checks on a real Windows machine (for you, once the app is complete)

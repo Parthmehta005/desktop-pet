@@ -26,6 +26,7 @@ completed in the last milestone.
 | M8 | Settings window and polish | Done |
 | M9 | Packaging, Windows CI, final README | Done |
 | M10 | Quick hide and show | Done |
+| M11 | A short GUIDE.md | In progress |
 
 Status values: `Not started` · `In progress` · `In review` · `Done`.
 
@@ -143,12 +144,12 @@ case) and WSL paths (`/mnt/c/...`).
 ### Dependencies
 
 ```
-M0 ─ M1 ─ M2 ─ M3 ─ M4 ─ M5 ─┬─ M6 ─┬─ M8 ─ M9 ─ M10
+M0 ─ M1 ─ M2 ─ M3 ─ M4 ─ M5 ─┬─ M6 ─┬─ M8 ─ M9 ─ M10 ─ M11
                              └─ M7 ─┘
 ```
 
-M6 and M7 both build on M5 and don't depend on each other. M10 came after M9, at your
-request.
+M6 and M7 both build on M5 and don't depend on each other. M10 and M11 came after M9,
+at your request.
 
 ---
 
@@ -527,6 +528,35 @@ saved.
 carries on while hidden, the shortcut can be changed and turned off from Settings with
 clashes reported, every suite passes on both operating systems, and REVIEW.md §M10
 passes.
+
+---
+
+### M11 — A short GUIDE.md
+
+Asked for after M10: one short page that gets someone set up and using the pet without
+reading the whole README.
+
+**Goal:** a `GUIDE.md` that a new user can follow top to bottom without getting stuck.
+
+**Scope**
+- Setup in a few numbered steps: get the app, find the pet and its tray icon, connect
+  Claude Code, and the optional settings worth changing.
+- How to use it: a "to do this, do that" table, what the pet reacts to, the three most
+  likely problems, and uninstalling.
+- One path only. Anything less common (WSL, building from source) is a link to the
+  README.
+- A link to it at the top of the README.
+
+**Boundary:** documentation only, plus a test that keeps it honest. No app changes.
+
+**Planned commits**
+1. Plan (this section and REVIEW §M11)
+2. `GUIDE.md`, its test (at most 80 lines, and every button, menu item and setting it
+   names exists in the app under exactly that name), and the README link
+3. Review
+
+**Done when:** `GUIDE.md` is at most 80 lines, every step was checked against the app,
+its test passes, and REVIEW.md §M11 passes.
 
 ---
 
