@@ -53,7 +53,7 @@ same commit whenever a decision, convention or command changes.
   `/mnt/c/...` paths and documenting the WSL networking step.
 - **Art:** an SVG rig with shared part names, animated with CSS, using only `transform`
   and `opacity`. No pixel art, no bitmaps.
-- **6 pets, all 18 states each:** `cat` Mochi, `corgi` Biscuit, `penguin` Pip, `axolotl`
+- **6 pets, all 19 states each** (the 19th, `low-battery`, came in M12): `cat` Mochi, `corgi` Biscuit, `penguin` Pip, `axolotl`
   Axo, `robot` Bolt, `softbot` Nimbus.
 - **Nimbus** stands in for the Baymax the user asked for. It must stay an original design:
   pale lavender, an LED visor face, a glowing chest heart. Never make it white with a

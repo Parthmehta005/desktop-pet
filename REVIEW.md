@@ -282,6 +282,24 @@ app is complete.
       tray menu), and each Windows-only step against what CI builds.
 - [x] The README links to it near the top.
 
+### M12 — Low-battery panic
+- [ ] Engine: the panic starts at or below the threshold only when on battery with a
+      battery present, stops when charging or above it, is off at 0, beats every other
+      mood, and sets aside the meeting and fullscreen modifiers (unit tests, including
+      every pair in the priority table).
+- [ ] All six pets have the `low-battery` animation; the gallery shows every pet in all
+      19 states, and I've looked at each.
+- [ ] The pet runs to the right-hand end of the strip, faces right and points; a click
+      then asks for battery settings instead of petting.
+- [ ] Windows: the PowerShell monitor's battery lines are parsed (recorded output in
+      unit tests), a PC with no battery never panics, and on Windows CI the built app
+      reports the battery (as "no battery" on the runner).
+- [ ] The main process opens only `ms-settings:batterysaver`, only when asked by the
+      pet window, and only on Windows.
+- [ ] Battery events get through "Pause reactions"; a pet hidden with Ctrl+Alt+P comes
+      back once when the panic starts.
+- [ ] The setting is in the settings window, validated, and applied live.
+
 ---
 
 ## 3. Checks on a real Windows machine (for you, once the app is complete)
@@ -307,6 +325,10 @@ These can't be done from Linux or fully from CI.
 10. The installer installs cleanly and the app uninstalls cleanly. Uninstalling the hooks
     first restores `settings.json`.
 11. Ctrl+Alt+P hides and shows the pet from any app, and so does the tray item.
+12. On a laptop, unplugged and at or below 10% (or with the level raised in Settings to
+    just above the current charge): the pet runs to the bottom-right, points at the
+    battery icon and panics; clicking it opens Windows' battery settings; plugging in
+    calms it.
 
 ---
 

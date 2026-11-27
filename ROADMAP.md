@@ -27,6 +27,7 @@ completed in the last milestone.
 | M9 | Packaging, Windows CI, final README | Done |
 | M10 | Quick hide and show | Done |
 | M11 | A short GUIDE.md | Done |
+| M12 | Low-battery panic | In progress |
 
 Status values: `Not started` · `In progress` · `In review` · `Done`.
 
@@ -49,7 +50,7 @@ All pets are original designs. They're drawn as SVG built from the same set of n
 parts (body, head, eyes, mouth, legs, tail and so on), so every animation works for every pet.
 The pet can be picked from the tray or settings, with an optional "shuffle daily".
 
-### Animation states (18)
+### Animation states (19)
 
 Each state has a stable ID that the code, tests and preview page all use.
 
@@ -73,21 +74,24 @@ Each state has a stable ID that the code, tests and preview page all use.
 | `petted` | You click the pet | Hearts (about 2s) |
 | `held` | You drag the pet | Dangles with its legs kicking |
 | `falling` | You drop the pet | Falls to the taskbar and squashes on landing |
+| `low-battery` | On battery, at or below `lowBatteryPercent` (default 10%) | Runs to the bottom-right, points at the battery icon, shakes and sweats with a "Low battery!" bubble; a click opens Windows' battery settings (added in M12) |
 
 There's one more modifier, `hidden`: if enabled, the pet hides while an app is fullscreen.
 
 **Priority** when several states apply:
-1. `held` / `falling` / `petted`
-2. `alert`
-3. `celebrating` / `happy`
-4. `working`
-5. `away-done`
-6. `sleeping`
-7. `greeting`
-8. `vibing` / `gaming` / `watching`
-9. `stretch` / `bedtime` (stretch is brief, so it can still show up at night)
-10. `focused`
-11. `wander`
+1. `held` / `falling` (you're physically moving it)
+2. `low-battery` (and it ignores the meeting and fullscreen modifiers)
+3. `petted`
+4. `alert`
+5. `celebrating` / `happy`
+6. `working`
+7. `away-done`
+8. `sleeping`
+9. `greeting`
+10. `vibing` / `gaming` / `watching`
+11. `stretch` / `bedtime` (stretch is brief, so it can still show up at night)
+12. `focused`
+13. `wander`
 
 The modifiers (`meeting`, `hidden`) apply on top of whichever state wins.
 
@@ -144,11 +148,11 @@ case) and WSL paths (`/mnt/c/...`).
 ### Dependencies
 
 ```
-M0 ─ M1 ─ M2 ─ M3 ─ M4 ─ M5 ─┬─ M6 ─┬─ M8 ─ M9 ─ M10 ─ M11
+M0 ─ M1 ─ M2 ─ M3 ─ M4 ─ M5 ─┬─ M6 ─┬─ M8 ─ M9 ─ M10 ─ M11 ─ M12
                              └─ M7 ─┘
 ```
 
-M6 and M7 both build on M5 and don't depend on each other. M10 and M11 came after M9,
+M6 and M7 both build on M5 and don't depend on each other. M10 to M12 came after M9,
 at your request.
 
 ---
@@ -561,6 +565,58 @@ its test passes, and REVIEW.md §M11 passes.
 
 ---
 
+### M12 — Low-battery panic
+
+Asked for after M11: when the laptop is about to run out, the pet panics and shows you
+where the battery is.
+
+**Goal:** on battery power at or below a set level, the pet drops everything, runs to the
+bottom-right corner (where Windows shows the battery icon), points at it in a panic, and
+a click on it opens Windows' battery settings.
+
+**Decisions (yours, from the questions before building)**
+- It points at the battery icon, and clicking the pet then opens battery settings.
+- It starts at **10%** by default; the level can be changed or the panic turned off.
+- It beats everything, meetings included. (Being dragged or falling still come first,
+  because those are you moving it.)
+
+**Scope**
+- A new animation state, `low-battery`, for all six pets: a panicked shake, sweat, a
+  paw pointing down and to the right, a blinking low-battery icon and a "Low battery!"
+  bubble that repeats.
+- Engine: a `battery` event (`percent`, `charging`, `present`), the new mood above
+  every other mood, and the meeting and fullscreen modifiers set aside while it lasts.
+- Walking: the pet runs to the right-hand end of the strip and faces right.
+- Settings: `lowBatteryPercent` (0 to 50, default 10, 0 = off).
+- Windows: the foreground-app monitor's PowerShell also reports the battery
+  (`GetSystemPowerStatus`), as a battery event from its own source. Battery events get
+  through "Pause reactions", like the panic gets through meetings.
+- If the pet is hidden (Ctrl+Alt+P) when the panic starts, it comes back once; hiding it
+  again keeps it hidden until the panic ends.
+- Clicking the pet while it panics opens `ms-settings:batterysaver` (Windows only; the
+  main process allows only that address).
+- The browser preview's stage gets "Low battery" and "Plug in" buttons.
+
+**Boundary:** no other new features. A desktop PC without a battery never panics.
+
+**Planned commits**
+1. Plan (this section, REVIEW §M12, the states table)
+2. Engine and config: the battery event, the `low-battery` mood and its priority, the
+   setting
+3. Art: the `low-battery` animation for all six pets, in the gallery
+4. Controller and stage: running to the corner, pointing, the click, and the stage
+   buttons
+5. Windows battery source, opening battery settings, showing a hidden pet, getting
+   through pause, and the setting in the settings window
+6. README, GUIDE and review
+
+**Done when:** every pet has the new animation, the panic starts at the threshold only
+on battery and stops when plugged in, it wins over every other mood and over meetings,
+the click opens battery settings on Windows, every suite passes on both operating
+systems, and REVIEW.md §M12 passes.
+
+---
+
 ## Backlog (not committed)
 
 Ideas to pick up if time allows, or later:
@@ -569,7 +625,6 @@ Ideas to pick up if time allows, or later:
 - The pet roaming across multiple monitors
 - Custom pet names, and loading user-made pets from a folder
 - Optional sounds (off by default)
-- `tired` on low battery
 - Two pets at once that interact with each other
 - From the M9 review:
   - Electron fuses (no `ELECTRON_RUN_AS_NODE`, no `NODE_OPTIONS`, no inspector) for
