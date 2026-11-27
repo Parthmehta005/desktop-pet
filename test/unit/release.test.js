@@ -65,3 +65,29 @@ test('the command line: check and notes against the real files', async () => {
   o = io();
   assert.equal(await run(['nonsense'], o), 2);
 });
+
+test('the release workflow checks and tests everything before it publishes', async () => {
+  const wf = await read('.github/workflows/release.yml');
+  assert.match(wf, /tags: \['v\*\.\*\.\*'\]/, 'runs on version tags');
+  assert.match(wf, /contents: write/, 'may create the release');
+  const order = [
+    'node scripts/release.js check "$TAG"',
+    'npm run lint && npm test',
+    'node --test test/windows/foreground.test.js',
+    'npm run test:electron',
+    'npm run dist:win',
+    'npm run test:packaged',
+    'gh release create',
+  ].map((step) => {
+    const at = wf.indexOf(step);
+    assert.ok(at > 0, `the workflow runs ${step}`);
+    return at;
+  });
+  assert.deepEqual([...order].sort((a, b) => a - b), order, 'in that order: nothing is published untested');
+  // The stable file names the download links rely on, copied from electron-builder's.
+  const build = pkg.build;
+  assert.equal(build.nsis.artifactName, 'DesktopPet-Setup-${version}.${ext}');
+  assert.equal(build.portable.artifactName, 'DesktopPet-${version}-portable.${ext}');
+  assert.match(wf, /cp "dist\/DesktopPet-Setup-\$\{version\}\.exe" release\/DesktopPet-Setup\.exe/);
+  assert.match(wf, /cp "dist\/DesktopPet-\$\{version\}-portable\.exe" release\/DesktopPet-Portable\.exe/);
+});

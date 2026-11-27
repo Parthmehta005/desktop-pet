@@ -1,0 +1,79 @@
+name: Release
+
+# Publishes a GitHub Release when a version tag is pushed:
+#   npm version 1.2.0 --no-git-tag-version   (and add a "## [1.2.0] - date" CHANGELOG entry)
+#   git commit -am "Release 1.2.0" && git tag v1.2.0 && git push origin main v1.2.0
+# It can also be run by hand from the Actions tab for a tag that already exists.
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The tag to release, e.g. v1.0.0 (it must already exist)'
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build, test and publish (windows-latest)
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Check the tag matches package.json and has a CHANGELOG entry
+        run: node scripts/release.js check "$TAG"
+      - name: Lint and unit tests
+        run: npm run lint && npm test
+      - name: The real foreground and battery monitor script under PowerShell
+        run: node --test test/windows/foreground.test.js
+      - name: Electron tests
+        run: npm run test:electron
+      - name: Build the installer and the portable app
+        run: npm run dist:win
+      - name: Test the built app
+        run: npm run test:packaged
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${TAG#v}"
+          mkdir -p release
+          # Stable names, so releases/latest/download/DesktopPet-Setup.exe always works.
+          cp "dist/DesktopPet-Setup-${version}.exe" release/DesktopPet-Setup.exe
+          cp "dist/DesktopPet-${version}-portable.exe" release/DesktopPet-Portable.exe
+          node scripts/release.js notes "$version" > release/notes.md
+          prerelease=""
+          case "$version" in *-*) prerelease="--prerelease" ;; esac
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" release/DesktopPet-Setup.exe release/DesktopPet-Portable.exe --clobber
+            gh release edit "$TAG" --title "Desktop Pet $version" --notes-file release/notes.md
+          else
+            gh release create "$TAG" release/DesktopPet-Setup.exe release/DesktopPet-Portable.exe \
+              --title "Desktop Pet $version" --notes-file release/notes.md --verify-tag $prerelease
+          fi
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-test-results
+          path: test-results/
+          retention-days: 7
