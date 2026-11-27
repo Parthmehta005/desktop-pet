@@ -27,7 +27,7 @@ completed in the last milestone.
 | M9 | Packaging, Windows CI, final README | Done |
 | M10 | Quick hide and show | Done |
 | M11 | A short GUIDE.md | Done |
-| M12 | Low-battery panic | In progress |
+| M12 | Low-battery panic | Done |
 
 Status values: `Not started` · `In progress` · `In review` · `Done`.
 
@@ -610,6 +610,9 @@ state has a look and every setting has a control fail)
 4. Windows battery source, opening battery settings, showing a hidden pet, and getting
    through pause
 5. README, GUIDE and review
+6. Fixes from Windows CI: settings saves retried while the file is briefly locked; the
+   real monitor script tested on Windows, with its errors reported; time for the
+   monitor's first start on a fresh machine
 
 **Done when:** every pet has the new animation, the panic starts at the threshold only
 on battery and stops when plugged in, it wins over every other mood and over meetings,

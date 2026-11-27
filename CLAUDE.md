@@ -6,8 +6,8 @@ same commit whenever a decision, convention or command changes.
 ## Read first
 - **[ROADMAP.md](ROADMAP.md)** is the source of truth for the plan, the milestone status
   table, and the canonical pet IDs and state IDs. Check the status table to see where
-  work stands before doing anything. M0 to M11 are done and merged into `main`; new work
-  starts from the ROADMAP backlog as a new milestone (M12 on), planned and reviewed the
+  work stands before doing anything. M0 to M12 are done and merged into `main`; new work
+  starts from the ROADMAP backlog as a new milestone (M13 on), planned and reviewed the
   same way. When a milestone's gate passes and CI is green, fast-forward `main` to the
   branch (the user asked for this) and notify them.
 - **[REVIEW.md](REVIEW.md)** is the gate every milestone must pass. Results go in its §4
@@ -117,6 +117,13 @@ Each is added by the milestone shown.
 | `npm run dist:win` | M9 | Builds the Windows installer and portable `.exe` (Windows; needs Wine elsewhere) |
 | `npm run dist:dir` | M9 | Builds the unpacked app for this OS into `dist/` |
 | `npm run test:packaged` | M9 | Playwright tests against the built app (after `dist:dir` or `dist:win`) |
+
+## Windows notes
+- Replacing a file by renaming over it fails for a moment on Windows while anything else
+  has it open; use `src/main/safe-rename.js` for every atomic settings write.
+- There's no PowerShell or C# compiler in the container: `test/windows/foreground.test.js`
+  runs the real monitor script on Windows CI. Its first start on a fresh machine can take
+  over 10s.
 
 ## Environment notes (cloud container)
 - Node 22 and npm 10.
