@@ -24,12 +24,46 @@ export const TEST_REACTIONS = Object.freeze([
 ].map((r) => Object.freeze(r)));
 
 /**
- * @param {{ config: { pet: string }, paused: boolean, pets: Array<{ id: string, name: string, species: string }> }} state
- * @param {{ setPet(id: string): void, setPaused(paused: boolean): void, test(id: string): void, quit(): void }} actions
+ * The one-line Claude Code status shown in the tray.
+ * @param {{ status: string, serverError: string | null }} hooks
  */
-export function buildTrayMenu({ config, paused, pets }, actions) {
+export function hooksStatusLabel({ status, serverError }) {
+  if (serverError) return 'Claude Code: the pet can\'t listen (see settings)';
+  return {
+    installed: 'Claude Code: connected',
+    outdated: 'Claude Code: hooks out of date',
+    'not-installed': 'Claude Code: hooks not installed',
+    'invalid-settings': "Claude Code: can't read its settings.json",
+  }[status] ?? 'Claude Code: checking...';
+}
+
+/**
+ * @param {{
+ *   config: { pet: string },
+ *   paused: boolean,
+ *   pets: Array<{ id: string, name: string, species: string }>,
+ *   hooks?: { status: string, serverError: string | null },
+ * }} state
+ * @param {{
+ *   setPet(id: string): void, setPaused(paused: boolean): void, test(id: string): void,
+ *   installHooks(): void, uninstallHooks(): void, quit(): void,
+ * }} actions
+ */
+export function buildTrayMenu({ config, paused, pets, hooks = { status: 'unknown', serverError: null } }, actions) {
   return [
     { label: 'Desktop Pet', enabled: false },
+    { type: 'separator' },
+    { label: hooksStatusLabel(hooks), enabled: false },
+    {
+      label: 'Install Claude Code hooks',
+      enabled: hooks.status !== 'installed' && hooks.status !== 'invalid-settings',
+      click: () => actions.installHooks(),
+    },
+    {
+      label: 'Remove Claude Code hooks',
+      enabled: hooks.status === 'installed' || hooks.status === 'outdated',
+      click: () => actions.uninstallHooks(),
+    },
     { type: 'separator' },
     {
       label: 'Pet',

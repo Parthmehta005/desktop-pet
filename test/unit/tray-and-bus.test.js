@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createEventBus } from '../../src/main/event-bus.js';
-import { buildTrayMenu, TEST_REACTIONS } from '../../src/main/tray-menu.js';
+import { buildTrayMenu, hooksStatusLabel, TEST_REACTIONS } from '../../src/main/tray-menu.js';
 import { PETS } from '../../src/core/pets.js';
 import { createEngine } from '../../src/core/engine.js';
 
@@ -55,6 +55,8 @@ test('the tray menu: pet radio list, pause checkbox, test reactions, quit', () =
     setPet: (id) => calls.push(['setPet', id]),
     setPaused: (p) => calls.push(['setPaused', p]),
     test: (id) => calls.push(['test', id]),
+    installHooks: () => calls.push(['installHooks']),
+    uninstallHooks: () => calls.push(['uninstallHooks']),
     quit: () => calls.push(['quit']),
   };
   const menu = buildTrayMenu({ config: { pet: 'corgi' }, paused: false, pets: PETS }, actions);
@@ -72,9 +74,27 @@ test('the tray menu: pet radio list, pause checkbox, test reactions, quit', () =
 
   assert.equal(byLabel['Test reactions'].submenu.length, TEST_REACTIONS.length);
   byLabel['Test reactions'].submenu[0].click();
+  byLabel['Install Claude Code hooks'].click();
+  byLabel['Remove Claude Code hooks'].click();
   byLabel['Quit Desktop Pet'].click();
 
-  assert.deepEqual(calls, [['setPet', 'penguin'], ['setPaused', true], ['test', 'claude-working'], ['quit']]);
+  assert.deepEqual(calls, [
+    ['setPet', 'penguin'], ['setPaused', true], ['test', 'claude-working'],
+    ['installHooks'], ['uninstallHooks'], ['quit'],
+  ]);
   assert.equal(buildTrayMenu({ config: { pet: 'cat' }, paused: true, pets: PETS }, actions)
     .find((m) => m.label === 'Pause reactions').checked, true);
+});
+
+test('the Claude Code part of the tray follows the hook status', () => {
+  const menu = (hooks) => {
+    const items = buildTrayMenu({ config: { pet: 'cat' }, paused: false, pets: PETS, hooks }, {});
+    const by = (label) => items.find((m) => m.label === label);
+    return { status: items[2].label, install: by('Install Claude Code hooks').enabled, remove: by('Remove Claude Code hooks').enabled };
+  };
+  assert.deepEqual(menu({ status: 'not-installed', serverError: null }), { status: 'Claude Code: hooks not installed', install: true, remove: false });
+  assert.deepEqual(menu({ status: 'installed', serverError: null }), { status: 'Claude Code: connected', install: false, remove: true });
+  assert.deepEqual(menu({ status: 'outdated', serverError: null }), { status: 'Claude Code: hooks out of date', install: true, remove: true });
+  assert.deepEqual(menu({ status: 'invalid-settings', serverError: null }), { status: "Claude Code: can't read its settings.json", install: false, remove: false });
+  assert.match(hooksStatusLabel({ status: 'installed', serverError: 'Port in use' }), /can't listen/);
 });

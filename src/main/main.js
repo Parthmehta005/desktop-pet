@@ -1,5 +1,5 @@
 // Electron main process: app lifecycle, the pet window and its IPC.
-import { app, ipcMain } from 'electron';
+import { app, ipcMain, dialog } from 'electron';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { randomBytes } from 'node:crypto';
@@ -14,6 +14,7 @@ import { buildTrayMenu, TEST_REACTIONS } from './tray-menu.js';
 import { PETS } from '../core/pets.js';
 import { createHookServer } from './sources/hook-server.js';
 import { hookToEvent } from '../core/claude-hooks.js';
+import { installHooks, uninstallHooks, readHookStatus, claudeSettingsPath } from './hooks-installer.js';
 
 // Settings live in <appData>/desktop-pet (the hooks command-line tool looks there too).
 // Tests, or anyone who wants a separate profile, can point at another folder.
@@ -32,6 +33,8 @@ const state = {
   hookServer: null,
   // Whether Claude Code hooks can reach the pet: { listening, port, error }.
   hooks: { listening: false, port: null, error: null },
+  // Whether the hooks are in Claude Code's settings: { status, settingsPath, error }.
+  hookInstall: { status: 'unknown', settingsPath: null, error: null },
 };
 
 /** Sends an engine event to the pet. */
@@ -90,6 +93,24 @@ async function ensureHookToken() {
   await state.store.update({ hookToken: randomBytes(24).toString('hex') });
 }
 
+/** Re-reads whether the hooks are installed in Claude Code's settings. */
+async function refreshHookStatus() {
+  const { hookPort: port, hookToken: token } = state.store.config;
+  try {
+    const result = await readHookStatus({ settingsPath: claudeSettingsPath(), port, token });
+    state.hookInstall = { status: result.status, settingsPath: result.settingsPath, error: result.error ?? null };
+  } catch (err) {
+    state.hookInstall = { status: 'invalid-settings', settingsPath: claudeSettingsPath(), error: err.message };
+  }
+  state.tray?.refresh();
+  return state.hookInstall;
+}
+
+/** Tells the user how a tray action went (skipped in tests: dialogs would block). */
+function notify(type, message, detail) {
+  if (!testing) dialog.showMessageBox({ type, title: 'Desktop Pet', message, detail });
+}
+
 /** What the tray menu can do. */
 const actions = {
   async setPet(id) {
@@ -104,12 +125,44 @@ const actions = {
     const reaction = TEST_REACTIONS.find((r) => r.id === id);
     for (const event of reaction?.events ?? []) state.bus.emit(event, { source: 'test' });
   },
+  async installHooks() {
+    const { hookPort: port, hookToken: token } = state.store.config;
+    try {
+      const result = await installHooks({ settingsPath: claudeSettingsPath(), port, token });
+      await refreshHookStatus();
+      notify('info', 'Claude Code hooks installed',
+        `Saved to ${result.settingsPath}.${result.backup ? `\nThe previous file was backed up to ${result.backup}.` : ''}\n\nStart a new Claude Code session (or restart open ones) and the pet will react.`);
+      return { ok: true, ...result };
+    } catch (err) {
+      await refreshHookStatus();
+      notify('error', "Couldn't install the Claude Code hooks", err.message);
+      return { ok: false, error: err.message };
+    }
+  },
+  async uninstallHooks() {
+    try {
+      const result = await uninstallHooks({ settingsPath: claudeSettingsPath() });
+      await refreshHookStatus();
+      notify('info', 'Claude Code hooks removed',
+        result.changed ? `Removed from ${result.settingsPath}.\nThe previous file was backed up to ${result.backup}.` : 'There were none to remove.');
+      return { ok: true, ...result };
+    } catch (err) {
+      await refreshHookStatus();
+      notify('error', "Couldn't remove the Claude Code hooks", err.message);
+      return { ok: false, error: err.message };
+    }
+  },
   quit() {
     app.quit();
   },
 };
 
-const trayState = () => ({ config: state.store.config, paused: state.bus.paused, pets: PETS });
+const trayState = () => ({
+  config: state.store.config,
+  paused: state.bus.paused,
+  pets: PETS,
+  hooks: { status: state.hookInstall.status, serverError: state.hooks.error },
+});
 
 function registerIpc() {
   ipcMain.handle('pet:get-config', (event) => {
@@ -135,6 +188,7 @@ async function start() {
   state.tray = createTray({ getState: trayState, actions });
   await ensureHookToken();
   await startHookServer();
+  await refreshHookStatus();
 }
 
 registerAppScheme();
@@ -175,5 +229,6 @@ if (testing) {
     sendToPet,
     setConfig,
     trayMenu: () => buildTrayMenu(trayState(), actions),
+    refreshHookStatus,
   };
 }

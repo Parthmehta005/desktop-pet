@@ -23,14 +23,16 @@ export async function tempUserData() {
 }
 
 /** Launches the app with its own settings folder. */
-export async function launchApp({ userData, env = {} } = {}) {
+export async function launchApp({ userData, claudeDir, env = {} } = {}) {
   const dir = userData ?? await tempUserData();
+  // Claude Code's settings folder too, so tray actions never touch the real ~/.claude.
+  const claude = claudeDir ?? path.join(dir, 'claude-config');
   const app = await electron.launch({
     args: ['.', ...chromiumArgs()],
     cwd: ROOT,
-    env: { ...process.env, DESKTOP_PET_USER_DATA: dir, DESKTOP_PET_TEST: '1', ...env },
+    env: { ...process.env, DESKTOP_PET_USER_DATA: dir, DESKTOP_PET_TEST: '1', CLAUDE_CONFIG_DIR: claude, ...env },
   });
-  return { app, userData: dir };
+  return { app, userData: dir, claudeDir: claude };
 }
 
 /** A TCP port nothing is listening on right now. */
@@ -60,13 +62,13 @@ export async function launchWithHooks(changes = {}) {
   const userData = await tempUserData();
   const hookPort = await freePort();
   await writeConfig(userData, { hookPort, ...changes });
-  const { app } = await launchApp({ userData });
+  const { app, claudeDir } = await launchApp({ userData });
   const page = await app.firstWindow();
   await page.locator('body[data-ready="true"]').waitFor({ state: 'attached' });
   const { expect } = await import('@playwright/test');
   await expect.poll(() => app.evaluate(() => globalThis.__desktopPet.state.hooks.listening)).toBe(true);
   const config = await readConfig(userData);
-  return { app, page, userData, port: hookPort, token: config.hookToken };
+  return { app, page, userData, claudeDir, port: hookPort, token: config.hookToken };
 }
 
 /** Posts a hook payload the way the installed curl command does. */

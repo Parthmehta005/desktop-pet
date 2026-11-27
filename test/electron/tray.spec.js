@@ -24,7 +24,10 @@ test('the tray icon exists with its menu', async () => {
     return { destroyed: t.isDestroyed(), tooltip: 'Desktop Pet' };
   });
   expect(tray.destroyed).toBe(false);
-  expect(await menuLabels()).toEqual(['Desktop Pet', '---', 'Pet', 'Pause reactions', 'Test reactions', '---', 'Quit Desktop Pet']);
+  expect(await menuLabels()).toEqual([
+    'Desktop Pet', '---', 'Claude Code: hooks not installed', 'Install Claude Code hooks', 'Remove Claude Code hooks',
+    '---', 'Pet', 'Pause reactions', 'Test reactions', '---', 'Quit Desktop Pet',
+  ]);
 });
 
 for (const reaction of TEST_REACTIONS.filter((r) => ['claude-working', 'claude-needs-you', 'commit', 'music', 'pet'].includes(r.id))) {
