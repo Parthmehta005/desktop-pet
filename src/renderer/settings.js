@@ -32,7 +32,23 @@ function showError(key, message) {
   box.hidden = !message;
 }
 
-async function save(changes) {
+let saving = Promise.resolve(true);
+
+/**
+ * Saves one setting. Saves run one at a time, and `changes` can be a function of the
+ * config as it stands once the earlier saves have finished, so list edits made in quick
+ * succession build on each other instead of on a stale copy (which would lose one).
+ *
+ * @param {object | ((config: object) => object)} changes
+ * @returns {Promise<boolean>} whether it was saved
+ */
+function save(changes) {
+  const run = () => saveNow(typeof changes === 'function' ? changes(state.config) : changes);
+  saving = saving.then(run, run);
+  return saving;
+}
+
+async function saveNow(changes) {
   const [key] = Object.keys(changes);
   const local = validateConfig({ ...state.config, ...changes }).errors.filter((e) => e.key === key);
   if (local.length) {
@@ -159,15 +175,20 @@ function folders(key, info) {
   const list = el('ul', { className: 'folder-list' });
   const add = el('button', { type: 'button', className: 'add-folder' }, 'Add folder...');
   add.addEventListener('click', async () => {
-    const folder = await bridge.pickFolder();
-    if (folder) save({ watchedFolders: [...state.config.watchedFolders, folder] });
+    add.disabled = true; // one picker at a time
+    try {
+      const folder = await bridge.pickFolder();
+      if (folder) await save((c) => ({ watchedFolders: [...c.watchedFolders, folder] }));
+    } finally {
+      add.disabled = false;
+    }
   });
   const box = el('div', { className: 'folders' }, list, add);
   const wrap = fieldShell(key, info, box, null);
   wrap.update = () => {
-    list.replaceChildren(...state.config.watchedFolders.map((folder, i) => {
+    list.replaceChildren(...state.config.watchedFolders.map((folder) => {
       const remove = el('button', { type: 'button', className: 'remove', 'aria-label': `Stop watching ${folder}` }, 'Remove');
-      remove.addEventListener('click', () => save({ watchedFolders: state.config.watchedFolders.filter((_, j) => j !== i) }));
+      remove.addEventListener('click', () => save((c) => ({ watchedFolders: c.watchedFolders.filter((f) => f !== folder) })));
       return el('li', {}, el('code', {}, folder), remove);
     }));
     if (state.config.watchedFolders.length === 0) list.append(el('li', { className: 'empty' }, 'None yet: every Claude session counts.'));
@@ -183,20 +204,22 @@ function rules(key, info) {
     body);
   const addRule = el('button', { type: 'button' }, 'Add rule');
   const reset = el('button', { type: 'button' }, 'Restore default rules');
-  const saveRules = (next) => save({ appRules: next });
-  addRule.addEventListener('click', () => saveRules([...state.config.appRules, { name: 'New rule', process: '^app-name$', mood: 'vibing' }]));
-  reset.addEventListener('click', () => saveRules(DEFAULT_APP_RULES.map((r) => ({ ...r }))));
+  // Every edit is a function of the rules as they are when it is saved (see save()).
+  const saveRules = (change) => save((c) => ({ appRules: change(c.appRules) }));
+  addRule.addEventListener('click', () => saveRules((rules) => [...rules, { name: 'New rule', process: '^app-name$', mood: 'vibing' }]));
+  reset.addEventListener('click', () => saveRules(() => DEFAULT_APP_RULES.map((r) => ({ ...r }))));
   const box = el('div', { className: 'rules-box' }, table, el('div', { className: 'rules-actions' }, addRule, reset));
   const wrap = fieldShell(key, info, box, null);
 
   wrap.update = () => {
     const current = state.config.appRules;
     body.replaceChildren(...current.map((rule, i) => {
-      const edit = (changes) => {
-        const next = current.map((r, j) => (j === i ? { ...r, ...changes } : r));
-        for (const f of RULE_FIELDS) if (next[i][f] === '') delete next[i][f];
-        saveRules(next);
-      };
+      const edit = (changes) => saveRules((rules) => rules.map((r, j) => {
+        if (j !== i) return r;
+        const next = { ...r, ...changes };
+        for (const f of RULE_FIELDS) if (next[f] === '') delete next[f];
+        return next;
+      }));
       const text = (field, aria) => {
         const input = el('input', { type: 'text', value: rule[field] ?? '', 'aria-label': `${aria}, rule ${i + 1}`, spellcheck: false });
         input.addEventListener('change', () => edit({ [field]: input.value }));
@@ -207,15 +230,16 @@ function rules(key, info) {
       mood.addEventListener('change', () => edit({ mood: mood.value }));
       const move = (delta, label) => {
         const b = el('button', { type: 'button', 'aria-label': `${label} rule ${i + 1}`, disabled: i + delta < 0 || i + delta >= current.length }, label === 'Move up' ? '↑' : '↓');
-        b.addEventListener('click', () => {
-          const next = [...current];
+        b.addEventListener('click', () => saveRules((rules) => {
+          if (i + delta < 0 || i + delta >= rules.length) return rules;
+          const next = [...rules];
           [next[i], next[i + delta]] = [next[i + delta], next[i]];
-          saveRules(next);
-        });
+          return next;
+        }));
         return b;
       };
       const remove = el('button', { type: 'button', 'aria-label': `Delete rule ${i + 1}` }, '✕');
-      remove.addEventListener('click', () => saveRules(current.filter((_, j) => j !== i)));
+      remove.addEventListener('click', () => saveRules((rules) => rules.filter((_, j) => j !== i)));
       return el('tr', {}, text('name', 'Name'), text('process', 'Process'), text('title', 'Window title'), text('path', 'Install path'),
         el('td', {}, mood), el('td', { className: 'row-actions' }, move(-1, 'Move up'), move(1, 'Move down'), remove));
     }));

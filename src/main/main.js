@@ -48,6 +48,8 @@ const state = {
   testFolderPicks: [],
   // In test mode, launch-at-login changes are recorded here instead of applied.
   loginItemCalls: [],
+  // In test mode, settings saves can be slowed down to show races (a slow disk).
+  testSaveDelayMs: 0,
   shuffleTimer: null,
 };
 
@@ -244,6 +246,7 @@ function registerIpc() {
     if (keys.length === 0 || !keys.every((key) => USER_KEYS.has(key))) {
       return { ok: false, errors: [{ key: null, message: 'Unknown setting.' }], state: settingsState() };
     }
+    if (testing && state.testSaveDelayMs) await new Promise((resolve) => setTimeout(resolve, state.testSaveDelayMs));
     const result = await setConfig(changes);
     return { ...result, state: settingsState() };
   });

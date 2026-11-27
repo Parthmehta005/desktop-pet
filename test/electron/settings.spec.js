@@ -132,9 +132,12 @@ test('watched folders: add with the folder picker, remove, and the watcher follo
 
     await app.evaluate((_, folders) => { globalThis.__desktopPet.state.testFolderPicks.push(...folders); }, [a, b, a]);
     const add = win.getByRole('button', { name: 'Add folder...' });
+    // A slow save (as on a busy disk) must not make the second folder replace the first.
+    await app.evaluate(() => { globalThis.__desktopPet.state.testSaveDelayMs = 300; });
     await add.click();
     await add.click();
     await expect(win.locator('.folder-list code')).toHaveText([a, b]);
+    await app.evaluate(() => { globalThis.__desktopPet.state.testSaveDelayMs = 0; });
     await add.click(); // the same folder again is ignored
     await expect(win.locator('.folder-list code')).toHaveText([a, b]);
     await expect.poll(async () => (await readConfig(userData)).watchedFolders).toEqual([a, b]);
@@ -228,6 +231,14 @@ test('app rules: add, catch a bad pattern, fix it, reorder, delete, restore; the
     await expect(rows).toHaveCount(defaults - 1);
     await win.getByRole('button', { name: 'Restore default rules' }).click();
     await expect(rows).toHaveCount(defaults);
+
+    // Quick clicks each build on the last save instead of a stale copy of the list,
+    // even when saving is slow.
+    await app.evaluate(() => { globalThis.__desktopPet.state.testSaveDelayMs = 300; });
+    await win.getByRole('button', { name: 'Add rule' }).click();
+    await win.getByRole('button', { name: 'Add rule' }).click();
+    await expect(rows).toHaveCount(defaults + 2);
+    await expect.poll(async () => (await readConfig(userData)).appRules.length).toBe(defaults + 2);
   } finally {
     await app.close();
   }
