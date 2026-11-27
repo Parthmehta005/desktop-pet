@@ -64,9 +64,11 @@ export function createConfigStore(dir) {
     const run = async () => {
       const { config, errors } = validateConfig({ ...current, ...changes });
       if (errors.length) return { ok: false, config: current, errors };
-      current = config;
-      await writeFile(tmp, serializeConfig(current), 'utf8');
+      // Only report the new settings once they're safely on disk: quitting straight
+      // after a change (or a crash) must not leave the app and the file disagreeing.
+      await writeFile(tmp, serializeConfig(config), 'utf8');
       await rename(tmp, file);
+      current = config;
       return { ok: true, config: current, errors: [] };
     };
     queue = queue.then(run, run);
