@@ -72,7 +72,8 @@ test('the release workflow checks and tests everything before it publishes', asy
   assert.match(wf, /contents: write/, 'may create the release');
   const order = [
     'node scripts/release.js check "$TAG"',
-    'npm run lint && npm test',
+    'npm run lint',
+    'npm test',
     'node --test test/windows/foreground.test.js',
     'npm run test:electron',
     'npm run dist:win',
