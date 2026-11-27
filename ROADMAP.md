@@ -26,7 +26,7 @@ completed in the last milestone.
 | M8 | Settings window and polish | Done |
 | M9 | Packaging, Windows CI, final README | Done |
 | M10 | Quick hide and show | Done |
-| M11 | A short GUIDE.md | In progress |
+| M11 | A short GUIDE.md | Done |
 
 Status values: `Not started` · `In progress` · `In review` · `Done`.
 

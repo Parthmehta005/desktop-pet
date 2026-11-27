@@ -6,12 +6,15 @@ same commit whenever a decision, convention or command changes.
 ## Read first
 - **[ROADMAP.md](ROADMAP.md)** is the source of truth for the plan, the milestone status
   table, and the canonical pet IDs and state IDs. Check the status table to see where
-  work stands before doing anything. M0 to M10 are done and merged into `main`; new work
-  starts from the ROADMAP backlog as a new milestone (M11 on), planned and reviewed the
+  work stands before doing anything. M0 to M11 are done and merged into `main`; new work
+  starts from the ROADMAP backlog as a new milestone (M12 on), planned and reviewed the
   same way. When a milestone's gate passes and CI is green, fast-forward `main` to the
   branch (the user asked for this) and notify them.
 - **[REVIEW.md](REVIEW.md)** is the gate every milestone must pass. Results go in its §4
   review log.
+- **[GUIDE.md](GUIDE.md)** is the one-page user guide. Keep it at most 80 lines and
+  name UI items exactly as the app does; `test/unit/guide.test.js` checks both, and
+  `test/electron/guide.spec.js` follows it in the app. Update it when the UI changes.
 - **[README.md](README.md)** is for the user. Fill in its sections as the milestones that
   own them finish. Each placeholder says which milestone that is.
 
