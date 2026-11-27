@@ -46,9 +46,12 @@ test('hookCommand: curl.exe on Windows, curl elsewhere, quiet and non-blocking',
   assert.ok(win.includes(`X-Pet-Token: ${TOKEN}`));
   assert.ok(win.includes(`http://127.0.0.1:47321${HOOK_MARKER}`));
   assert.ok(win.includes('--data-binary @-'), 'forwards the hook payload from stdin');
+  assert.ok(win.includes('--noproxy 127.0.0.1 '), 'a configured proxy never sees the local post');
   assert.ok(win.endsWith('|| exit 0'), 'never fails the hook when the pet is not running');
   assert.match(hookCommand(OPTS), /^curl -s -m 2 /);
-  assert.ok(hookCommand({ ...OPTS, host: 'windows-host.local' }).includes('http://windows-host.local:47321'));
+  const wsl = hookCommand({ ...OPTS, host: 'windows-host.local' });
+  assert.ok(wsl.includes('http://windows-host.local:47321'));
+  assert.ok(wsl.includes('--noproxy windows-host.local '));
 });
 
 test('hookCommand rejects values that could break the command line', () => {

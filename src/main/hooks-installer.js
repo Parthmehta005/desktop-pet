@@ -36,7 +36,9 @@ export function hookCommand({ port, token, shell = process.platform === 'win32' 
   if (typeof host !== 'string' || !/^[A-Za-z0-9.-]{1,253}$/.test(host)) throw new Error(`Invalid hook host: ${host}`);
   if (shell !== 'windows' && shell !== 'posix') throw new Error(`Invalid shell: ${shell}`);
   const curl = shell === 'windows' ? 'curl.exe' : 'curl';
-  return `${curl} -s -m 2 --connect-timeout 1 -X POST -H "Content-Type: application/json" `
+  // --noproxy: a proxy set in the environment (common on work machines) must never get
+  // the local hook post; it would never reach the pet.
+  return `${curl} -s -m 2 --connect-timeout 1 --noproxy ${host} -X POST -H "Content-Type: application/json" `
     + `-H "X-Pet-Token: ${token}" --data-binary @- http://${host}:${port}${HOOK_PATH} || exit 0`;
 }
 
