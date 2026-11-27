@@ -1,6 +1,7 @@
 // One way in for every event the pet reacts to. Sources (Claude hooks, file watchers,
 // the idle and app monitors) emit here; "Pause reactions" stops all of them except the
-// tray's test reactions. Pure, so it can be unit tested.
+// tray's test reactions and the battery (a low battery beats everything, even a pause).
+// Pure, so it can be unit tested.
 
 /**
  * @param {(event: object) => void} deliver  Sends an engine event to the pet.
@@ -8,9 +9,9 @@
 export function createEventBus(deliver) {
   let paused = false;
   return {
-    /** @param {{ source?: string }} [options]  'test' events get through while paused. */
+    /** @param {{ source?: string }} [options]  'test' and 'battery' events get through while paused. */
     emit(event, { source = 'app' } = {}) {
-      if (paused && source !== 'test') return false;
+      if (paused && source !== 'test' && source !== 'battery') return false;
       deliver(event);
       return true;
     },

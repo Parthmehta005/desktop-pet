@@ -71,7 +71,7 @@ test('the settings window and the icons load from the archive', async () => {
   }
 });
 
-test('the foreground-app monitor: on Windows it reports the foreground window within 10s; elsewhere it never starts', async () => {
+test('the foreground-app monitor: on Windows it reports the foreground window and the battery within 10s; elsewhere it never starts', async () => {
   const { app } = await launch({ DESKTOP_PET_SOURCES: 'apps' });
   try {
     const platform = await app.evaluate(() => process.platform);
@@ -83,9 +83,11 @@ test('the foreground-app monitor: on Windows it reports the foreground window wi
     await app.evaluate(() => {
       const { state } = globalThis.__desktopPet;
       globalThis.__appEvents = [];
+      globalThis.__batteryEvents = [];
       const emit = state.bus.emit;
       state.bus.emit = (event, options) => {
         if (options?.source === 'apps') globalThis.__appEvents.push(event);
+        if (options?.source === 'battery') globalThis.__batteryEvents.push(event);
         return emit(event, options);
       };
       state.sources.apps.stop();
@@ -97,6 +99,15 @@ test('the foreground-app monitor: on Windows it reports the foreground window wi
     expect(first.type).toBe('app');
     expect(typeof first.process).toBe('string');
     expect(typeof first.fullscreen).toBe('boolean');
+    // The battery, from GetSystemPowerStatus (a CI runner has none: present is false).
+    await expect.poll(() => app.evaluate(() => globalThis.__batteryEvents.length), { timeout: 10_000 }).toBeGreaterThan(0);
+    const [battery] = await app.evaluate(() => globalThis.__batteryEvents);
+    console.log(`Battery reported by the built app: ${JSON.stringify(battery)}`);
+    expect(battery.type).toBe('battery');
+    expect(battery.percent).toBeGreaterThanOrEqual(0);
+    expect(battery.percent).toBeLessThanOrEqual(100);
+    expect(typeof battery.charging).toBe('boolean');
+    expect(typeof battery.present).toBe('boolean');
   } finally {
     await app.close();
   }

@@ -1,5 +1,5 @@
 // Electron main process: app lifecycle, the pet window and its IPC.
-import { app, ipcMain, dialog, powerMonitor, globalShortcut } from 'electron';
+import { app, ipcMain, dialog, powerMonitor, globalShortcut, shell } from 'electron';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { randomBytes } from 'node:crypto';
@@ -17,6 +17,7 @@ import { CONFIG_KEYS, CONFIG_SCHEMA } from '../core/config.js';
 import { createHookServer } from './sources/hook-server.js';
 import { createSources, enabledSources } from './sources/index.js';
 import { hookToEvent } from '../core/claude-hooks.js';
+import { isBatteryLow } from '../core/engine.js';
 import { installHooks, uninstallHooks, readHookStatus, claudeSettingsPath } from './hooks-installer.js';
 
 // Settings live in <appData>/desktop-pet (the hooks command-line tool looks there too).
@@ -55,6 +56,11 @@ const state = {
   shuffleTimer: null,
   // True once start() has finished: every source, the hook server and the shortcut are up.
   started: false,
+  // The last battery report, and whether the pet is panicking about it right now.
+  battery: null,
+  batteryPanic: false,
+  // In test mode, requests to open Windows' battery settings are recorded here instead.
+  batterySettingsCalls: [],
 };
 
 /**
@@ -92,6 +98,32 @@ function applyShortcut() {
     error: registered ? null : `${shortcut} is already used by another app, so it can't hide the pet. Pick another shortcut.`,
   };
   if (!registered) console.warn(`Desktop Pet: ${state.shortcut.error}`);
+}
+
+/**
+ * A battery report (from the foreground monitor on Windows). It goes to the pet like any
+ * other event, but through "Pause reactions": a low battery beats everything. When the
+ * panic starts, a pet hidden with Ctrl+Alt+P comes back, once; hidden again, it stays
+ * hidden until the panic is over.
+ */
+function onBattery(event) {
+  state.battery = { percent: event.percent, charging: event.charging, present: event.present };
+  state.bus.emit(event, { source: 'battery' });
+  checkBatteryPanic();
+}
+
+function checkBatteryPanic() {
+  const low = isBatteryLow(state.battery, state.store.config.lowBatteryPercent);
+  if (low && !state.batteryPanic && state.petWindow?.hidden) actions.setHidden(false);
+  state.batteryPanic = low;
+}
+
+/** Windows' battery settings page: the only address the pet may open. */
+const BATTERY_SETTINGS_URL = 'ms-settings:batterysaver';
+
+function openBatterySettings() {
+  if (testing) state.batterySettingsCalls.push(BATTERY_SETTINGS_URL);
+  else if (process.platform === 'win32') shell.openExternal(BATTERY_SETTINGS_URL).catch(() => {});
 }
 
 /** "A different pet every day": switches to today's pet if it isn't showing already. */
@@ -153,6 +185,7 @@ async function setConfig(changes) {
   if (changes.shuffleDaily === true) await checkShuffle();
   if ('launchAtLogin' in changes) applyLoginItem(result.config.launchAtLogin);
   if ('toggleShortcut' in changes) applyShortcut();
+  if ('lowBatteryPercent' in changes) checkBatteryPanic();
   state.tray?.refresh();
   broadcastSettings();
   return { ok: true, errors: [] };
@@ -288,6 +321,12 @@ function registerIpc() {
     if (!fromPetWindow(event) || typeof over !== 'boolean') return;
     state.petWindow.setInteractive(over);
   });
+  // Clicking the pet while it panics about the battery. It takes no input: the page can
+  // only ever ask for the one page above, and only from the pet window.
+  ipcMain.on('pet:open-battery-settings', (event) => {
+    if (!fromPetWindow(event)) return;
+    openBatterySettings();
+  });
 
   ipcMain.handle('settings:get-state', (event) => {
     if (!fromSettingsWindow(event)) throw new Error('not allowed');
@@ -346,6 +385,7 @@ async function start() {
     bus: state.bus,
     powerMonitor,
     enabled: enabledSources(process.env.DESKTOP_PET_SOURCES),
+    onBattery,
   });
   await state.sources.start(state.store.config);
   applyLoginItem(state.store.config.launchAtLogin);
@@ -404,5 +444,6 @@ if (testing) {
     refreshHookStatus,
     settingsState,
     checkShuffle: (ms) => checkShuffle(new Date(ms)),
+    onBattery,
   };
 }

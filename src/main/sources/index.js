@@ -3,6 +3,7 @@
 //          commits in their repos            -> 'commit'        (source 'git')
 //   idle   keyboard/mouse idle time, locking -> 'idle-time', 'lock', 'unlock' (source 'idle')
 //   apps   the foreground window (Windows)   -> 'app'           (source 'apps')
+//          and the battery (Windows)         -> 'battery'       (source 'battery', via onBattery)
 // The Claude Code hook server is started separately (main.js).
 import { createRepoWatcher } from './repo-watcher.js';
 import { createIdleMonitor } from './idle-monitor.js';
@@ -24,8 +25,10 @@ export function enabledSources(value) {
  * @param {{ emit(event: object, options: { source: string }): boolean }} options.bus
  * @param {object} options.powerMonitor  Electron's powerMonitor.
  * @param {Set<string>} [options.enabled]
+ * @param {(event: object) => void} [options.onBattery]  Battery reports; the main process
+ *   passes them to the bus itself (they also decide whether a hidden pet comes back).
  */
-export function createSources({ bus, powerMonitor, enabled = new Set(SOURCE_NAMES) }) {
+export function createSources({ bus, powerMonitor, enabled = new Set(SOURCE_NAMES), onBattery }) {
   const repo = enabled.has('files')
     ? createRepoWatcher({
       onActivity: (folder) => bus.emit({ type: 'file-activity', folder }, { source: 'files' }),
@@ -36,7 +39,10 @@ export function createSources({ bus, powerMonitor, enabled = new Set(SOURCE_NAME
     ? createIdleMonitor({ powerMonitor, emit: (event) => bus.emit(event, { source: 'idle' }) })
     : null;
   const apps = enabled.has('apps')
-    ? createAppMonitor({ emit: (event) => bus.emit(event, { source: 'apps' }) })
+    ? createAppMonitor({
+      emit: (event) => bus.emit(event, { source: 'apps' }),
+      emitBattery: onBattery ?? ((event) => bus.emit(event, { source: 'battery' })),
+    })
     : null;
 
   return {

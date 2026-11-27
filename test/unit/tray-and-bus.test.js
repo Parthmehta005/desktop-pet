@@ -13,11 +13,12 @@ test('the event bus delivers events until paused; test reactions always get thro
   assert.deepEqual(delivered, ['commit', 'reset'], 'pausing calms the pet with a reset');
   assert.equal(bus.emit({ type: 'commit' }, { source: 'git' }), false);
   assert.equal(bus.emit({ type: 'pet' }, { source: 'test' }), true);
+  assert.equal(bus.emit({ type: 'battery', percent: 5 }, { source: 'battery' }), true, 'a low battery beats a pause');
   bus.setPaused(true);
-  assert.deepEqual(delivered, ['commit', 'reset', 'pet'], 'pausing twice sends one reset');
+  assert.deepEqual(delivered, ['commit', 'reset', 'pet', 'battery'], 'pausing twice sends one reset');
   bus.setPaused(false);
   bus.emit({ type: 'commit' });
-  assert.deepEqual(delivered, ['commit', 'reset', 'pet', 'commit']);
+  assert.deepEqual(delivered, ['commit', 'reset', 'pet', 'battery', 'commit']);
   assert.equal(bus.paused, false);
 });
 

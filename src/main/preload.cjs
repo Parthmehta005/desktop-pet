@@ -20,4 +20,6 @@ contextBridge.exposeInMainWorld('desktopPet', Object.freeze({
   setInteractive: (over) => ipcRenderer.send('pet:interactive', over === true),
   /** The renderer has started. */
   ready: () => ipcRenderer.send('pet:ready'),
+  /** The pet was clicked while panicking about the battery: open battery settings. */
+  openBatterySettings: () => ipcRenderer.send('pet:open-battery-settings'),
 }));

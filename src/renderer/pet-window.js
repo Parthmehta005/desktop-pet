@@ -13,6 +13,7 @@ const controller = createController({
   pet: getPet(config.pet),
   config,
   onHoverChange: (over) => bridge.setInteractive(over),
+  onBatteryClick: () => bridge.openBatterySettings(),
 });
 
 bridge.onEvent((event) => controller.dispatch(event));

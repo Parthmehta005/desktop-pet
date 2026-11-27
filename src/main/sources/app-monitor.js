@@ -1,6 +1,6 @@
-// Which app is in the foreground (Windows only). Runs foreground.ps1 in a hidden,
-// long-lived PowerShell and turns each JSON line it prints into an engine 'app' event.
-// Elsewhere it does nothing and starts no process.
+// Which app is in the foreground, and the battery (Windows only). Runs foreground.ps1 in a
+// hidden, long-lived PowerShell and turns each JSON line it prints into an engine 'app'
+// or 'battery' event. Elsewhere it does nothing and starts no process.
 import { spawn as nodeSpawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -24,6 +24,21 @@ export function parseForegroundLine(line) {
   return { process: text(data.process), title: text(data.title), path: text(data.path), fullscreen: data.fullscreen === true };
 }
 
+/** One battery line of monitor output -> a 'battery' event, or null if it isn't one. */
+export function parseBatteryLine(line) {
+  let data;
+  try {
+    data = JSON.parse(line);
+  } catch {
+    return null;
+  }
+  const b = data?.battery;
+  if (b === null || typeof b !== 'object' || Array.isArray(b)) return null;
+  const percent = Number(b.percent);
+  if (!Number.isFinite(percent) || typeof b.charging !== 'boolean' || typeof b.present !== 'boolean') return null;
+  return { type: 'battery', percent: Math.min(100, Math.max(0, percent)), charging: b.charging, present: b.present };
+}
+
 /**
  * PowerShell arguments that run `script` without a script file (so execution policy and
  * packaged-app paths don't matter), with $ParentPid set so it exits with the pet.
@@ -35,11 +50,13 @@ export function powerShellArgs(script, parentPid) {
 
 /**
  * @param {object} options
- * @param {(event: object) => void} options.emit
+ * @param {(event: object) => void} options.emit  Foreground-app events.
+ * @param {(event: object) => void} [options.emitBattery]  Battery events.
  * Everything else can be swapped in tests.
  */
 export function createAppMonitor({
   emit,
+  emitBattery = () => {},
   platform = process.platform,
   spawn = nodeSpawn,
   readScript = () => readFileSync(SCRIPT_PATH, 'utf8'),
@@ -77,6 +94,12 @@ export function createAppMonitor({
       if (!stopped) scheduleRestart();
     };
     readline.createInterface({ input: current.stdout }).on('line', (line) => {
+      const battery = parseBatteryLine(line);
+      if (battery) {
+        failures = 0;
+        emitBattery(battery);
+        return;
+      }
       const app = parseForegroundLine(line);
       if (!app) return;
       failures = 0;

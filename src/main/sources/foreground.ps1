@@ -2,6 +2,8 @@
 #
 # Prints one compact JSON line whenever the foreground window changes:
 #   {"process":"Spotify","title":"Spotify Premium","path":"C:\\...\\Spotify.exe","fullscreen":false}
+# and one whenever the battery changes (present is false on a PC without one):
+#   {"battery":{"percent":7,"charging":false,"present":true}}
 # It needs no admin rights, makes no network connections, checks at most once a second,
 # and exits when the pet that started it ($ParentPid, set by the pet) goes away.
 
@@ -22,6 +24,18 @@ public static class DesktopPetForeground {
   [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
   [DllImport("user32.dll")] public static extern IntPtr MonitorFromWindow(IntPtr hWnd, uint flags);
   [DllImport("user32.dll")] public static extern bool GetMonitorInfo(IntPtr monitor, ref MONITORINFO info);
+  [StructLayout(LayoutKind.Sequential)] public struct SYSTEM_POWER_STATUS { public byte ACLineStatus; public byte BatteryFlag; public byte BatteryLifePercent; public byte SystemStatusFlag; public int BatteryLifeTime; public int BatteryFullLifeTime; }
+  [DllImport("kernel32.dll")] public static extern bool GetSystemPowerStatus(out SYSTEM_POWER_STATUS status);
+
+  // ACLineStatus 1 = plugged in; BatteryFlag 8 = charging, 128 = no battery, 255 = unknown.
+  public static string Battery() {
+    SYSTEM_POWER_STATUS s;
+    if (!GetSystemPowerStatus(out s)) return null;
+    bool present = s.BatteryFlag != 128 && s.BatteryFlag != 255 && s.BatteryLifePercent != 255;
+    bool charging = s.ACLineStatus == 1 || (s.BatteryFlag & 8) != 0;
+    int percent = s.BatteryLifePercent <= 100 ? s.BatteryLifePercent : 100;
+    return "{\"battery\":{\"percent\":" + percent + ",\"charging\":" + (charging ? "true" : "false") + ",\"present\":" + (present ? "true" : "false") + "}}";
+  }
 
   public static bool IsFullscreen(IntPtr hWnd) {
     if (hWnd == IntPtr.Zero || hWnd == GetShellWindow() || hWnd == GetDesktopWindow()) return false;
@@ -43,6 +57,7 @@ public static class DesktopPetForeground {
 "@
 
 $last = ''
+$lastBattery = ''
 while ($true) {
   if ($ParentPid -and -not (Get-Process -Id $ParentPid -ErrorAction SilentlyContinue)) { break }
 
@@ -65,6 +80,13 @@ while ($true) {
     [Console]::Out.WriteLine($json)
     [Console]::Out.Flush()
     $last = $json
+  }
+
+  $battery = [DesktopPetForeground]::Battery()
+  if ($battery -and $battery -ne $lastBattery) {
+    [Console]::Out.WriteLine($battery)
+    [Console]::Out.Flush()
+    $lastBattery = $battery
   }
   Start-Sleep -Milliseconds 1000
 }

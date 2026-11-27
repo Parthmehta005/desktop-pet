@@ -239,11 +239,20 @@ function onBattery(next, event) {
   });
 }
 
-/** On battery, with one fitted, at or below the threshold (0 = never). */
+/**
+ * On battery, with one fitted, at or below the threshold (0 = never). Pure, so the main
+ * process can use it too (it brings a hidden pet back when the panic starts).
+ * @param {{ percent: number, charging: boolean, present: boolean } | null} battery
+ * @param {number} threshold  lowBatteryPercent
+ */
+export function isBatteryLow(battery, threshold) {
+  const t = Number(threshold);
+  return Boolean(battery && battery.present && !battery.charging && t > 0 && battery.percent <= t);
+}
+
+/** Whether the engine's last battery report means panic. */
 export function batteryLow(state) {
-  const { battery, config } = state;
-  const threshold = Number(config.lowBatteryPercent);
-  return Boolean(battery && battery.present && !battery.charging && threshold > 0 && battery.percent <= threshold);
+  return isBatteryLow(state.battery, state.config.lowBatteryPercent);
 }
 
 function onPet(next, _event, now) {
