@@ -30,7 +30,16 @@ export async function launchApp({ userData, claudeDir, env = {} } = {}) {
   const app = await electron.launch({
     args: ['.', ...chromiumArgs()],
     cwd: ROOT,
-    env: { ...process.env, DESKTOP_PET_USER_DATA: dir, DESKTOP_PET_TEST: '1', CLAUDE_CONFIG_DIR: claude, ...env },
+    env: {
+      ...process.env,
+      DESKTOP_PET_USER_DATA: dir,
+      DESKTOP_PET_TEST: '1',
+      CLAUDE_CONFIG_DIR: claude,
+      // Real idle time and foreground windows would change the pet mid-test; tests that
+      // need those sources ask for them.
+      DESKTOP_PET_SOURCES: 'files',
+      ...env,
+    },
   });
   return { app, userData: dir, claudeDir: claude };
 }

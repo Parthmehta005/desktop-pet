@@ -1,5 +1,5 @@
 // Electron main process: app lifecycle, the pet window and its IPC.
-import { app, ipcMain, dialog } from 'electron';
+import { app, ipcMain, dialog, powerMonitor } from 'electron';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { randomBytes } from 'node:crypto';
@@ -13,6 +13,7 @@ import { createTray } from './tray.js';
 import { buildTrayMenu, TEST_REACTIONS } from './tray-menu.js';
 import { PETS } from '../core/pets.js';
 import { createHookServer } from './sources/hook-server.js';
+import { createSources, enabledSources } from './sources/index.js';
 import { hookToEvent } from '../core/claude-hooks.js';
 import { installHooks, uninstallHooks, readHookStatus, claudeSettingsPath } from './hooks-installer.js';
 
@@ -31,6 +32,8 @@ const state = {
   bus: null,
   tray: null,
   hookServer: null,
+  // File, git, idle and foreground-app watching (see sources/index.js).
+  sources: null,
   // Whether Claude Code hooks can reach the pet: { listening, port, error }.
   hooks: { listening: false, port: null, error: null },
   // Whether the hooks are in Claude Code's settings: { status, settingsPath, error }.
@@ -60,6 +63,7 @@ async function setConfig(changes) {
   if (win && !win.isDestroyed()) win.webContents.send('pet:config', changes);
   if ('petSize' in changes) state.petWindow.setPetSize(result.config.petSize);
   if ('hookPort' in changes) await startHookServer();
+  await state.sources?.applyConfig(changes, result.config);
   return { ok: true, errors: [] };
 }
 
@@ -189,6 +193,12 @@ async function start() {
   await ensureHookToken();
   await startHookServer();
   await refreshHookStatus();
+  state.sources = createSources({
+    bus: state.bus,
+    powerMonitor,
+    enabled: enabledSources(process.env.DESKTOP_PET_SOURCES),
+  });
+  await state.sources.start(state.store.config);
 }
 
 registerAppScheme();
@@ -213,6 +223,7 @@ if (!isFirstInstance) {
   app.on('before-quit', () => {
     state.tray?.destroy();
     state.hookServer?.stop();
+    state.sources?.stop();
   });
   app.whenReady().then(start).catch((err) => {
     console.error('Desktop Pet failed to start:', err);
