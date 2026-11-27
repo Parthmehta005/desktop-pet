@@ -16,7 +16,10 @@
     "test:browser": "playwright test --trace off",
     "test:electron": "node scripts/run-electron-tests.js",
     "test:all": "npm run lint && npm test && npm run test:browser && npm run test:electron",
-    "build:icons": "node scripts/build-icons.js"
+    "build:icons": "node scripts/build-icons.js",
+    "hooks:install": "node scripts/hooks.js install",
+    "hooks:uninstall": "node scripts/hooks.js uninstall",
+    "hooks:status": "node scripts/hooks.js status"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

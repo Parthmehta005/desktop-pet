@@ -1,11 +1,13 @@
 // Electron main process: app lifecycle, the pet window and its IPC.
 import { app, ipcMain } from 'electron';
 import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { createPetWindow, PET_WINDOW_OPTIONS } from './pet-window.js';
 import { registerAppScheme, handleAppProtocol, hardenApp, secureWebPreferences } from './security.js';
 import { rendererUrl } from './app-paths.js';
 import { createConfigStore } from './config-store.js';
+import { USER_DATA_FOLDER } from './user-data.js';
 import { createEventBus } from './event-bus.js';
 import { createTray } from './tray.js';
 import { buildTrayMenu, TEST_REACTIONS } from './tray-menu.js';
@@ -13,9 +15,9 @@ import { PETS } from '../core/pets.js';
 import { createHookServer } from './sources/hook-server.js';
 import { hookToEvent } from '../core/claude-hooks.js';
 
-// Tests (and anyone who wants a separate profile) can point the app at another folder
-// for its settings, so they never touch the real ones.
-if (process.env.DESKTOP_PET_USER_DATA) app.setPath('userData', process.env.DESKTOP_PET_USER_DATA);
+// Settings live in <appData>/desktop-pet (the hooks command-line tool looks there too).
+// Tests, or anyone who wants a separate profile, can point at another folder.
+app.setPath('userData', process.env.DESKTOP_PET_USER_DATA || path.join(app.getPath('appData'), USER_DATA_FOLDER));
 const testing = process.env.DESKTOP_PET_TEST === '1';
 // The pet never needs the internet: stop Chromium's background update checks.
 app.commandLine.appendSwitch('disable-background-networking');
