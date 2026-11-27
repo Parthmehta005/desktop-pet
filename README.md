@@ -138,16 +138,114 @@ the pet's own entries are removed, and a backup is saved first.
 
 ## Choosing watched folders
 
-_Added in M8: adding and removing repo folders, and what "react to all Claude sessions"
-does._
+Open **Settings** from the tray icon. Under **Claude Code → Watched folders**, choose
+**Add folder…** to pick a folder, or **Remove** to stop watching one. Changes take
+effect immediately.
+
+A watched folder does three things:
+
+- **Edits** inside it make the pet focused: it types away calmly on its laptop.
+- **Commits** in its git repo make the pet throw confetti. Only real commits count
+  (amends and merge commits included). Checkouts, resets, rebases and pulls don't.
+- **Claude Code sessions** working inside it are the ones that count, unless you turn on
+  **React to all Claude sessions**. With no watched folders at all, every session counts.
+
+A watched folder can be:
+
+- **a single repo**, such as `C:\Users\you\code\my-app`
+- **a folder of repos**, such as `C:\Users\you\code`. Edits anywhere inside count, and
+  commits are spotted in every repo directly inside it.
+- **a git worktree**
+- **a WSL folder**, added as `\\wsl.localhost\Ubuntu\home\you\code\app`
+
+Tool output is ignored, so a build or `npm install` doesn't count as you coding. That
+covers `node_modules`, `dist`, `build`, `out`, `target`, `bin`, `obj`, `.git`,
+`coverage`, `.next`, `__pycache__`, `.venv`, `.idea` and similar folders.
 
 ## Configuration reference
 
-_Added in M8: every setting in `config.json`, with its default._
+Settings are saved in `%APPDATA%\desktop-pet\config.json`. The settings window is the
+easiest way to change them, and every change applies straight away.
+
+If you edit the file by hand:
+
+- restart the pet afterwards
+- a value that isn't valid falls back to its default, and the rest still apply
+- a file that isn't valid JSON is renamed to `config.corrupt-<time>.json` and replaced
+  with the defaults
+
+| Setting (in the window) | `config.json` key | Default | Allowed |
+|---|---|---|---|
+| Pet | `pet` | `"cat"` | `cat`, `corgi`, `penguin`, `axolotl`, `robot`, `softbot` |
+| A different pet every day | `shuffleDaily` | `false` | |
+| Size | `petSize` | `1` | 0.5 to 2 |
+| Walking speed | `walkSpeed` | `1` | 0.25 to 3 |
+| Watched folders | `watchedFolders` | `[]` | Up to 50 absolute folder paths |
+| React to all Claude sessions | `reactToAllSessions` | `false` | |
+| Stop sweating after a quiet spell of | `workingStaleMinutes` | `10` | 1 to 240 minutes |
+| Give up waving after | `alertTimeoutMinutes` | `30` | 1 to 1440 minutes |
+| Hook port | `hookPort` | `47321` | 1024 to 65535. Reinstall the hooks after changing it |
+| Fall asleep after | `idleMinutes` | `5` | 1 to 240 minutes |
+| Stretch reminder every | `breakReminderMinutes` | `90` | 0 to 480 minutes (0 turns it off) |
+| A break is at least | `breakMinutes` | `5` | 1 to 120 minutes |
+| Bedtime | `bedtime` | `"00:30"` | `"HH:MM"`, or `null` to turn it off |
+| Morning | `wakeTime` | `"06:00"` | `"HH:MM"` |
+| Quiet during meetings | `quietDuringMeetings` | `true` | |
+| Hide when something is fullscreen | `hideWhenFullscreen` | `true` | |
+| App rules | `appRules` | See [App rules](#app-rules) | Up to 100 rules |
+| Start when I sign in | `launchAtLogin` | `false` | |
+| Turn off hardware acceleration | `disableHardwareAcceleration` | `false` | Takes effect after restarting the pet |
+| (not shown) | `hookToken` | Made on first run | The hooks' private token. Don't share it |
+| (not shown) | `version` | `1` | Settings file format |
 
 ## App rules
 
-_Added in M8: matching apps by process name or window title to a mood, with examples._
+On Windows the pet notices which app is in front and can change its mood to match. App
+rules decide which app means what. Edit them under **Settings → Apps → App rules**.
+
+How a rule matches:
+
+- A rule matches on any of three fields, all **regular expressions, case-insensitive**:
+  - **Process:** the program's name without `.exe`, such as `Spotify` or `ms-teams`.
+  - **Window title:** for example `Lo-fi beats - YouTube - Google Chrome`.
+  - **Install path:** for example `D:\SteamLibrary\steamapps\common\…\game.exe`.
+- Every field a rule fills in must match. Leave a field empty to ignore it.
+- Rules are checked **from the top**, and the first match wins. Use the arrows to
+  reorder them.
+
+The **Mood** a rule sets can be:
+
+- **vibing:** headphones and a head-bob
+- **gaming:** a controller
+- **watching:** popcorn
+- **meeting:** still, faded and silent, with its "Quiet during meetings" setting
+
+The default rules cover:
+
+| Rule | Matches | Mood |
+|---|---|---|
+| Music apps | Spotify, Tidal, Deezer, MusicBee, AIMP, foobar2000, iTunes, Apple Music, Amazon Music | vibing |
+| Music in the browser | Titles containing YouTube Music, Spotify or SoundCloud | vibing |
+| Zoom meetings | Zoom, only in a meeting or webinar window | meeting |
+| Teams calls | Teams, only in a meeting or call window | meeting |
+| Webex | Webex | meeting |
+| Google Meet | Titles starting `Meet -` or containing Google Meet | meeting |
+| Steam, Epic and other store games | Anything installed under `steamapps\common`, `Epic Games`, `Riot Games` or `XboxGames` | gaming |
+| Minecraft | Titles starting with Minecraft | gaming |
+| Video players | VLC, MPC-HC, MPC-BE, PotPlayer, the Netflix app | watching |
+| Video sites | Titles containing YouTube, Netflix, Prime Video, Disney+, Twitch, Crunchyroll or Hulu | watching |
+
+Examples of your own rules:
+
+| You want | Process | Window title | Install path | Mood |
+|---|---|---|---|---|
+| Figma counts as vibing | `^figma$` | | | vibing |
+| A game installed somewhere else | | | `^D:\\Games\\` | gaming |
+| One YouTube channel is music | | `lofi girl` | | vibing (put it above "Video sites") |
+| Slack huddles are meetings | `^slack$` | `huddle` | | meeting |
+
+A pattern that isn't a valid regular expression is flagged in the window and not saved.
+**Restore default rules** brings back the list above.
 
 ## Using Claude Code in WSL
 
