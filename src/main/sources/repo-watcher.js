@@ -12,6 +12,12 @@ import { isIgnoredPath, newCommits, resolveGitDir, IGNORED_DIRS } from './repo-r
 export const ACTIVITY_THROTTLE_MS = 5000;
 /** How deep inside a watched folder edits are noticed. */
 export const MAX_DEPTH = 12;
+/**
+ * A second look at the reflog this long after each change. chokidar drops further change
+ * events for a file that come within 50ms of the last one, so without it a commit made
+ * straight after another (an amend, a script, a rebase) could go unnoticed.
+ */
+const FOLLOW_UP_MS = 250;
 
 async function gitDirFor(root) {
   const dotGit = path.join(root, '.git');
@@ -148,11 +154,21 @@ export function createRepoWatcher({
       ignoreInitial: true,
       depth: 1,
     });
+    // Reading only takes what's past `offset`, so an extra read is harmless.
+    let followUp = null;
+    const read = () => { reading = reading.then(readNew).catch(onError); };
     watcher.on('all', (event, p) => {
       if (pathKey(p) !== keys.head || (event !== 'add' && event !== 'change')) return;
-      reading = reading.then(readNew).catch(onError);
+      read();
+      clearTimeout(followUp);
+      followUp = setTimeout(read, FOLLOW_UP_MS);
     });
     watcher.on('error', onError);
+    const close = watcher.close.bind(watcher);
+    watcher.close = () => {
+      clearTimeout(followUp);
+      return close();
+    };
     return { watcher, ready: Promise.all([whenReady(watcher), sizeReady]) };
   }
 

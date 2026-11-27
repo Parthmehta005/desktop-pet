@@ -85,6 +85,25 @@ test('changes in node_modules, dist or .git/objects are not editing', async () =
   }
 });
 
+test('a commit straight after another is not missed', async () => {
+  // chokidar drops change events for a file within 50ms of the last one. Write the
+  // reflog the way git does (one appended line per commit), the second inside that window.
+  const repo = await makeRepo();
+  const w = await watching([repo]);
+  const head = path.join(repo, '.git', 'logs', 'HEAD');
+  const line = (message) => `${'a'.repeat(40)} ${'b'.repeat(40)} Pet Test <pet@example.com> 1700000000 +0000\tcommit: ${message}\n`;
+  try {
+    await appendFile(head, line('one'));
+    const start = Date.now();
+    while (w.commits.length === 0 && Date.now() - start < 5000) await sleep(2);
+    assert.equal(w.commits.length, 1, 'the first commit is noticed');
+    await appendFile(head, line('two'));
+    assert.ok(await until(() => w.commits.length === 2), 'and so is the one straight after it');
+  } finally {
+    await w.watcher.close();
+  }
+});
+
 test('a new commit is a celebration; checkout, status and branch are not', async () => {
   const repo = await makeRepo();
   const w = await watching([repo]);
@@ -103,6 +122,7 @@ test('a new commit is a celebration; checkout, status and branch are not', async
 
     git(repo, 'commit', '-q', '--amend', '-m', 'add a (better)');
     assert.ok(await until(() => w.commits.length === 2), 'an amend counts too');
+
   } finally {
     await w.watcher.close();
   }
