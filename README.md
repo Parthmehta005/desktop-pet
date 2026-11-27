@@ -57,9 +57,84 @@ _Added in M9: step-by-step instructions to clone, install, run, and start at log
 
 ## Connecting Claude Code
 
-_Added in M6: installing the hooks from the tray or with `npm run hooks:install`, what
-they change in `%USERPROFILE%\.claude\settings.json`, how to check they work, and how to
-remove them._
+The pet learns what Claude Code is doing through Claude Code **hooks**: small commands
+that Claude Code runs at moments like "a prompt was sent" or "Claude finished". Each hook
+is one line of `curl` that passes Claude's event on to the pet. The pet listens on
+`127.0.0.1`, so nothing leaves your computer.
+
+### Install the hooks
+
+From the tray icon choose **Install Claude Code hooks**, or run:
+
+```sh
+npm run hooks:install
+```
+
+This adds the pet's hooks to Claude Code's user settings,
+`%USERPROFILE%\.claude\settings.json` (or `$CLAUDE_CONFIG_DIR\settings.json` if you set
+that). Before changing the file, it:
+
+- saves a backup next to it (`settings.json.desktop-pet-backup-<date>`)
+- keeps all your other settings and hooks exactly as they were
+- leaves the file alone if it isn't valid JSON, and tells you why
+
+Running it again changes nothing. Afterwards, **start a new Claude Code session** (or
+restart the open ones) so it picks up the hooks.
+
+### Check they work
+
+The tray menu should say **Claude Code: connected**, or run:
+
+```sh
+npm run hooks:status
+```
+
+Then ask Claude to do something in a watched folder. The pet starts typing and sweating,
+waves when Claude needs your permission, and celebrates when Claude finishes.
+
+| Claude Code hook | The pet |
+|---|---|
+| `UserPromptSubmit`, `PreToolUse`, `PostToolUse` | Works on its laptop and sweats. More sweat with more sessions at once |
+| `Notification` (a permission prompt or a question) | Waves with a "Need you!" bubble |
+| `Stop` | Hops with joy, "Done!". If you're away, it waits with a little flag |
+| `SessionStart`, `SessionEnd` | Starts or forgets tracking that session |
+
+A session that goes quiet for 10 minutes (for example, interrupted with Esc) stops
+counting as busy. An unanswered "Need you!" gives up after 30 minutes.
+
+### Which sessions count
+
+- **No watched folders set:** every Claude Code session.
+- **Watched folders set:** only sessions working inside them, unless you turn on
+  "react to all Claude sessions".
+
+### Privacy
+
+Each hook hands the pet the JSON that Claude Code gives it. That can include your
+prompt or a tool's input. The pet reads only:
+
+- the event name
+- the session ID
+- the folder
+- the notification type and text
+
+It discards the rest and stores nothing. The hook posts only to `127.0.0.1`, uses a
+private token, and is set to bypass any proxy.
+
+### If something's off
+
+- **The tray says the pet can't listen:** another program is using port 47321. Change
+  `hookPort` in the pet's settings, then install the hooks again so they use the new
+  port.
+- **Status says "out of date":** the port or token changed since you installed. Run
+  `npm run hooks:install` again.
+- **The pet isn't running:** the hooks give up in under two seconds, print nothing, and
+  never get in Claude's way.
+
+### Remove the hooks
+
+From the tray choose **Remove Claude Code hooks**, or run `npm run hooks:uninstall`. Only
+the pet's own entries are removed, and a backup is saved first.
 
 ## Choosing watched folders
 
@@ -76,7 +151,32 @@ _Added in M8: matching apps by process name or window title to a mood, with exam
 
 ## Using Claude Code in WSL
 
-_Added in M6: networking setup so hooks inside WSL can reach the pet on Windows._
+If you run Claude Code inside WSL, its hooks need to reach the pet running on Windows.
+
+1. **Turn on mirrored networking** so `127.0.0.1` inside WSL means your Windows machine.
+   This needs Windows 11 22H2 or later. The pet only listens on `127.0.0.1`, so WSL's
+   default NAT networking can't reach it. Add this to `%USERPROFILE%\.wslconfig`:
+
+   ```ini
+   [wsl2]
+   networkingMode=mirrored
+   ```
+
+   Then run `wsl --shutdown` and open WSL again.
+2. **Make sure curl is installed inside WSL:** `sudo apt install curl`.
+3. **Install the hooks into WSL's Claude Code settings.** Run this from the pet's folder
+   on Windows, with your distro and user name:
+
+   ```sh
+   npm run hooks:install -- --wsl --settings "\\wsl.localhost\Ubuntu\home\<you>\.claude\settings.json"
+   ```
+
+   `--wsl` writes hooks that use Linux's `curl`.
+
+Watched folders work across the boundary: a WSL session in `/mnt/c/Users/you/code/app`
+counts as `C:\Users\you\code\app`. A folder inside the WSL filesystem can be added as
+`\\wsl.localhost\Ubuntu\home\you\code\app`. To check or remove the WSL hooks, use
+`hooks:status` or `hooks:uninstall` with the same `--settings` (and `--wsl` for status).
 
 ## Building an installer
 
