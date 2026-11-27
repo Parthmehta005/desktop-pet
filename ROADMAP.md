@@ -25,6 +25,7 @@ completed in the last milestone.
 | M7 | Local activity sources | Done |
 | M8 | Settings window and polish | Done |
 | M9 | Packaging, Windows CI, final README | Done |
+| M10 | Quick hide and show | In progress |
 
 Status values: `Not started` · `In progress` · `In review` · `Done`.
 
@@ -142,11 +143,12 @@ case) and WSL paths (`/mnt/c/...`).
 ### Dependencies
 
 ```
-M0 ─ M1 ─ M2 ─ M3 ─ M4 ─ M5 ─┬─ M6 ─┬─ M8 ─ M9
+M0 ─ M1 ─ M2 ─ M3 ─ M4 ─ M5 ─┬─ M6 ─┬─ M8 ─ M9 ─ M10
                              └─ M7 ─┘
 ```
 
-M6 and M7 both build on M5 and don't depend on each other.
+M6 and M7 both build on M5 and don't depend on each other. M10 came after M9, at your
+request.
 
 ---
 
@@ -487,6 +489,46 @@ clone on Linux (except the Windows-only steps); and REVIEW.md §M9 passes.
 
 ---
 
+### M10 — Quick hide and show
+
+Asked for after M9: a fast way to put the pet away and bring it back.
+
+**Goal:** one click in the tray, or one keyboard shortcut from anywhere, hides the pet,
+and the same again brings it back.
+
+**Scope**
+- A tray item that reads **Hide pet** or **Show pet**.
+- A global keyboard shortcut that toggles it, **Ctrl+Alt+P** by default. It can be
+  changed in Settings by clicking the field and pressing the new keys, or cleared to turn
+  it off. If another app already owns the shortcut, Settings says so.
+- While hidden, the pet keeps following Claude, idle time and apps, so it comes back in
+  the right mood.
+- Starting the app again while the pet is hidden brings it back (and opens Settings, as
+  before).
+- After a restart the pet is always shown: a quick hide is temporary, and a pet that
+  came back invisible would look like a broken app.
+
+**Boundary:** no other new features. Only the shortcut is a new setting; "hidden" is not
+saved.
+
+**Planned commits**
+1. Plan (this section and REVIEW §M10)
+2. Shortcuts in `src/core`: checking one, writing it one standard way, and turning a
+   key press into one
+3. Hide and show: the main-process toggle, the tray item, and a second launch showing
+   the pet
+4. The `toggleShortcut` setting: the global shortcut registered at start and whenever
+   it changes, failures reported, and its field in Settings (press keys to set, clear to
+   turn off). One commit, because every setting must have a control in the window
+5. README and review
+
+**Done when:** the tray item and the shortcut hide and show the pet, the pet's mood
+carries on while hidden, the shortcut can be changed and turned off from Settings with
+clashes reported, every suite passes on both operating systems, and REVIEW.md §M10
+passes.
+
+---
+
 ## Backlog (not committed)
 
 Ideas to pick up if time allows, or later:
@@ -497,12 +539,6 @@ Ideas to pick up if time allows, or later:
 - Optional sounds (off by default)
 - `tired` on low battery
 - Two pets at once that interact with each other
-- **Next up (asked for after M9): quick hide and show.** A tray item ("Hide pet" /
-  "Show pet") and a global keyboard shortcut that toggle the pet's window at once.
-  While hidden, the pet keeps tracking Claude, idle and apps so it's in the right mood
-  when it comes back. To decide: whether "hidden" survives a restart, and the default
-  shortcut (one that doesn't clash with common apps), which should be changeable in
-  Settings.
 - From the M9 review:
   - Electron fuses (no `ELECTRON_RUN_AS_NODE`, no `NODE_OPTIONS`, no inspector) for
     release builds. They'd stop Playwright driving the built app, so they need a

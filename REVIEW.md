@@ -258,6 +258,21 @@ app is complete.
       backlog.
 - [x] The ROADMAP status table shows every milestone `Done`.
 
+### M10 — Quick hide and show
+- [ ] The tray item hides the pet and then shows it again, and its label says which it
+      will do.
+- [ ] The default shortcut is registered at start; changing it in Settings registers the
+      new one and frees the old one; clearing it turns it off.
+- [ ] A shortcut that can't be registered (another app owns it) is reported in Settings,
+      and the app carries on.
+- [ ] Invalid shortcuts (no modifier, unknown keys) are rejected with a message and
+      never saved.
+- [ ] Events that arrive while the pet is hidden still change its mood: it is in the
+      right state when shown.
+- [ ] Starting the app again while the pet is hidden shows it.
+- [ ] After a restart the pet is shown, whatever it was before.
+- [ ] The settings window passes security section E, and its screenshot is reviewed.
+
 ---
 
 ## 3. Checks on a real Windows machine (for you, once the app is complete)
@@ -282,6 +297,7 @@ These can't be done from Linux or fully from CI.
 9. Launch at login starts the pet after you sign in again.
 10. The installer installs cleanly and the app uninstalls cleanly. Uninstalling the hooks
     first restores `settings.json`.
+11. Ctrl+Alt+P hides and shows the pet from any app, and so does the tray item.
 
 ---
 
