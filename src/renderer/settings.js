@@ -119,7 +119,28 @@ function time(key, info) {
   return wrap;
 }
 
-const BUILDERS = { checkbox, number, range, time };
+function folders(key, info) {
+  const list = el('ul', { className: 'folder-list' });
+  const add = el('button', { type: 'button', className: 'add-folder' }, 'Add folder...');
+  add.addEventListener('click', async () => {
+    const folder = await bridge.pickFolder();
+    if (folder) save({ watchedFolders: [...state.config.watchedFolders, folder] });
+  });
+  const box = el('div', { className: 'folders' }, list, add);
+  const wrap = fieldShell(key, info, box);
+  wrap.querySelector('label').htmlFor = add.id = `field-${key}`;
+  wrap.update = () => {
+    list.replaceChildren(...state.config.watchedFolders.map((folder, i) => {
+      const remove = el('button', { type: 'button', className: 'remove', 'aria-label': `Stop watching ${folder}` }, 'Remove');
+      remove.addEventListener('click', () => save({ watchedFolders: state.config.watchedFolders.filter((_, j) => j !== i) }));
+      return el('li', {}, el('code', {}, folder), remove);
+    }));
+    if (state.config.watchedFolders.length === 0) list.append(el('li', { className: 'empty' }, 'None yet: every Claude session counts.'));
+  };
+  return wrap;
+}
+
+const BUILDERS = { checkbox, number, range, time, folders };
 
 // ---------- Build and refresh ----------
 

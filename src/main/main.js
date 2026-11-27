@@ -44,6 +44,8 @@ const state = {
   hooks: { listening: false, port: null, error: null },
   // Whether the hooks are in Claude Code's settings: { status, settingsPath, error }.
   hookInstall: { status: 'unknown', settingsPath: null, error: null },
+  // Tests can't click through a native folder picker; in test mode they queue answers here.
+  testFolderPicks: [],
 };
 
 /** Sends an engine event to the pet. */
@@ -223,6 +225,16 @@ function registerIpc() {
     }
     const result = await setConfig(changes);
     return { ...result, state: settingsState() };
+  });
+  ipcMain.handle('settings:pick-folder', async (event) => {
+    if (!fromSettingsWindow(event)) throw new Error('not allowed');
+    if (testing) return state.testFolderPicks.shift() ?? null;
+    const { canceled, filePaths } = await dialog.showOpenDialog(state.settings.window, {
+      title: 'Watch a folder',
+      buttonLabel: 'Watch this folder',
+      properties: ['openDirectory'],
+    });
+    return canceled || filePaths.length === 0 ? null : filePaths[0];
   });
 }
 

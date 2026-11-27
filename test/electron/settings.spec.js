@@ -120,3 +120,32 @@ test('settings survive a restart and changes from elsewhere show up live', async
     await again?.close();
   }
 });
+
+test('watched folders: add with the folder picker, remove, and the watcher follows', async () => {
+  const { app, userData } = await launch();
+  const a = await tempUserData();
+  const b = await tempUserData();
+  try {
+    const win = await openSettings(app);
+    await expect(win.locator('[data-field="watchedFolders"] .empty')).toContainText('every Claude session counts');
+
+    await app.evaluate((_, folders) => { globalThis.__desktopPet.state.testFolderPicks.push(...folders); }, [a, b, a]);
+    const add = win.getByRole('button', { name: 'Add folder...' });
+    await add.click();
+    await add.click();
+    await expect(win.locator('.folder-list code')).toHaveText([a, b]);
+    await add.click(); // the same folder again is ignored
+    await expect(win.locator('.folder-list code')).toHaveText([a, b]);
+    await expect.poll(async () => (await readConfig(userData)).watchedFolders).toEqual([a, b]);
+    await expect.poll(() => app.evaluate(() => globalThis.__desktopPet.state.sources.repo.folders)).toEqual([a, b]);
+
+    await win.getByRole('button', { name: `Stop watching ${a}` }).click();
+    await expect(win.locator('.folder-list code')).toHaveText([b]);
+    await expect.poll(() => app.evaluate(() => globalThis.__desktopPet.state.sources.repo.folders)).toEqual([b]);
+
+    await add.click(); // nothing queued: like pressing Cancel in the picker
+    await expect(win.locator('.folder-list code')).toHaveText([b]);
+  } finally {
+    await app.close();
+  }
+});
