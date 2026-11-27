@@ -38,6 +38,12 @@ same commit whenever a decision, convention or command changes.
      After M1 the user asked for M2 to M9 to run straight through, stopping only for a
      real blocker.
 - **Scope creep** goes in the ROADMAP backlog, never into the current milestone.
+- **Versions:** semver, in `package.json`. Every user-visible change adds a line under
+  `## [Unreleased]` in `CHANGELOG.md`. To release: `npm version X.Y.Z
+  --no-git-tag-version`, move Unreleased to `## [X.Y.Z] - date`, merge to `main`, then
+  push tag `vX.Y.Z` on `main` (README "Versions and releases"). `release.yml` publishes
+  `DesktopPet-Setup.exe` and `DesktopPet-Portable.exe`; the download links depend on
+  those names, and `test/unit/release.test.js` checks them.
 - Never skip, disable or `.only` a test to get a pass.
 - Decide whether to commit from the real exit codes of lint and every test suite. Never
   pipe a test command into `tail` or `grep` and then chain `&& git commit`: the pipe hides
@@ -117,6 +123,7 @@ Each is added by the milestone shown.
 | `npm run dist:win` | M9 | Builds the Windows installer and portable `.exe` (Windows; needs Wine elsewhere) |
 | `npm run dist:dir` | M9 | Builds the unpacked app for this OS into `dist/` |
 | `npm run test:packaged` | M9 | Playwright tests against the built app (after `dist:dir` or `dist:win`) |
+| `node scripts/release.js check vX.Y.Z` / `notes X.Y.Z` | M13 | Checks a release tag against `package.json` and the changelog / prints its release notes |
 
 ## Windows notes
 - Replacing a file by renaming over it fails for a moment on Windows while anything else

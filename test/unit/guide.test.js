@@ -9,7 +9,7 @@ const read = (file) => readFile(new URL(`../../${file}`, import.meta.url), 'utf8
 
 /** Names from outside the app: GitHub's pages and Windows' own settings and warnings. */
 const OUTSIDE_THE_APP = new Set([
-  'Actions', 'CI', 'Run workflow', 'desktop-pet-windows', 'More info', 'Run anyway', '^', 'Settings', 'Apps', 'Uninstall',
+  'More info', 'Run anyway', '^', 'Settings', 'Apps', 'Uninstall',
 ]);
 
 test('GUIDE.md stays short', async () => {

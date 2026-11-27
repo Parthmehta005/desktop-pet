@@ -91,3 +91,21 @@ test('the release workflow checks and tests everything before it publishes', asy
   assert.match(wf, /cp "dist\/DesktopPet-Setup-\$\{version\}\.exe" release\/DesktopPet-Setup\.exe/);
   assert.match(wf, /cp "dist\/DesktopPet-\$\{version\}-portable\.exe" release\/DesktopPet-Portable\.exe/);
 });
+
+test('the download links in GUIDE.md and README.md point at files every release has', async () => {
+  const wf = await read('.github/workflows/release.yml');
+  const published = new Set([...wf.matchAll(/ release\/(DesktopPet-[\w-]+\.exe)\b/g)].map((m) => m[1]));
+  assert.deepEqual([...published].sort(), ['DesktopPet-Portable.exe', 'DesktopPet-Setup.exe']);
+  const LINK = /https:\/\/github\.com\/([\w.-]+\/[\w.-]+)\/releases\/latest\/download\/([^\s)]+)/g;
+  for (const [file, expected] of [['GUIDE.md', ['DesktopPet-Setup.exe']], ['README.md', [...published]]]) {
+    const links = [...(await read(file)).matchAll(LINK)];
+    assert.ok(links.length > 0, `${file} has a download link`);
+    for (const [url, repo, name] of links) {
+      assert.equal(repo, 'Parthmehta005/desktop-pet', `${url} is this repository`);
+      assert.ok(published.has(name), `${file} links to ${name}, which the release workflow doesn't publish`);
+    }
+    for (const name of expected) assert.ok(links.some((l) => l[2] === name), `${file} links to ${name}`);
+  }
+  // Neither still sends people to the CI artifacts to get the app.
+  assert.doesNotMatch(await read('GUIDE.md'), /desktop-pet-windows|Actions/);
+});

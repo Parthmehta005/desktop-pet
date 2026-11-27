@@ -30,8 +30,10 @@ The first release.
   points at it; a click opens Windows' battery settings.
 - Quick hide and show with Ctrl+Alt+P or the tray.
 - A settings window for everything, with changes applied as you make them.
-- A Windows installer and a portable app, a one-page guide (GUIDE.md), and a browser
-  preview of every pet and animation.
+- A Windows installer and a portable app, published on GitHub Releases with a link
+  that always downloads the newest version; the version is shown in the tray menu and
+  the settings window.
+- A one-page guide (GUIDE.md), and a browser preview of every pet and animation.
 
 [Unreleased]: https://github.com/Parthmehta005/desktop-pet/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/Parthmehta005/desktop-pet/releases/tag/v1.0.0

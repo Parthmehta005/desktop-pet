@@ -1,9 +1,11 @@
 // GUIDE.md, followed step by step in the real app (everything but downloading and
-// installing it, which CI's Windows job covers).
+// installing it, which CI's Windows job and the release workflow cover).
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { launchApp, tempUserData, readConfig } from './helpers.js';
+
+const pkg = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8'));
 
 const menu = (app) => app.evaluate(() => globalThis.__desktopPet.trayMenu().map((m) => m.label ?? '---'));
 const click = (app, label) => app.evaluate((_, l) => globalThis.__desktopPet.trayMenu().find((m) => m.label === l).click(), label);
@@ -42,6 +44,9 @@ test('the quick guide works as written, from setup to uninstalling the hooks', a
   await expect.poll(() => app.evaluate(() => globalThis.__desktopPet.state.petWindow.win.isVisible())).toBe(false);
   await click(app, 'Show pet');
   await expect.poll(() => app.evaluate(() => globalThis.__desktopPet.state.petWindow.win.isVisible())).toBe(true);
+
+  // See your version: the top line of the tray menu.
+  expect((await menu(app))[0]).toBe(`Desktop Pet ${pkg.version}`);
 
   // Pet, Pause reactions and Test reactions are where the guide says.
   const items = await app.evaluate(() => Object.fromEntries(globalThis.__desktopPet.trayMenu()

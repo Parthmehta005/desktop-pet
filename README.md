@@ -6,6 +6,9 @@ Claude needs you, and falls asleep when you step away.
 
 **New here?** The [quick guide](GUIDE.md) covers setup and everyday use on one page.
 
+**Download for Windows:** [DesktopPet-Setup.exe](https://github.com/Parthmehta005/desktop-pet/releases/latest/download/DesktopPet-Setup.exe)
+(always the newest version; [all versions](https://github.com/Parthmehta005/desktop-pet/releases), [what's new](CHANGELOG.md)).
+
 ![Mochi the cat sweating over its laptop while two Claude Code sessions work](docs/images/stage.webp)
 
 Quick links: [Windows setup](#windows-setup) · [Connecting Claude Code](#connecting-claude-code)
@@ -108,17 +111,26 @@ The [browser preview](#browser-preview) shows every pet in every state, animated
 
 ### 1. Get the app
 
-**Option A: the installer.** Each CI run on GitHub builds it: open the repository's
-**Actions** tab, pick the latest green **CI** run, and download the
-**desktop-pet-windows** artifact. It holds two files:
+**Option A: download it.** These links always get the newest version:
 
-- `DesktopPet-Setup-<version>.exe` installs the app for your user (no admin rights
-  needed), with Start menu and desktop shortcuts and an entry in **Apps**.
-- `DesktopPet-<version>-portable.exe` runs without installing. Keep it somewhere
-  permanent, such as `Documents`, if you want it to start when you sign in.
+- [DesktopPet-Setup.exe](https://github.com/Parthmehta005/desktop-pet/releases/latest/download/DesktopPet-Setup.exe)
+  installs the app for your user (no admin rights needed), with Start menu and desktop
+  shortcuts and an entry in **Apps**.
+- [DesktopPet-Portable.exe](https://github.com/Parthmehta005/desktop-pet/releases/latest/download/DesktopPet-Portable.exe)
+  runs without installing. Keep it somewhere permanent, such as `Documents`, if you want
+  it to start when you sign in.
 
-You can also [build them yourself](#building-an-installer). The app isn't code-signed,
-so Windows SmartScreen will warn you the first time: choose **More info → Run anyway**.
+Every version, with what changed in it, is on the [Releases page](https://github.com/Parthmehta005/desktop-pet/releases) and in
+[CHANGELOG.md](CHANGELOG.md). You can also [build them yourself](#building-an-installer).
+The app isn't code-signed, so Windows SmartScreen will warn you the first time: choose
+**More info → Run anyway**.
+
+**Updating.** Quit the pet (tray → **Quit Desktop Pet**), then download and run the
+newest `DesktopPet-Setup.exe`; it replaces the old version. For the
+portable app, replace the `.exe` with the new one. Either way your pet, folders and
+settings stay, because they're kept in `%APPDATA%\desktop-pet`. The top line of the tray
+menu and the Settings window show which version you have. The pet never checks for
+updates itself: it doesn't go online.
 
 **Option B: run from source.** In PowerShell or Command Prompt:
 
@@ -411,7 +423,10 @@ from its archive, shows the pet, opens the settings window, finds its icons and 
 Claude Code hooks, and on Windows the foreground-app and battery monitor reports
 (within 30 seconds: its first start on a fresh machine can take over 10).
 Building the Windows installer on Linux needs Wine; CI builds it on Windows instead and
-uploads it as the **desktop-pet-windows** artifact.
+uploads it as the **desktop-pet-windows** artifact. That's a development build of one
+commit, kept for 14 days; the [released versions](https://github.com/Parthmehta005/desktop-pet/releases) are the ones to install, and
+their files have fixed names (`DesktopPet-Setup.exe`, `DesktopPet-Portable.exe`) so the
+download links always work.
 
 ## Browser preview
 
@@ -504,6 +519,41 @@ GitHub Actions runs on every push:
 - on Windows, the installer and portable app are built, the built app is tested
   (including the foreground-app monitor), and both files are uploaded as the
   **desktop-pet-windows** artifact
+
+Pushing a version tag such as `v1.2.0` runs the **Release** workflow instead: see
+[Versions and releases](#versions-and-releases).
+
+### Versions and releases
+
+Versions follow [Semantic Versioning](https://semver.org): MAJOR.MINOR.PATCH, starting at
+1.0.0. A new MAJOR version is for a change that breaks existing settings or behaviour,
+MINOR for a new feature, PATCH for a fix. The version lives in `package.json`, and every
+version has an entry in [CHANGELOG.md](CHANGELOG.md). Changes that aren't released yet
+go under its **Unreleased** heading.
+
+To release, say, 1.2.0:
+
+1. `npm version 1.2.0 --no-git-tag-version` (this updates `package.json` and
+   `package-lock.json`).
+2. In `CHANGELOG.md`, move what's under **Unreleased** to a new
+   `## [1.2.0] - YYYY-MM-DD` heading, and add its link at the bottom.
+3. Commit, merge to `main`, and wait for CI to pass.
+4. Tag that commit and push the tag: `git tag v1.2.0 && git push origin v1.2.0`.
+
+The tag starts the **Release** workflow on Windows, which takes about 10 minutes. It
+stops unless the tag matches `package.json` and the changelog has that version. Then it
+runs the lint, unit, Windows monitor, Electron and built-app tests, builds the installer
+and the portable app, and publishes them as the GitHub Release "Desktop Pet 1.2.0", with
+that version's changelog entry as the release notes. A version with a hyphen, such as
+`1.2.0-beta.1`, is published as a pre-release, which the download links skip.
+
+If the workflow fails, nothing is published. Fix the problem on `main`, then move the
+tag to the fixed commit (`git tag -f v1.2.0 && git push -f origin v1.2.0`). For a
+failure that wasn't the code's, run **Release** again by hand from the Actions tab,
+giving it the tag.
+
+`node scripts/release.js check v1.2.0` runs the tag checks locally, and
+`node scripts/release.js notes 1.2.0` prints the release notes.
 
 ## Troubleshooting
 

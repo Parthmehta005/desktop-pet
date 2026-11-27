@@ -4,11 +4,8 @@ A pet that walks along your taskbar and reacts to Claude Code, your coding and y
 
 ## Set up
 
-1. **Get the app.** On this repository's GitHub page, open **Actions**, click the newest
-   green **CI** run, and download **desktop-pet-windows** (at the bottom of the page).
-   Unzip it and run `DesktopPet-Setup-<version>.exe`. If Windows warns you, click
-   **More info**, then **Run anyway**. (Downloads are kept for 14 days. If it's gone,
-   click **CI** on the left, then **Run workflow**, and wait about 6 minutes.)
+1. **Get the app.** Download [DesktopPet-Setup.exe][setup] and run it. If Windows
+   warns you, click **More info**, then **Run anyway**.
 2. **Find it.** The pet appears just above the taskbar. Its icon is in the tray by the
    clock (click **^** if you can't see it). Click the icon for the menu.
 3. **Connect Claude Code.** Skip this if you don't use it. In the tray menu click
@@ -31,6 +28,8 @@ Using Claude Code inside WSL, or would rather build from source? See the
 | Stop it reacting for a while | Tray → **Pause reactions** |
 | See its reactions | Tray → **Test reactions** |
 | Change anything else | Tray → **Settings...** |
+| See your version | The top line of the tray menu. What's new: [CHANGELOG.md](CHANGELOG.md) |
+| Update it | Quit it, download [DesktopPet-Setup.exe][setup] again and run it. Settings stay |
 | Quit | Tray → **Quit Desktop Pet** |
 
 ## What it reacts to
@@ -61,3 +60,5 @@ More help: [README → Troubleshooting](README.md#troubleshooting).
 1. Tray → **Remove Claude Code hooks**.
 2. Tray → **Quit Desktop Pet**.
 3. Windows **Settings** → **Apps** → **Desktop Pet** → **Uninstall**.
+
+[setup]: https://github.com/Parthmehta005/desktop-pet/releases/latest/download/DesktopPet-Setup.exe
