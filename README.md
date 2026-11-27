@@ -26,6 +26,8 @@ and [REVIEW.md](REVIEW.md).
   videos, and it goes quiet during meetings.
 - **Looks out for you.** A nightcap after bedtime, and a stretch reminder after a long
   stretch without a break.
+- **Quick hide.** Press **Ctrl+Alt+P** (or use the tray) to put the pet away, and again to
+  bring it back. It keeps up with what's going on while hidden.
 - **Six pets to choose from**, with an optional daily shuffle.
 - **A browser preview** that shows every pet in every animation, with no Windows needed.
 
@@ -125,8 +127,14 @@ npm start
 
 The pet appears just above the taskbar and waves. Its tray icon sits by the clock
 (look under the **^** arrow if it's hidden; you can drag it out to keep it visible).
-Click it for the menu: pick a pet, pause reactions, try **Test reactions**, or open
-**Settings...**. Starting Desktop Pet again while it's running also opens its settings.
+Click it for the menu: hide the pet, pick a pet, pause reactions, try **Test
+reactions**, or open **Settings...**. Starting Desktop Pet again while it's running
+brings the pet back if it's hidden and opens its settings.
+
+**Ctrl+Alt+P** hides the pet and shows it again, from any app. Change the shortcut, or
+turn it off, in **Settings → System → Hide or show the pet**: click the box and press
+the keys you want. It must use Ctrl, Alt or the Windows key, so it never gets in the
+way of typing. After a restart the pet is always shown.
 
 ### 3. Connect Claude Code
 
@@ -283,6 +291,7 @@ If you edit the file by hand:
 | Quiet during meetings | `quietDuringMeetings` | `true` | |
 | Hide when something is fullscreen | `hideWhenFullscreen` | `true` | |
 | App rules | `appRules` | See [App rules](#app-rules) | Up to 100 rules |
+| Hide or show the pet | `toggleShortcut` | `"Ctrl+Alt+P"` | A shortcut with Ctrl, Alt or the Windows key (Super) plus one key, or `null` to turn it off |
 | Start when I sign in | `launchAtLogin` | `false` | |
 | Turn off hardware acceleration | `disableHardwareAcceleration` | `false` | Takes effect after restarting the pet |
 | (not shown) | `hookToken` | Made on first run | The hooks' private token. Don't share it |
@@ -518,9 +527,13 @@ watched folders, and not in ignored folders such as `node_modules` or `dist`.
 taskbar, and moves when the display or taskbar changes. With an auto-hiding taskbar it
 sits at the very bottom of the screen.
 
-**The pet disappeared.** Something is fullscreen (a game, a video, a presentation, or a
-borderless window covering the screen), and **Hide when something is fullscreen** is on.
-It comes back when that window isn't in front.
+**The pet disappeared.** You may have hidden it: press **Ctrl+Alt+P**, or choose **Show
+pet** in the tray. Otherwise something is fullscreen (a game, a video, a presentation,
+or a borderless window covering the screen) and **Hide when something is fullscreen**
+is on; it comes back when that window isn't in front.
+
+**Ctrl+Alt+P does nothing.** Another app may already use it: **Settings → System** says
+so under the shortcut. Click the box and press a different one.
 
 **App moods don't change.** They only work on Windows. The pet asks a hidden
 `powershell.exe` which window is in front once a second; if PowerShell is blocked on
