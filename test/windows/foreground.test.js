@@ -1,4 +1,4 @@
-// Windows only (CI's Windows job runs `node --test test/windows/`): the real foreground
+// Windows only (CI's Windows job runs `node --test test/windows/foreground.test.js`): the real foreground
 // and battery monitor script starts under the real PowerShell and prints both kinds of
 // line. On failure it shows what PowerShell printed to stderr, e.g. C# compiler errors.
 import { test } from 'node:test';

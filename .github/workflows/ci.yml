@@ -97,7 +97,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: The real foreground and battery monitor script under PowerShell
-        run: node --test test/windows/
+        run: node --test test/windows/foreground.test.js
       - name: Electron tests
         run: npm run test:electron
       - name: Build the installer and the portable app
