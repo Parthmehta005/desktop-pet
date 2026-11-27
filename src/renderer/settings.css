@@ -78,6 +78,10 @@ input[type="number"] { width: 110px; }
 .range-row input { width: 240px; }
 .range-value { min-width: 48px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .inline-toggle { display: inline-flex; align-items: center; gap: 4px; }
+.shortcut-row { display: inline-flex; align-items: center; gap: 10px; }
+.shortcut-input { width: 200px; cursor: pointer; caret-color: transparent; }
+.shortcut-problem { margin: 6px 0 0; color: var(--error); font-size: 0.85rem; }
+.shortcut-problem[hidden] { display: none; }
 
 button {
   padding: 6px 12px;

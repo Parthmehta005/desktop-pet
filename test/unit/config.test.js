@@ -72,6 +72,7 @@ test('bad values fall back to the default and are reported', () => {
     hookToken: 'has spaces',
     watchedFolders: 'C:\\code',
     appRules: { mood: 'vibing' },
+    toggleShortcut: 'Shift+P',
   });
   const byKey = Object.fromEntries(errors.map((e) => [e.key, e.message]));
   assert.match(byKey.pet, /one of cat, corgi/);
@@ -87,6 +88,7 @@ test('bad values fall back to the default and are reported', () => {
   assert.match(byKey.hookToken, /letters, digits/);
   assert.match(byKey.watchedFolders, /list of folders/);
   assert.match(byKey.appRules, /list of rules/);
+  assert.match(byKey.toggleShortcut, /needs Ctrl, Alt or the Windows key/);
   assert.deepEqual(
     { ...config, appRules: undefined },
     { ...defaultConfig(), appRules: undefined },
@@ -214,4 +216,13 @@ test('parseConfig: a byte-order mark (saved by some Windows editors) is not corr
   assert.equal(parsed.corrupt, false);
   assert.equal(parsed.config.pet, 'corgi');
   assert.deepEqual(parsed.errors, []);
+});
+
+test('the hide-or-show shortcut: Ctrl+Alt+P by default, written one standard way, or null for off', () => {
+  assert.equal(defaultConfig().toggleShortcut, 'Ctrl+Alt+P');
+  assert.equal(validateConfig({ toggleShortcut: 'alt+ctrl+h' }).config.toggleShortcut, 'Ctrl+Alt+H');
+  const off = validateConfig({ toggleShortcut: null });
+  assert.equal(off.config.toggleShortcut, null);
+  assert.deepEqual(off.errors, []);
+  assert.match(validateConfig({ toggleShortcut: 'Ctrl+Alt+Nope' }).errors[0].message, /doesn't know/);
 });

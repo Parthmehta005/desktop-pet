@@ -88,6 +88,10 @@ test('the tray menu: pet radio list, pause checkbox, test reactions, quit', () =
   ]);
   const hiddenMenu = buildTrayMenu({ config: { pet: 'cat' }, paused: false, pets: PETS, hidden: true }, actions);
   assert.equal(hiddenMenu[1].label, 'Show pet', 'the item says what it will do');
+  assert.equal(hiddenMenu[1].accelerator, undefined, 'no shortcut, no hint');
+  const withShortcut = buildTrayMenu({ config: { pet: 'cat' }, paused: false, pets: PETS, shortcut: 'Ctrl+Alt+P' }, actions)[1];
+  assert.equal(withShortcut.accelerator, 'Ctrl+Alt+P', 'the shortcut is shown as a reminder');
+  assert.equal(withShortcut.registerAccelerator, false, 'but the menu does not grab it');
   assert.equal(buildTrayMenu({ config: { pet: 'cat' }, paused: true, pets: PETS }, actions)
     .find((m) => m.label === 'Pause reactions').checked, true);
 });

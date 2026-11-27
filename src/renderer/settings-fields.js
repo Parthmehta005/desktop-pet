@@ -12,11 +12,11 @@ export const SECTIONS = Object.freeze([
   },
   { id: 'you', title: 'You', fields: ['idleMinutes', 'breakReminderMinutes', 'breakMinutes', 'bedtime', 'wakeTime'] },
   { id: 'apps', title: 'Apps', fields: ['quietDuringMeetings', 'hideWhenFullscreen', 'appRules'] },
-  { id: 'system', title: 'System', fields: ['launchAtLogin', 'disableHardwareAcceleration'] },
+  { id: 'system', title: 'System', fields: ['toggleShortcut', 'launchAtLogin', 'disableHardwareAcceleration'] },
 ].map((s) => Object.freeze({ ...s, fields: Object.freeze(s.fields) })));
 
 /**
- * control: pets | checkbox | number | range | time | folders | rules
+ * control: pets | checkbox | number | range | time | folders | rules | shortcut
  */
 export const FIELDS = Object.freeze({
   pet: { label: 'Pet', control: 'pets', help: 'Who lives on your taskbar.' },
@@ -48,6 +48,12 @@ export const FIELDS = Object.freeze({
     help: 'Match the app in front by process name, window title or install path (regular expressions, any case). The first matching rule wins.',
   },
 
+  toggleShortcut: {
+    label: 'Hide or show the pet',
+    control: 'shortcut',
+    nullable: true,
+    help: 'A keyboard shortcut that works in any app. Click the box and press the keys you want; it needs Ctrl, Alt or the Windows key.',
+  },
   launchAtLogin: { label: 'Start when I sign in', control: 'checkbox', help: '' },
   disableHardwareAcceleration: {
     label: 'Turn off hardware acceleration',

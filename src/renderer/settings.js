@@ -6,6 +6,7 @@ import { CONFIG_SCHEMA, validateConfig } from '../core/config.js';
 import { PETS } from '../core/pets.js';
 import { DEFAULT_APP_RULES, RULE_FIELDS } from '../core/app-rules.js';
 import { APP_RULE_MOODS } from '../core/moods.js';
+import { shortcutFromKeyEvent } from '../core/shortcuts.js';
 import { PET_DEFINITIONS } from './pets/index.js';
 import { createPetView } from './pet-view.js';
 
@@ -247,7 +248,45 @@ function rules(key, info) {
   return wrap;
 }
 
-const BUILDERS = { checkbox, number, range, time, pets, folders, rules };
+/**
+ * A keyboard shortcut. Click the box and press the keys: the shortcut is saved as soon as
+ * a key that isn't a modifier is pressed. Backspace or Delete (or the button) turns it
+ * off; Tab still moves on. A shortcut another app owns is reported below the box.
+ */
+function shortcut(key, info) {
+  const input = el('input', {
+    type: 'text', readOnly: true, className: 'shortcut-input', placeholder: 'Off', spellcheck: false,
+  });
+  const off = el('button', { type: 'button' }, 'Turn off');
+  const problem = el('p', { className: 'shortcut-problem', role: 'status', hidden: true });
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Tab' && !event.ctrlKey && !event.altKey && !event.metaKey) return;
+    event.preventDefault();
+    const bare = !event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey;
+    if (bare && (event.key === 'Backspace' || event.key === 'Delete')) {
+      save({ [key]: null });
+      return;
+    }
+    const result = shortcutFromKeyEvent(event);
+    if (result === null) return; // only modifiers so far: wait for the key
+    if (result.error) showError(key, `That shortcut ${result.error}.`);
+    else save({ [key]: result.shortcut });
+  });
+  off.addEventListener('click', () => save({ [key]: null }));
+  const row = el('span', { className: 'shortcut-row' }, input, off);
+  const wrap = fieldShell(key, info, row, input);
+  wrap.querySelector('.field-error').before(problem);
+  wrap.update = () => {
+    input.value = state.config[key] ?? '';
+    off.disabled = state.config[key] === null;
+    const error = state.shortcut?.error ?? null;
+    problem.textContent = error ?? '';
+    problem.hidden = !error;
+  };
+  return wrap;
+}
+
+const BUILDERS = { checkbox, number, range, time, pets, folders, rules, shortcut };
 
 // ---------- Claude Code hooks panel ----------
 

@@ -44,6 +44,7 @@ export function hooksStatusLabel({ status, serverError }) {
  *   pets: Array<{ id: string, name: string, species: string }>,
  *   hooks?: { status: string, serverError: string | null },
  *   hidden?: boolean,
+ *   shortcut?: string | null,
  * }} state
  * @param {{
  *   setPet(id: string): void, setPaused(paused: boolean): void, test(id: string): void,
@@ -51,10 +52,14 @@ export function hooksStatusLabel({ status, serverError }) {
  *   toggleHidden(): void,
  * }} actions
  */
-export function buildTrayMenu({ config, paused, pets, hooks = { status: 'unknown', serverError: null }, hidden = false }, actions) {
+export function buildTrayMenu({ config, paused, pets, hooks = { status: 'unknown', serverError: null }, hidden = false, shortcut = null }, actions) {
+  // The shortcut is shown next to the item as a reminder; it's registered globally
+  // elsewhere, not by the menu.
+  const toggle = { label: hidden ? 'Show pet' : 'Hide pet', click: () => actions.toggleHidden() };
+  if (shortcut) Object.assign(toggle, { accelerator: shortcut, registerAccelerator: false });
   return [
     { label: 'Desktop Pet', enabled: false },
-    { label: hidden ? 'Show pet' : 'Hide pet', click: () => actions.toggleHidden() },
+    toggle,
     { type: 'separator' },
     { label: hooksStatusLabel(hooks), enabled: false },
     {

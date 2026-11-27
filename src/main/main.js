@@ -1,5 +1,5 @@
 // Electron main process: app lifecycle, the pet window and its IPC.
-import { app, ipcMain, dialog, powerMonitor } from 'electron';
+import { app, ipcMain, dialog, powerMonitor, globalShortcut } from 'electron';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { randomBytes } from 'node:crypto';
@@ -44,6 +44,8 @@ const state = {
   hooks: { listening: false, port: null, error: null },
   // Whether the hooks are in Claude Code's settings: { status, settingsPath, error }.
   hookInstall: { status: 'unknown', settingsPath: null, error: null },
+  // The hide-or-show shortcut: { shortcut, registered, error } (shortcut null when off).
+  shortcut: { shortcut: null, registered: false, error: null },
   // Tests can't click through a native folder picker; in test mode they queue answers here.
   testFolderPicks: [],
   // In test mode, launch-at-login changes are recorded here instead of applied.
@@ -63,6 +65,31 @@ function applyLoginItem(openAtLogin) {
   const settings = portable ? { openAtLogin, path: portable } : { openAtLogin };
   if (testing) state.loginItemCalls.push(settings);
   else app.setLoginItemSettings(settings);
+}
+
+/**
+ * Registers the hide-or-show shortcut from the settings, replacing the previous one. If
+ * another app already owns it, that's reported (tray and settings) and the app carries on.
+ */
+function applyShortcut() {
+  if (state.shortcut.registered) globalShortcut.unregister(state.shortcut.shortcut);
+  const shortcut = state.store.config.toggleShortcut;
+  if (!shortcut) {
+    state.shortcut = { shortcut: null, registered: false, error: null };
+    return;
+  }
+  let registered;
+  try {
+    registered = globalShortcut.register(shortcut, () => actions.toggleHidden());
+  } catch {
+    registered = false; // Electron couldn't read it (the settings check makes this unlikely)
+  }
+  state.shortcut = {
+    shortcut,
+    registered,
+    error: registered ? null : `${shortcut} is already used by another app, so it can't hide the pet. Pick another shortcut.`,
+  };
+  if (!registered) console.warn(`Desktop Pet: ${state.shortcut.error}`);
 }
 
 /** "A different pet every day": switches to today's pet if it isn't showing already. */
@@ -97,6 +124,7 @@ function settingsState() {
   return {
     config,
     hooks: { ...state.hookInstall, serverError: state.hooks.error, port: state.hooks.port },
+    shortcut: { ...state.shortcut },
   };
 }
 
@@ -122,6 +150,7 @@ async function setConfig(changes) {
   await state.sources?.applyConfig(changes, result.config);
   if (changes.shuffleDaily === true) await checkShuffle();
   if ('launchAtLogin' in changes) applyLoginItem(result.config.launchAtLogin);
+  if ('toggleShortcut' in changes) applyShortcut();
   state.tray?.refresh();
   broadcastSettings();
   return { ok: true, errors: [] };
@@ -244,6 +273,7 @@ const trayState = () => ({
   pets: PETS,
   hooks: { status: state.hookInstall.status, serverError: state.hooks.error },
   hidden: state.petWindow?.hidden ?? false,
+  shortcut: state.shortcut.registered ? state.shortcut.shortcut : null,
 });
 
 function registerIpc() {
@@ -317,6 +347,8 @@ async function start() {
   });
   await state.sources.start(state.store.config);
   applyLoginItem(state.store.config.launchAtLogin);
+  applyShortcut();
+  state.tray?.refresh();
   await checkShuffle();
   state.shuffleTimer = setInterval(() => checkShuffle().catch(() => {}), 60_000);
 }
@@ -345,6 +377,7 @@ if (!isFirstInstance) {
   app.on('window-all-closed', () => {});
   app.on('before-quit', () => {
     clearInterval(state.shuffleTimer);
+    globalShortcut.unregisterAll();
     state.settings?.close();
     state.tray?.destroy();
     state.hookServer?.stop();

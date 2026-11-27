@@ -10,13 +10,15 @@ import { PET_IDS } from './pets.js';
 import { DEFAULT_APP_RULES, validateRule, RULE_FIELDS } from './app-rules.js';
 import { canonicalPath } from './paths.js';
 import { parseTimeOfDay } from './time.js';
+import { parseShortcut, DEFAULT_TOGGLE_SHORTCUT } from './shortcuts.js';
 
 export const CONFIG_VERSION = 1;
 
 /**
  * Field types:
  *   boolean, integer, number (min/max), enum (values), time ("HH:MM", optionally null),
- *   folders (absolute paths, deduplicated), appRules (see app-rules.js), token.
+ *   folders (absolute paths, deduplicated), appRules (see app-rules.js), token,
+ *   shortcut (a keyboard shortcut like "Ctrl+Alt+P", see shortcuts.js; optionally null).
  * `internal` fields are managed by the app and not shown in the settings window.
  */
 export const CONFIG_SCHEMA = Object.freeze({
@@ -37,6 +39,7 @@ export const CONFIG_SCHEMA = Object.freeze({
   hideWhenFullscreen: { type: 'boolean', default: true },
   appRules: { type: 'appRules', max: 100, default: DEFAULT_APP_RULES },
   launchAtLogin: { type: 'boolean', default: false },
+  toggleShortcut: { type: 'shortcut', nullable: true, default: DEFAULT_TOGGLE_SHORTCUT },
   disableHardwareAcceleration: { type: 'boolean', default: false },
   hookPort: { type: 'integer', min: 1024, max: 65535, default: 47321 },
   hookToken: { type: 'token', internal: true, default: '' },
@@ -91,6 +94,11 @@ function checkValue(spec, value) {
       return typeof value === 'string' && /^[A-Za-z0-9_-]{0,128}$/.test(value)
         ? { value, errors: [] }
         : { errors: ['must be up to 128 letters, digits, "-" or "_"'] };
+    case 'shortcut': {
+      if (value === null && spec.nullable) return { value, errors: [] };
+      const parsed = parseShortcut(value);
+      return parsed.shortcut ? { value: parsed.shortcut, errors: [] } : { errors: [parsed.error] };
+    }
     case 'folders':
       return checkFolders(spec, value);
     case 'appRules':

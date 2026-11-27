@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { SECTIONS, FIELDS, HIDDEN_FIELDS } from '../../src/renderer/settings-fields.js';
 import { CONFIG_SCHEMA, CONFIG_KEYS } from '../../src/core/config.js';
 
-const CONTROLS = ['pets', 'checkbox', 'number', 'range', 'time', 'folders', 'rules'];
+const CONTROLS = ['pets', 'checkbox', 'number', 'range', 'time', 'folders', 'rules', 'shortcut'];
 
 test('every user-facing setting appears exactly once in the settings window', () => {
   const shown = SECTIONS.flatMap((s) => s.fields);
@@ -20,7 +20,7 @@ test('every field has a label, a known control, and a control that fits its type
     assert.ok(CONTROLS.includes(info.control), `${key} control`);
     const fits = {
       boolean: ['checkbox'], integer: ['number'], number: ['range', 'number'], enum: ['pets'],
-      time: ['time'], folders: ['folders'], appRules: ['rules'],
+      time: ['time'], folders: ['folders'], appRules: ['rules'], shortcut: ['shortcut'],
     }[type];
     assert.ok(fits.includes(info.control), `${key}: ${info.control} for a ${type}`);
     if (CONFIG_SCHEMA[key].nullable) assert.equal(info.nullable, true, `${key} can be switched off`);
