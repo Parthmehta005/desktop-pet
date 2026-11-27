@@ -71,7 +71,22 @@ test('the settings window and the icons load from the archive', async () => {
   }
 });
 
-test('the foreground-app monitor: on Windows it reports the foreground window and the battery within 10s; elsewhere it never starts', async () => {
+// The first PowerShell start on a fresh Windows machine took 13.4s on CI (PowerShell and
+// the C# compiler warming up), later ones 1.5s; allow 30s for the first reports.
+const FIRST_REPORT_MS = 30_000;
+
+/** Polls `read` until it's above 0; if it never is, fails with the monitor's own errors. */
+async function waitForReports(app, read, what) {
+  try {
+    await expect.poll(() => app.evaluate(read), { timeout: FIRST_REPORT_MS }).toBeGreaterThan(0);
+  } catch (err) {
+    const problems = await app.evaluate(() => globalThis.__desktopPet.state.monitorErrors);
+    throw new Error(`no ${what} within ${FIRST_REPORT_MS / 1000}s; monitor errors: ${JSON.stringify(problems)}`, { cause: err });
+  }
+}
+
+test('the foreground-app monitor: on Windows it reports the foreground window and the battery; elsewhere it never starts', async () => {
+  test.setTimeout(90_000);
   const { app } = await launch({ DESKTOP_PET_SOURCES: 'apps' });
   try {
     const platform = await app.evaluate(() => process.platform);
@@ -94,13 +109,15 @@ test('the foreground-app monitor: on Windows it reports the foreground window an
       state.sources.apps.start();
     });
     expect(await app.evaluate(() => globalThis.__desktopPet.state.sources.apps.running)).toBe(true);
-    await expect.poll(() => app.evaluate(() => globalThis.__appEvents.length), { timeout: 10_000 }).toBeGreaterThan(0);
+    const started = Date.now();
+    await waitForReports(app, () => globalThis.__appEvents.length, 'foreground report');
+    console.log(`First foreground report after ${Date.now() - started} ms`);
     const [first] = await app.evaluate(() => globalThis.__appEvents);
     expect(first.type).toBe('app');
     expect(typeof first.process).toBe('string');
     expect(typeof first.fullscreen).toBe('boolean');
     // The battery, from GetSystemPowerStatus (a CI runner has none: present is false).
-    await expect.poll(() => app.evaluate(() => globalThis.__batteryEvents.length), { timeout: 10_000 }).toBeGreaterThan(0);
+    await waitForReports(app, () => globalThis.__batteryEvents.length, 'battery report');
     const [battery] = await app.evaluate(() => globalThis.__batteryEvents);
     console.log(`Battery reported by the built app: ${JSON.stringify(battery)}`);
     expect(battery.type).toBe('battery');

@@ -63,6 +63,8 @@ const state = {
   batteryPanic: false,
   // In test mode, requests to open Windows' battery settings are recorded here instead.
   batterySettingsCalls: [],
+  // The last few problems with the foreground-and-battery monitor (also logged).
+  monitorErrors: [],
 };
 
 /**
@@ -389,6 +391,10 @@ async function start() {
     powerMonitor,
     enabled: enabledSources(process.env.DESKTOP_PET_SOURCES),
     onBattery,
+    onError(err) {
+      state.monitorErrors = [...state.monitorErrors, err.message].slice(-10);
+      console.warn('Desktop Pet: foreground-app monitor:', err.message);
+    },
   });
   await state.sources.start(state.store.config);
   applyLoginItem(state.store.config.launchAtLogin);

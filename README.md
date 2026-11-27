@@ -408,7 +408,8 @@ settings. Neither is code-signed.
 `npm run dist:dir` builds just the unpacked app, on any OS (on Linux it goes to
 `dist/linux-unpacked/`), and `npm run test:packaged` then tests that build: it starts
 from its archive, shows the pet, opens the settings window, finds its icons and answers
-Claude Code hooks, and on Windows the foreground-app monitor reports within 10 seconds.
+Claude Code hooks, and on Windows the foreground-app and battery monitor reports
+(within 30 seconds: its first start on a fresh machine can take over 10).
 Building the Windows installer on Linux needs Wine; CI builds it on Windows instead and
 uploads it as the **desktop-pet-windows** artifact.
 

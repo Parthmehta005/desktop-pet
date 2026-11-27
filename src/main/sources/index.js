@@ -27,8 +27,9 @@ export function enabledSources(value) {
  * @param {Set<string>} [options.enabled]
  * @param {(event: object) => void} [options.onBattery]  Battery reports; the main process
  *   passes them to the bus itself (they also decide whether a hidden pet comes back).
+ * @param {(err: Error) => void} [options.onError]  Problems with the foreground monitor.
  */
-export function createSources({ bus, powerMonitor, enabled = new Set(SOURCE_NAMES), onBattery }) {
+export function createSources({ bus, powerMonitor, enabled = new Set(SOURCE_NAMES), onBattery, onError }) {
   const repo = enabled.has('files')
     ? createRepoWatcher({
       onActivity: (folder) => bus.emit({ type: 'file-activity', folder }, { source: 'files' }),
@@ -42,6 +43,7 @@ export function createSources({ bus, powerMonitor, enabled = new Set(SOURCE_NAME
     ? createAppMonitor({
       emit: (event) => bus.emit(event, { source: 'apps' }),
       emitBattery: onBattery ?? ((event) => bus.emit(event, { source: 'battery' })),
+      ...(onError ? { onError } : {}),
     })
     : null;
 

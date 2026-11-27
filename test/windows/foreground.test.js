@@ -7,7 +7,8 @@ import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { SCRIPT_PATH, powerShellArgs, parseForegroundLine, parseBatteryLine } from '../../src/main/sources/app-monitor.js';
 
-test('the PowerShell monitor reports the foreground window and the battery within 15s', { timeout: 30_000 }, async () => {
+// On a fresh CI machine the first start took 13.4s; allow 30s.
+test('the PowerShell monitor reports the foreground window and the battery within 30s', { timeout: 45_000 }, async () => {
   assert.equal(process.platform, 'win32', 'run this on Windows only');
   const child = spawn('powershell.exe', powerShellArgs(readFileSync(SCRIPT_PATH, 'utf8'), process.pid), {
     windowsHide: true,
@@ -20,7 +21,7 @@ test('the PowerShell monitor reports the foreground window and the battery withi
   const exited = new Promise((resolve) => child.on('exit', (code) => resolve(code)));
   const started = Date.now();
   const lines = () => out.split(/\r?\n/).filter(Boolean);
-  while (Date.now() - started < 15_000) {
+  while (Date.now() - started < 30_000) {
     if (lines().some(parseForegroundLine) && lines().some(parseBatteryLine)) break;
     const code = await Promise.race([exited, new Promise((r) => setTimeout(() => r(undefined), 200))]);
     if (code !== undefined) break;
