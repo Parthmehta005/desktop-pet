@@ -4,7 +4,7 @@
 // and for each git repo at the folder or one level below it, it follows the reflog
 // (.git/logs/HEAD), which git appends a line to on every commit.
 import { watch as chokidarWatch } from 'chokidar';
-import { readFile, stat, open, readdir } from 'node:fs/promises';
+import { readFile, stat, open, readdir, realpath } from 'node:fs/promises';
 import path from 'node:path';
 import { isIgnoredPath, newCommits, resolveGitDir, IGNORED_DIRS } from './repo-rules.js';
 
@@ -42,6 +42,24 @@ async function findRepos(folder) {
     if (gitDir) repos.push({ root, gitDir });
   }
   return repos;
+}
+
+/**
+ * Comparable form of a path. chokidar may report a path with other slashes or letter
+ * case than we gave it on Windows, so compare normalised forms, never raw strings.
+ */
+function pathKey(p) {
+  const resolved = path.resolve(p);
+  return process.platform === 'win32' ? resolved.replace(/\//g, '\\').toLowerCase() : resolved;
+}
+
+/** The real path (Windows short names like RUNNER~1 expanded), or the path itself. */
+async function realPath(p) {
+  try {
+    return await realpath(p);
+  } catch {
+    return p;
+  }
 }
 
 async function fileSize(file) {
@@ -94,6 +112,7 @@ export function createRepoWatcher({
   function watchReflog(folder, { root, gitDir }) {
     const logsDir = path.join(gitDir, 'logs');
     const head = path.join(logsDir, 'HEAD');
+    const keys = { gitDir: pathKey(gitDir), logsDir: pathKey(logsDir), head: pathKey(head) };
     let offset = 0;
     let reading = Promise.resolve();
     const sizeReady = fileSize(head).then((size) => { offset = size; });
@@ -122,12 +141,15 @@ export function createRepoWatcher({
     // Watch the git dir shallowly, ignoring everything but logs/HEAD: one cheap watch
     // that also works before the first commit creates the file.
     const watcher = watch(gitDir, {
-      ignored: (p) => p !== gitDir && p !== logsDir && p !== head,
+      ignored: (p) => {
+        const key = pathKey(p);
+        return key !== keys.gitDir && key !== keys.logsDir && key !== keys.head;
+      },
       ignoreInitial: true,
       depth: 1,
     });
     watcher.on('all', (event, p) => {
-      if (p !== head || (event !== 'add' && event !== 'change')) return;
+      if (pathKey(p) !== keys.head || (event !== 'add' && event !== 'change')) return;
       reading = reading.then(readNew).catch(onError);
     });
     watcher.on('error', onError);
@@ -139,7 +161,10 @@ export function createRepoWatcher({
     // Listen for 'ready' before awaiting anything: a small folder can finish its first
     // scan while we look for repos, and a missed 'ready' would never come again.
     const filesReady = whenReady(files);
-    const repos = await findRepos(folder);
+    const repos = await Promise.all((await findRepos(folder)).map(async (repo) => ({
+      root: repo.root,
+      gitDir: await realPath(repo.gitDir),
+    })));
     const reflogs = repos.map((repo) => watchReflog(folder, repo));
     watched.set(folder, {
       watchers: [files, ...reflogs.map((r) => r.watcher)],
