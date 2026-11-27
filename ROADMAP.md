@@ -25,7 +25,7 @@ completed in the last milestone.
 | M7 | Local activity sources | Done |
 | M8 | Settings window and polish | Done |
 | M9 | Packaging, Windows CI, final README | Done |
-| M10 | Quick hide and show | In progress |
+| M10 | Quick hide and show | Done |
 
 Status values: `Not started` · `In progress` · `In review` · `Done`.
 
@@ -521,6 +521,7 @@ saved.
    it changes, failures reported, and its field in Settings (press keys to set, clear to
    turn off). One commit, because every setting must have a control in the window
 5. README and review
+6. Fix from Windows CI: Electron tests wait for the app to finish starting
 
 **Done when:** the tray item and the shortcut hide and show the pet, the pet's mood
 carries on while hidden, the shortcut can be changed and turned off from Settings with
