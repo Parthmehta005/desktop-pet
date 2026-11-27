@@ -220,6 +220,42 @@ function rules(key, info) {
 
 const BUILDERS = { checkbox, number, range, time, pets, folders, rules };
 
+// ---------- Claude Code hooks panel ----------
+
+function hooksPanel() {
+  const status = el('p', { className: 'hooks-status', role: 'status' });
+  const where = el('p', { className: 'field-help' });
+  const install = el('button', { type: 'button' }, 'Install Claude Code hooks');
+  const remove = el('button', { type: 'button' }, 'Remove Claude Code hooks');
+  const message = el('p', { className: 'field-help hooks-message', role: 'status' });
+  const act = async (fn) => {
+    install.disabled = true;
+    remove.disabled = true;
+    const result = await fn();
+    message.textContent = result.message;
+    state = result.state;
+    refresh();
+  };
+  install.addEventListener('click', () => act(bridge.installHooks));
+  remove.addEventListener('click', () => act(bridge.uninstallHooks));
+  const panel = el('div', { className: 'hooks-panel', dataset: { panel: 'hooks' } },
+    el('h3', {}, 'Hooks'), status, where, el('div', { className: 'hooks-actions' }, install, remove), message);
+  panel.update = () => {
+    const { status: s, settingsPath, serverError } = state.hooks;
+    status.dataset.status = s;
+    status.textContent = serverError ?? {
+      installed: 'Connected: Claude Code tells the pet what it is doing.',
+      outdated: 'Out of date: reinstall to use the current port and token.',
+      'not-installed': 'Not installed yet.',
+      'invalid-settings': "Can't read Claude Code's settings.json. Fix or remove it, then try again.",
+    }[s] ?? 'Checking...';
+    where.textContent = settingsPath ? `Claude Code settings: ${settingsPath}` : '';
+    install.disabled = s === 'installed' || s === 'invalid-settings';
+    remove.disabled = !(s === 'installed' || s === 'outdated');
+  };
+  return panel;
+}
+
 // ---------- Build and refresh ----------
 
 const updaters = [];
@@ -231,6 +267,11 @@ for (const section of SECTIONS) {
     const field = build(key, FIELDS[key]);
     updaters.push(field);
     fieldset.append(field);
+  }
+  if (section.id === 'claude') {
+    const panel = hooksPanel();
+    updaters.push(panel);
+    fieldset.append(panel);
   }
   form.append(fieldset);
 }

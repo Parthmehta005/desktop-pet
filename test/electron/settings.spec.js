@@ -1,5 +1,7 @@
 // The settings window: opening it, its lockdown, saving, validation and live updates.
 import { test, expect } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 import { launchApp, tempUserData, readConfig } from './helpers.js';
 
 async function openSettings(app) {
@@ -12,10 +14,10 @@ async function openSettings(app) {
 }
 
 async function launch() {
-  const { app, userData } = await launchApp();
+  const { app, userData, claudeDir } = await launchApp();
   const pet = await app.firstWindow();
   await pet.locator('body[data-ready="true"]').waitFor({ state: 'attached' });
-  return { app, pet, userData };
+  return { app, pet, userData, claudeDir };
 }
 
 test('the tray opens one settings window, and opening it again reuses it', async () => {
@@ -226,6 +228,43 @@ test('app rules: add, catch a bad pattern, fix it, reorder, delete, restore; the
     await expect(rows).toHaveCount(defaults - 1);
     await win.getByRole('button', { name: 'Restore default rules' }).click();
     await expect(rows).toHaveCount(defaults);
+  } finally {
+    await app.close();
+  }
+});
+
+test('the hooks panel shows the status and installs or removes the hooks (in a temp Claude folder)', async () => {
+  const { app, claudeDir } = await launch();
+  try {
+    const win = await openSettings(app);
+    const status = win.locator('.hooks-status');
+    await expect(status).toHaveText('Not installed yet.');
+    await expect(win.getByRole('button', { name: 'Remove Claude Code hooks' })).toBeDisabled();
+
+    await win.getByRole('button', { name: 'Install Claude Code hooks' }).click();
+    await expect(status).toHaveAttribute('data-status', 'installed');
+    await expect(win.locator('.hooks-message')).toContainText(path.join(claudeDir, 'settings.json'));
+    const saved = JSON.parse(await readFile(path.join(claudeDir, 'settings.json'), 'utf8'));
+    expect(Object.keys(saved.hooks)).toContain('Stop');
+    await expect(win.getByRole('button', { name: 'Install Claude Code hooks' })).toBeDisabled();
+
+    await win.getByRole('button', { name: 'Remove Claude Code hooks' }).click();
+    await expect(status).toHaveAttribute('data-status', 'not-installed');
+  } finally {
+    await app.close();
+  }
+});
+
+test('"Start when I sign in" turns the login item on and off', async () => {
+  const { app } = await launch();
+  try {
+    const calls = () => app.evaluate(() => globalThis.__desktopPet.state.loginItemCalls);
+    expect(await calls()).toEqual([{ openAtLogin: false }]);
+    const win = await openSettings(app);
+    await win.getByLabel('Start when I sign in').check();
+    await expect.poll(calls).toEqual([{ openAtLogin: false }, { openAtLogin: true }]);
+    await win.getByLabel('Start when I sign in').uncheck();
+    await expect.poll(async () => (await calls()).at(-1)).toEqual({ openAtLogin: false });
   } finally {
     await app.close();
   }

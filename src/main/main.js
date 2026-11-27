@@ -46,8 +46,16 @@ const state = {
   hookInstall: { status: 'unknown', settingsPath: null, error: null },
   // Tests can't click through a native folder picker; in test mode they queue answers here.
   testFolderPicks: [],
+  // In test mode, launch-at-login changes are recorded here instead of applied.
+  loginItemCalls: [],
   shuffleTimer: null,
 };
+
+/** Starts the pet when you sign in (Windows and macOS; a no-op elsewhere). */
+function applyLoginItem(openAtLogin) {
+  if (testing) state.loginItemCalls.push({ openAtLogin });
+  else app.setLoginItemSettings({ openAtLogin });
+}
 
 /** "A different pet every day": switches to today's pet if it isn't showing already. */
 async function checkShuffle(now = new Date()) {
@@ -101,6 +109,7 @@ async function setConfig(changes) {
   if ('hookPort' in changes) await startHookServer();
   await state.sources?.applyConfig(changes, result.config);
   if (changes.shuffleDaily === true) await checkShuffle();
+  if ('launchAtLogin' in changes) applyLoginItem(result.config.launchAtLogin);
   state.tray?.refresh();
   broadcastSettings();
   return { ok: true, errors: [] };
@@ -169,31 +178,34 @@ const actions = {
     const reaction = TEST_REACTIONS.find((r) => r.id === id);
     for (const event of reaction?.events ?? []) state.bus.emit(event, { source: 'test' });
   },
-  async installHooks() {
+  /** @param {{ quiet?: boolean }} [options]  quiet: no dialog (the settings window shows the message). */
+  async installHooks({ quiet = false } = {}) {
     const { hookPort: port, hookToken: token } = state.store.config;
     try {
       const result = await installHooks({ settingsPath: claudeSettingsPath(), port, token });
       await refreshHookStatus();
-      notify('info', 'Claude Code hooks installed',
-        `Saved to ${result.settingsPath}.${result.backup ? `\nThe previous file was backed up to ${result.backup}.` : ''}\n\nStart a new Claude Code session (or restart open ones) and the pet will react.`);
-      return { ok: true, ...result };
+      const message = `Saved to ${result.settingsPath}.${result.backup ? ` The previous file was backed up to ${result.backup}.` : ''} Start a new Claude Code session (or restart open ones) and the pet will react.`;
+      if (!quiet) notify('info', 'Claude Code hooks installed', message);
+      return { ok: true, message, ...result };
     } catch (err) {
       await refreshHookStatus();
-      notify('error', "Couldn't install the Claude Code hooks", err.message);
-      return { ok: false, error: err.message };
+      if (!quiet) notify('error', "Couldn't install the Claude Code hooks", err.message);
+      return { ok: false, message: err.message, error: err.message };
     }
   },
-  async uninstallHooks() {
+  async uninstallHooks({ quiet = false } = {}) {
     try {
       const result = await uninstallHooks({ settingsPath: claudeSettingsPath() });
       await refreshHookStatus();
-      notify('info', 'Claude Code hooks removed',
-        result.changed ? `Removed from ${result.settingsPath}.\nThe previous file was backed up to ${result.backup}.` : 'There were none to remove.');
-      return { ok: true, ...result };
+      const message = result.changed
+        ? `Removed from ${result.settingsPath}. The previous file was backed up to ${result.backup}.`
+        : 'There were none to remove.';
+      if (!quiet) notify('info', 'Claude Code hooks removed', message);
+      return { ok: true, message, ...result };
     } catch (err) {
       await refreshHookStatus();
-      notify('error', "Couldn't remove the Claude Code hooks", err.message);
-      return { ok: false, error: err.message };
+      if (!quiet) notify('error', "Couldn't remove the Claude Code hooks", err.message);
+      return { ok: false, message: err.message, error: err.message };
     }
   },
   openSettings() {
@@ -245,6 +257,16 @@ function registerIpc() {
     });
     return canceled || filePaths.length === 0 ? null : filePaths[0];
   });
+  ipcMain.handle('settings:install-hooks', async (event) => {
+    if (!fromSettingsWindow(event)) throw new Error('not allowed');
+    const { ok, message } = await actions.installHooks({ quiet: true });
+    return { ok, message, state: settingsState() };
+  });
+  ipcMain.handle('settings:uninstall-hooks', async (event) => {
+    if (!fromSettingsWindow(event)) throw new Error('not allowed');
+    const { ok, message } = await actions.uninstallHooks({ quiet: true });
+    return { ok, message, state: settingsState() };
+  });
 }
 
 async function start() {
@@ -270,6 +292,7 @@ async function start() {
     enabled: enabledSources(process.env.DESKTOP_PET_SOURCES),
   });
   await state.sources.start(state.store.config);
+  applyLoginItem(state.store.config.launchAtLogin);
   await checkShuffle();
   state.shuffleTimer = setInterval(() => checkShuffle().catch(() => {}), 60_000);
 }
