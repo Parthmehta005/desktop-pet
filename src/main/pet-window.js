@@ -59,6 +59,23 @@ export function createPetWindow({ petSize = 1, webPreferences = {} } = {}) {
 
   win.once('ready-to-show', () => win.showInactive());
 
+  // If the page crashes or is killed, bring the pet back instead of leaving an empty
+  // window. More than three crashes in a minute means something is badly wrong: stop.
+  let crashes = [];
+  win.webContents.on('render-process-gone', (_event, details) => {
+    if (win.isDestroyed() || details.reason === 'clean-exit') return;
+    interactive = false;
+    win.setIgnoreMouseEvents(true, { forward: true });
+    const now = Date.now();
+    crashes = [...crashes.filter((t) => now - t < 60_000), now];
+    if (crashes.length > 3) {
+      console.error(`Desktop Pet: the pet's page keeps crashing (${details.reason}); not reloading it again.`);
+      return;
+    }
+    console.warn(`Desktop Pet: the pet's page stopped (${details.reason}); reloading it.`);
+    win.webContents.reload();
+  });
+
   return {
     win,
     relayout,

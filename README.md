@@ -126,7 +126,7 @@ npm start
 The pet appears just above the taskbar and waves. Its tray icon sits by the clock
 (look under the **^** arrow if it's hidden; you can drag it out to keep it visible).
 Click it for the menu: pick a pet, pause reactions, try **Test reactions**, or open
-**Settings...**.
+**Settings...**. Starting Desktop Pet again while it's running also opens its settings.
 
 ### 3. Connect Claude Code
 

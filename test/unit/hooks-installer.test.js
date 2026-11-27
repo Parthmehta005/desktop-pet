@@ -188,3 +188,15 @@ test('addHooks copes with a hooks value that is not an object', () => {
   const next = addHooks({ hooks: ['nonsense'] }, hookCommand(OPTS));
   assert.deepEqual(Object.keys(next.hooks), [...INSTALLED_HOOK_EVENTS]);
 });
+
+test('a settings.json saved with a byte-order mark (some Windows editors) is read, not refused', async () => {
+  const home = await tempHome();
+  const file = settingsIn(home);
+  await mkdir(path.dirname(file), { recursive: true });
+  await writeFile(file, `\uFEFF${JSON.stringify(USER_SETTINGS, null, 2)}`);
+  await installHooks({ settingsPath: file, ...OPTS });
+  const saved = await readJson(file);
+  assert.equal(saved.model, 'opus');
+  assert.deepEqual(saved.hooks.PreCompact, USER_SETTINGS.hooks.PreCompact);
+  assert.equal((await readHookStatus({ settingsPath: file, ...OPTS })).status, 'installed');
+});

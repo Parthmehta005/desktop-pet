@@ -2,7 +2,8 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { launchApp, tempUserData, readConfig } from './helpers.js';
+import { launchApp, tempUserData, readConfig, freePort } from './helpers.js';
+import { installHooks } from '../../src/main/hooks-installer.js';
 
 async function openSettings(app) {
   const [win] = await Promise.all([
@@ -261,6 +262,37 @@ test('the hooks panel shows the status and installs or removes the hooks (in a t
 
     await win.getByRole('button', { name: 'Remove Claude Code hooks' }).click();
     await expect(status).toHaveAttribute('data-status', 'not-installed');
+  } finally {
+    await app.close();
+  }
+});
+
+test('changing the hook port marks installed hooks out of date', async () => {
+  const { app } = await launch();
+  try {
+    const win = await openSettings(app);
+    const status = win.locator('.hooks-status');
+    await win.getByRole('button', { name: 'Install Claude Code hooks' }).click();
+    await expect(status).toHaveAttribute('data-status', 'installed');
+    const port = win.getByLabel('Hook port');
+    await port.fill(String(await freePort()));
+    await port.press('Tab');
+    await expect(status).toHaveAttribute('data-status', 'outdated');
+    await win.getByRole('button', { name: 'Install Claude Code hooks' }).click();
+    await expect(status).toHaveAttribute('data-status', 'installed');
+  } finally {
+    await app.close();
+  }
+});
+
+test('hooks installed elsewhere (the command line) show up when the settings open', async () => {
+  const { app, userData, claudeDir } = await launch();
+  try {
+    expect(await app.evaluate(() => globalThis.__desktopPet.state.hookInstall.status)).toBe('not-installed');
+    const { hookPort: port, hookToken: token } = await readConfig(userData);
+    await installHooks({ settingsPath: path.join(claudeDir, 'settings.json'), port, token });
+    const win = await openSettings(app);
+    await expect(win.locator('.hooks-status')).toHaveAttribute('data-status', 'installed');
   } finally {
     await app.close();
   }

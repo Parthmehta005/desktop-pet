@@ -114,7 +114,11 @@ async function setConfig(changes) {
   const win = state.petWindow?.win;
   if (win && !win.isDestroyed()) win.webContents.send('pet:config', changes);
   if ('petSize' in changes) state.petWindow.setPetSize(result.config.petSize);
-  if ('hookPort' in changes) await startHookServer();
+  if ('hookPort' in changes) {
+    await startHookServer();
+    // Hooks installed for the old port no longer reach the pet: show them as out of date.
+    await refreshHookStatus();
+  }
   await state.sources?.applyConfig(changes, result.config);
   if (changes.shuffleDaily === true) await checkShuffle();
   if ('launchAtLogin' in changes) applyLoginItem(result.config.launchAtLogin);
@@ -217,6 +221,8 @@ const actions = {
     }
   },
   openSettings() {
+    // The hooks may have changed elsewhere (the command line, or by hand) since we looked.
+    refreshHookStatus().catch(() => {});
     return state.settings.open();
   },
   quit() {
@@ -321,7 +327,9 @@ if (!isFirstInstance) {
   if (state.store.config.disableHardwareAcceleration) app.disableHardwareAcceleration();
 
   app.on('second-instance', () => {
-    // Nothing to bring to the front: the pet is always on top already.
+    // The pet is on screen already, so someone launching it again (from the Start menu,
+    // say) is most likely looking for the settings.
+    if (state.settings) actions.openSettings();
   });
   // The pet lives in the tray, so closing windows doesn't quit the app.
   app.on('window-all-closed', () => {});

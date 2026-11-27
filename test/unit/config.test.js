@@ -208,3 +208,10 @@ test('petForDay: same day, same pet; consecutive days always differ; all six com
   for (let d = 1; d < 60; d++) assert.notEqual(petForDay(new Date(2026, 0, d)), petForDay(new Date(2026, 0, d + 1)));
   assert.equal(localDateKey(new Date(2026, 0, 5)), '2026-01-05');
 });
+
+test('parseConfig: a byte-order mark (saved by some Windows editors) is not corruption', () => {
+  const parsed = parseConfig(`\uFEFF${JSON.stringify({ version: CONFIG_VERSION, pet: 'corgi' })}`);
+  assert.equal(parsed.corrupt, false);
+  assert.equal(parsed.config.pet, 'corgi');
+  assert.deepEqual(parsed.errors, []);
+});

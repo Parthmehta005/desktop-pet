@@ -91,3 +91,18 @@ test('inline scripts are blocked by the content security policy', async () => {
   }));
   expect(ran).toBe(false);
 });
+
+test('if the pet page crashes, the pet comes back', async () => {
+  await app.evaluate(() => globalThis.__desktopPet.state.petWindow.win.webContents.forcefullyCrashRenderer());
+  await expect.poll(() => app.evaluate(async () => {
+    const { webContents } = globalThis.__desktopPet.state.petWindow.win;
+    if (webContents.isCrashed() || webContents.isLoading()) return 'loading';
+    try {
+      return await webContents.executeJavaScript('document.body.dataset.ready ?? "starting"');
+    } catch {
+      return 'loading';
+    }
+  }), { timeout: 15_000 }).toBe('true');
+  // Clicks pass through again until the pointer is over the new pet.
+  expect(await app.evaluate(() => globalThis.__desktopPet.state.petWindow.interactive)).toBe(false);
+});

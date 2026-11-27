@@ -42,12 +42,15 @@ export function hookCommand({ port, token, shell = process.platform === 'win32' 
     + `-H "X-Pet-Token: ${token}" --data-binary @- http://${host}:${port}${HOOK_PATH} || exit 0`;
 }
 
-/** settings.json text -> object. Missing or blank means {}. Throws on anything else. */
+/**
+ * settings.json text -> object. Missing or blank means {}. Throws on anything else. A
+ * byte-order mark (which some Windows editors add) is allowed.
+ */
 export function parseSettings(text) {
   if (text === null || text.trim() === '') return {};
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    parsed = JSON.parse(text.replace(/^\uFEFF/, ''));
   } catch (err) {
     throw new Error(`Claude Code's settings.json is not valid JSON, so it was left alone (${err.message}).`, { cause: err });
   }

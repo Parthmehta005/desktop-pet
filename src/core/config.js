@@ -196,7 +196,8 @@ export function migrateConfig(input) {
 export function parseConfig(text) {
   let raw;
   try {
-    raw = JSON.parse(text);
+    // Notepad and other Windows editors may save a byte-order mark: that's not corruption.
+    raw = JSON.parse(text.replace(/^\uFEFF/, ''));
   } catch (err) {
     return {
       config: defaultConfig(),
