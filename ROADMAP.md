@@ -554,6 +554,7 @@ reading the whole README.
 2. `GUIDE.md`, its test (at most 80 lines, and every button, menu item and setting it
    names exists in the app under exactly that name), and the README link
 3. Review
+4. Fix from CI on `main`: a reliable crash-recovery test
 
 **Done when:** `GUIDE.md` is at most 80 lines, every step was checked against the app,
 its test passes, and REVIEW.md §M11 passes.
