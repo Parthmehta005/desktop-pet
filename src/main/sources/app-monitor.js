@@ -84,13 +84,20 @@ export function createAppMonitor({
     let ended = false;
     const current = spawn('powershell.exe', powerShellArgs(readScript(), parentPid), {
       windowsHide: true,
-      stdio: ['ignore', 'pipe', 'ignore'],
+      stdio: ['ignore', 'pipe', 'pipe'],
     });
     child = current;
-    const end = () => {
+    // Keep the end of what PowerShell complains about, to say why it stopped.
+    let complaints = '';
+    current.stderr?.on('data', (chunk) => { complaints = (complaints + chunk).slice(-2000); });
+    const end = (code) => {
       if (ended) return;
       ended = true;
       if (child === current) child = null;
+      if (!stopped && Number.isInteger(code) && code !== 0) {
+        const why = complaints.trim().split(/\r?\n/).filter(Boolean).slice(-3).join(' | ');
+        onError(new Error(`PowerShell stopped with exit code ${code}${why ? `: ${why}` : ''}`));
+      }
       if (!stopped) scheduleRestart();
     };
     readline.createInterface({ input: current.stdout }).on('line', (line) => {
@@ -109,7 +116,7 @@ export function createAppMonitor({
       onError(err);
       end();
     });
-    current.on('exit', end);
+    current.on('exit', (code) => end(code));
   }
 
   return {

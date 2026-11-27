@@ -168,3 +168,31 @@ test('the real script reports the battery with GetSystemPowerStatus, only when i
   assert.deepEqual(parseBatteryLine(build(7, false, true)), { type: 'battery', percent: 7, charging: false, present: true });
   assert.deepEqual(parseBatteryLine(build(100, true, false)), { type: 'battery', percent: 100, charging: true, present: false });
 });
+
+test('when PowerShell gives up, what it said on stderr is reported', async () => {
+  const errors = [];
+  const children = [];
+  const monitor = createAppMonitor({
+    emit: () => {},
+    platform: 'win32',
+    spawn: () => {
+      const c = fakeChild();
+      c.stderr = new PassThrough();
+      children.push(c);
+      return c;
+    },
+    readScript: () => '',
+    setTimer: () => 1,
+    clearTimer: () => {},
+    onError: (err) => errors.push(err.message),
+  });
+  monitor.start();
+  const [child] = children;
+  child.stderr.write('Add-Type : c:\\temp\\x.cs(31) : Operator cannot be applied\r\n');
+  child.stderr.write('Cannot add type. Compilation errors occurred.\r\n');
+  await new Promise((r) => setImmediate(r));
+  child.emit('exit', 1);
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /PowerShell stopped with exit code 1: Add-Type .*Operator cannot be applied \| Cannot add type/);
+  monitor.stop();
+});
