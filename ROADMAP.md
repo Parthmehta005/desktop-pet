@@ -28,6 +28,7 @@ completed in the last milestone.
 | M10 | Quick hide and show | Done |
 | M11 | A short GUIDE.md | Done |
 | M12 | Low-battery panic | Done |
+| M13 | Releases and versions (v1.0.0) | In progress |
 
 Status values: `Not started` · `In progress` · `In review` · `Done`.
 
@@ -148,11 +149,11 @@ case) and WSL paths (`/mnt/c/...`).
 ### Dependencies
 
 ```
-M0 ─ M1 ─ M2 ─ M3 ─ M4 ─ M5 ─┬─ M6 ─┬─ M8 ─ M9 ─ M10 ─ M11 ─ M12
+M0 ─ M1 ─ M2 ─ M3 ─ M4 ─ M5 ─┬─ M6 ─┬─ M8 ─ M9 ─ M10 ─ M11 ─ M12 ─ M13
                              └─ M7 ─┘
 ```
 
-M6 and M7 both build on M5 and don't depend on each other. M10 to M12 came after M9,
+M6 and M7 both build on M5 and don't depend on each other. M10 to M13 came after M9,
 at your request.
 
 ---
@@ -618,6 +619,47 @@ state has a look and every setting has a control fail)
 on battery and stops when plugged in, it wins over every other mood and over meetings,
 the click opens battery settings on Windows, every suite passes on both operating
 systems, and REVIEW.md §M12 passes.
+
+---
+
+### M13 — Releases and versions (v1.0.0)
+
+Asked for after M12: getting the app meant finding the newest green CI run and
+downloading a zip that expires after 14 days. Make it one link, and give the app proper
+version numbers.
+
+**Goal:** a permanent link that always downloads the newest installer, and numbered
+releases that follow Semantic Versioning, starting with **v1.0.0**.
+
+**Decisions**
+- **1.0.0, not 0.x.** In Semantic Versioning, 0.x means "early development, anything may
+  change"; 1.0.0 is the first release meant for people to use. Every planned feature is
+  built and tested, so this is 1.0.0. After that: MAJOR for changes that break existing
+  settings or behaviour, MINOR for new features, PATCH for fixes.
+- **GitHub Releases.** Pushing a tag like `v1.0.0` runs a release workflow on Windows:
+  it checks the tag matches `package.json` and has a CHANGELOG entry, runs the Windows
+  tests, builds the installer and portable app, tests the built app, and publishes a
+  release with the changelog as its notes.
+- **Stable file names** on releases (`DesktopPet-Setup.exe`, `DesktopPet-Portable.exe`),
+  so `releases/latest/download/DesktopPet-Setup.exe` always gets the newest installer.
+  The version is in the release title, the installer and the app.
+- The app shows its version in the tray menu and the settings window.
+- `CHANGELOG.md` in the Keep a Changelog format.
+
+**Boundary:** no auto-update inside the app (the pet stays off the network); no code
+signing (still in the backlog).
+
+**Planned commits**
+1. Plan (this section and REVIEW §M13)
+2. Version 1.0.0: `package.json`, `CHANGELOG.md`, the version in the tray and settings
+   window, and the scripts that check a release tag and pull its notes from the
+   changelog, with tests
+3. The release workflow
+4. README and GUIDE: the one-link download, versions and how to release
+5. Review; then merge, tag `v1.0.0` on `main`, and check the release
+
+**Done when:** the v1.0.0 release exists with both files, the GUIDE's link downloads the
+installer, every suite passes on both operating systems, and REVIEW.md §M13 passes.
 
 ---
 

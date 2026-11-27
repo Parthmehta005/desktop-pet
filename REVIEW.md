@@ -300,6 +300,17 @@ app is complete.
       back once when the panic starts.
 - [x] The setting is in the settings window, validated, and applied live.
 
+### M13 — Releases and versions (v1.0.0)
+- [ ] The version is 1.0.0 everywhere it appears (`package.json`, the tray, the settings
+      window, the installer) and `CHANGELOG.md` has a 1.0.0 entry.
+- [ ] A release tag that doesn't match `package.json`, or has no changelog entry, stops
+      the release (tested).
+- [ ] The release notes are the changelog's section for that version (tested).
+- [ ] The v1.0.0 release exists with `DesktopPet-Setup.exe` and
+      `DesktopPet-Portable.exe`, built and tested by the release workflow.
+- [ ] The GUIDE's and README's download link is the "latest" link to that installer
+      file, and a test keeps it matching the workflow's file name.
+
 ---
 
 ## 3. Checks on a real Windows machine (for you, once the app is complete)
