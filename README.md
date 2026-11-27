@@ -28,6 +28,8 @@ and [REVIEW.md](REVIEW.md).
   videos, and it goes quiet during meetings.
 - **Looks out for you.** A nightcap after bedtime, and a stretch reminder after a long
   stretch without a break.
+- **Panics about your battery.** On a laptop, unplugged at 10% or less, it runs to the
+  battery icon in the corner and points at it. Click it to open battery settings.
 - **Quick hide.** Press **Ctrl+Alt+P** (or use the tray) to put the pet away, and again to
   bring it back. It keeps up with what's going on while hidden.
 - **Six pets to choose from**, with an optional daily shuffle.
@@ -47,7 +49,7 @@ and [REVIEW.md](REVIEW.md).
 | Soft care-bot | Nimbus | A soft lavender bot with an LED visor, a cloud crest and a glowing heart |
 
 Pick one in **Settings → Your pet** or from the tray's **Pet** menu, or turn on **A
-different pet every day**. Every pet has all 18 animations.
+different pet every day**. Every pet has all 19 animations.
 
 ## Animation states
 
@@ -71,17 +73,19 @@ different pet every day**. Every pet has all 18 animations.
 | `petted` | You click the pet | Hearts (about 2 seconds) |
 | `held` | You drag the pet | Dangles with its legs kicking |
 | `falling` | You let go of it | Falls to the taskbar and squashes as it lands |
+| `low-battery` | Unplugged, with the battery at 10% or less | Runs to the bottom-right corner, points down at the battery icon and shakes, with a blinking empty battery and "Low battery!". Click it to open Windows' battery settings |
 
-When several apply, the first of these wins: being held, dropped or petted; Claude
-needing you; a celebration or Claude finishing; Claude working; Claude finished while you
-were away; sleeping; greeting; an app mood; a stretch or bedtime nudge; focused;
-wandering. `meeting` (and hiding while something is fullscreen) apply on top of whatever
-wins. The times above are the defaults, and all of them can be changed in Settings.
+When several apply, the first of these wins: being held or dropped; a low battery;
+being petted; Claude needing you; a celebration or Claude finishing; Claude working;
+Claude finished while you were away; sleeping; greeting; an app mood; a stretch or bedtime
+nudge; focused; wandering. `meeting` (and hiding while something is fullscreen) apply on
+top of whatever wins, except a low battery, which shows even then. The times and levels
+above are the defaults, and all of them can be changed in Settings.
 
 <details>
-<summary>All 18 states for Mochi</summary>
+<summary>All 19 states for Mochi</summary>
 
-![Mochi in each of the 18 animation states](docs/images/states.webp)
+![Mochi in each of the 19 animation states](docs/images/states.webp)
 
 </details>
 
@@ -290,6 +294,7 @@ If you edit the file by hand:
 | A break is at least | `breakMinutes` | `5` | 1 to 120 minutes |
 | Bedtime | `bedtime` | `"00:30"` | `"HH:MM"`, or `null` to turn it off |
 | Morning | `wakeTime` | `"06:00"` | `"HH:MM"` |
+| Panic about the battery at | `lowBatteryPercent` | `10` | 0 to 50 percent (0 turns it off) |
 | Quiet during meetings | `quietDuringMeetings` | `true` | |
 | Hide when something is fullscreen | `hideWhenFullscreen` | `true` | |
 | App rules | `appRules` | See [App rules](#app-rules) | Up to 100 rules |
@@ -422,7 +427,7 @@ Then open <http://127.0.0.1:4173/preview/>. The preview server only serves the
 
 There are two pages:
 
-- **Gallery** (`/preview/`): every pet in all 18 animation states, each labelled with
+- **Gallery** (`/preview/`): every pet in all 19 animation states, each labelled with
   what triggers it.
   - Use the **Pet** menu to pick one pet. A single pet also shows its three sweat levels
     (one, two, or three or more busy Claude sessions).
@@ -430,8 +435,9 @@ There are two pages:
 - **Stage** (`/preview/stage.html`): the real pet walking along a pretend desktop. It has:
   - **Event buttons** for everything the app reacts to: Claude Code sessions (start
     working, a second session, permission prompts, tool finished, finished), you (go idle,
-    come back, lock, unlock), coding (file edits, commits), and apps (Spotify, a Zoom
-    meeting, a Steam game, YouTube, a fullscreen game).
+    come back, lock, unlock), coding (file edits, commits), apps (Spotify, a Zoom
+    meeting, a Steam game, YouTube, a fullscreen game), and the battery (low battery,
+    plug in).
   - **Click, drag and drop:** click the pet to pet it. Drag it to carry it around, and let
     go to drop it.
   - **Time speed:** up to an hour per second, so you can see it fall asleep, nudge you to
@@ -536,6 +542,12 @@ is on; it comes back when that window isn't in front.
 
 **Ctrl+Alt+P does nothing.** Another app may already use it: **Settings → System** says
 so under the shortcut. Click the box and press a different one.
+
+**It's panicking in the corner.** The battery is low: plug in and it calms down at once.
+It panics at 10% or less while unplugged; change the level (or set 0 to turn it off) in
+**Settings → You → Panic about the battery at**. It reads the battery through the same
+hidden PowerShell as the app moods, so if PowerShell is blocked it can't tell. A desktop
+PC without a battery never panics.
 
 **App moods don't change.** They only work on Windows. The pet asks a hidden
 `powershell.exe` which window is in front once a second; if PowerShell is blocked on

@@ -43,6 +43,8 @@ Using Claude Code inside WSL, or would rather build from source? See the
   you commit.
 - **Your apps:** headphones for music, popcorn for YouTube and Netflix, a controller for
   games, quiet during meetings, and out of the way when something is fullscreen.
+- **Your battery:** unplugged at 10% or less, it runs to the battery icon in the corner and
+  panics. Click it to open battery settings, or plug in to calm it.
 
 ## If something's off
 
