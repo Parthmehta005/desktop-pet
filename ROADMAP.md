@@ -28,7 +28,7 @@ completed in the last milestone.
 | M10 | Quick hide and show | Done |
 | M11 | A short GUIDE.md | Done |
 | M12 | Low-battery panic | Done |
-| M13 | Releases and versions (v1.0.0) | In progress |
+| M13 | Releases and versions (v1.0.0) | Done |
 
 Status values: `Not started` · `In progress` · `In review` · `Done`.
 
