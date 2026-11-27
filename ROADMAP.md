@@ -22,7 +22,7 @@ completed in the last milestone.
 | M4 | Interactive browser preview | Done |
 | M5 | Electron shell | Done |
 | M6 | Claude Code integration | Done |
-| M7 | Local activity sources | Not started |
+| M7 | Local activity sources | In progress |
 | M8 | Settings window and polish | Not started |
 | M9 | Packaging, Windows CI, final README | Not started |
 
