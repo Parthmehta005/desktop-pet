@@ -12,8 +12,7 @@ async function openSettings(app) {
 }
 
 async function launch() {
-  const userData = await tempUserData();
-  const { app } = await launchApp({ userData });
+  const { app, userData } = await launchApp();
   const pet = await app.firstWindow();
   await pet.locator('body[data-ready="true"]').waitFor({ state: 'attached' });
   return { app, pet, userData };
@@ -183,6 +182,50 @@ test('"a different pet every day" switches pets when the date changes', async ()
     expect(next).not.toBe(today);
     await expect(pet.locator('.pet-view')).toHaveAttribute('data-pet', next);
     await expect(win.locator('.pet-card.selected')).toHaveAttribute('data-pet', next);
+  } finally {
+    await app.close();
+  }
+});
+
+test('app rules: add, catch a bad pattern, fix it, reorder, delete, restore; the pet obeys at once', async () => {
+  const { app, pet, userData } = await launch();
+  try {
+    const win = await openSettings(app);
+    const rows = win.locator('table.rules tbody tr');
+    const defaults = await rows.count();
+    expect(defaults).toBeGreaterThan(5);
+
+    await win.getByRole('button', { name: 'Add rule' }).click();
+    await expect(rows).toHaveCount(defaults + 1);
+    const n = defaults + 1;
+
+    // A broken regular expression is caught and not saved.
+    const proc = win.getByLabel(`Process, rule ${n}`, { exact: true });
+    await proc.fill('(unclosed');
+    await proc.press('Tab');
+    await expect(win.locator('[data-field="appRules"] .field-error')).toContainText('not a valid regular expression');
+    expect((await readConfig(userData)).appRules).toHaveLength(defaults + 1);
+    expect((await readConfig(userData)).appRules.at(-1).process).toBe('^app-name$');
+
+    await proc.fill('^figma$');
+    await proc.press('Tab');
+    await expect(win.locator('[data-field="appRules"] .field-error')).toBeHidden();
+    await expect.poll(async () => (await readConfig(userData)).appRules.at(-1).process).toBe('^figma$');
+
+    // The pet uses the new rule straight away.
+    await app.evaluate(() => globalThis.__desktopPet.state.bus.emit({ type: 'app', process: 'Figma', title: 'Design' }, { source: 'test' }));
+    await expect(pet.locator('.pet-view')).toHaveAttribute('data-state', 'vibing');
+
+    // Move it to the top, then delete it.
+    for (let i = n; i > 1; i--) await win.getByRole('button', { name: `Move up rule ${i}`, exact: true }).click();
+    await expect.poll(async () => (await readConfig(userData)).appRules[0].process).toBe('^figma$');
+    await win.getByRole('button', { name: 'Delete rule 1', exact: true }).click();
+    await expect(rows).toHaveCount(defaults);
+
+    await win.getByRole('button', { name: 'Delete rule 1', exact: true }).click();
+    await expect(rows).toHaveCount(defaults - 1);
+    await win.getByRole('button', { name: 'Restore default rules' }).click();
+    await expect(rows).toHaveCount(defaults);
   } finally {
     await app.close();
   }

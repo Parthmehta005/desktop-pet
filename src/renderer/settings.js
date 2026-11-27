@@ -4,6 +4,8 @@
 import { SECTIONS, FIELDS } from './settings-fields.js';
 import { CONFIG_SCHEMA, validateConfig } from '../core/config.js';
 import { PETS } from '../core/pets.js';
+import { DEFAULT_APP_RULES, RULE_FIELDS } from '../core/app-rules.js';
+import { APP_RULE_MOODS } from '../core/moods.js';
 import { PET_DEFINITIONS } from './pets/index.js';
 import { createPetView } from './pet-view.js';
 
@@ -167,7 +169,56 @@ function folders(key, info) {
   return wrap;
 }
 
-const BUILDERS = { checkbox, number, range, time, pets, folders };
+function rules(key, info) {
+  const body = el('tbody');
+  const table = el('table', { className: 'rules' },
+    el('thead', {}, el('tr', {}, el('th', {}, 'Name'), el('th', {}, 'Process'), el('th', {}, 'Window title'),
+      el('th', {}, 'Install path'), el('th', {}, 'Mood'), el('th', {}, el('span', { className: 'visually-hidden' }, 'Actions')))),
+    body);
+  const addRule = el('button', { type: 'button' }, 'Add rule');
+  const reset = el('button', { type: 'button' }, 'Restore default rules');
+  const saveRules = (next) => save({ appRules: next });
+  addRule.addEventListener('click', () => saveRules([...state.config.appRules, { name: 'New rule', process: '^app-name$', mood: 'vibing' }]));
+  reset.addEventListener('click', () => saveRules(DEFAULT_APP_RULES.map((r) => ({ ...r }))));
+  const box = el('div', { className: 'rules-box' }, table, el('div', { className: 'rules-actions' }, addRule, reset));
+  const wrap = fieldShell(key, info, box);
+  wrap.querySelector('label').htmlFor = addRule.id = `field-${key}`;
+
+  wrap.update = () => {
+    const current = state.config.appRules;
+    body.replaceChildren(...current.map((rule, i) => {
+      const edit = (changes) => {
+        const next = current.map((r, j) => (j === i ? { ...r, ...changes } : r));
+        for (const f of RULE_FIELDS) if (next[i][f] === '') delete next[i][f];
+        saveRules(next);
+      };
+      const text = (field, aria) => {
+        const input = el('input', { type: 'text', value: rule[field] ?? '', 'aria-label': `${aria}, rule ${i + 1}`, spellcheck: false });
+        input.addEventListener('change', () => edit({ [field]: input.value }));
+        return el('td', {}, input);
+      };
+      const mood = el('select', { 'aria-label': `Mood, rule ${i + 1}` },
+        ...APP_RULE_MOODS.map((m) => el('option', { value: m, selected: m === rule.mood }, m)));
+      mood.addEventListener('change', () => edit({ mood: mood.value }));
+      const move = (delta, label) => {
+        const b = el('button', { type: 'button', 'aria-label': `${label} rule ${i + 1}`, disabled: i + delta < 0 || i + delta >= current.length }, label === 'Move up' ? '↑' : '↓');
+        b.addEventListener('click', () => {
+          const next = [...current];
+          [next[i], next[i + delta]] = [next[i + delta], next[i]];
+          saveRules(next);
+        });
+        return b;
+      };
+      const remove = el('button', { type: 'button', 'aria-label': `Delete rule ${i + 1}` }, '✕');
+      remove.addEventListener('click', () => saveRules(current.filter((_, j) => j !== i)));
+      return el('tr', {}, text('name', 'Name'), text('process', 'Process'), text('title', 'Window title'), text('path', 'Install path'),
+        el('td', {}, mood), el('td', { className: 'row-actions' }, move(-1, 'Move up'), move(1, 'Move down'), remove));
+    }));
+  };
+  return wrap;
+}
+
+const BUILDERS = { checkbox, number, range, time, pets, folders, rules };
 
 // ---------- Build and refresh ----------
 
