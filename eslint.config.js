@@ -57,7 +57,7 @@ export default [
   },
   {
     // Browser and Electron tests run in Node but pass callbacks to page.evaluate().
-    files: ['test/browser/**/*.js', 'test/electron/**/*.js'],
+    files: ['test/browser/**/*.js', 'test/electron/**/*.js', 'test/packaged/**/*.js'],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
 ];

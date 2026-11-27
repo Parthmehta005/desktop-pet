@@ -24,7 +24,7 @@ completed in the last milestone.
 | M6 | Claude Code integration | Done |
 | M7 | Local activity sources | Done |
 | M8 | Settings window and polish | Done |
-| M9 | Packaging, Windows CI, final README | Not started |
+| M9 | Packaging, Windows CI, final README | In progress |
 
 Status values: `Not started` · `In progress` · `In review` · `Done`.
 

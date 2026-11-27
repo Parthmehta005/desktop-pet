@@ -1,8 +1,10 @@
 {
   "name": "desktop-pet",
+  "productName": "Desktop Pet",
   "version": "0.1.0",
   "private": true,
   "description": "A Windows desktop pet that walks along your taskbar and reacts to your coding and to Claude Code.",
+  "author": "Desktop Pet",
   "type": "module",
   "main": "src/main/main.js",
   "engines": {
@@ -19,16 +21,77 @@
     "build:icons": "node scripts/build-icons.js",
     "hooks:install": "node scripts/hooks.js install",
     "hooks:uninstall": "node scripts/hooks.js uninstall",
-    "hooks:status": "node scripts/hooks.js status"
+    "hooks:status": "node scripts/hooks.js status",
+    "dist:win": "electron-builder --win --publish never",
+    "dist:dir": "electron-builder --dir --publish never",
+    "test:packaged": "node scripts/run-electron-tests.js -c playwright.packaged.config.js"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.63.0",
     "electron": "45.5.0",
+    "electron-builder": "26.18.1",
     "eslint": "10.15.0",
     "globals": "17.14.0"
   },
   "dependencies": {
     "chokidar": "4.0.3"
+  },
+  "build": {
+    "appId": "com.desktoppet.app",
+    "copyright": "Desktop Pet",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "package.json",
+      "src/core/**/*.js",
+      "src/main/**/*",
+      "src/renderer/**/*",
+      "assets/icon.png",
+      "assets/tray.png",
+      "assets/tray@2x.png"
+    ],
+    "asar": true,
+    "npmRebuild": false,
+    "publish": null,
+    "win": {
+      "icon": "assets/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Desktop Pet",
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "DesktopPet-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "DesktopPet-${version}-portable.${ext}"
+    },
+    "linux": {
+      "target": [
+        "dir"
+      ],
+      "icon": "assets/icon.png",
+      "category": "Utility"
+    }
   }
 }

@@ -13,8 +13,8 @@ async function openSettings(app) {
   return win;
 }
 
-async function launch() {
-  const { app, userData, claudeDir } = await launchApp();
+async function launch(options = {}) {
+  const { app, userData, claudeDir } = await launchApp(options);
   const pet = await app.firstWindow();
   await pet.locator('body[data-ready="true"]').waitFor({ state: 'attached' });
   return { app, pet, userData, claudeDir };
@@ -276,6 +276,20 @@ test('"Start when I sign in" turns the login item on and off', async () => {
     await expect.poll(calls).toEqual([{ openAtLogin: false }, { openAtLogin: true }]);
     await win.getByLabel('Start when I sign in').uncheck();
     await expect.poll(async () => (await calls()).at(-1)).toEqual({ openAtLogin: false });
+  } finally {
+    await app.close();
+  }
+});
+
+test('the portable .exe registers itself for sign-in, not its temporary copy', async () => {
+  const exe = 'C:\\Users\\me\\Downloads\\DesktopPet-portable.exe';
+  const { app } = await launch({ env: { PORTABLE_EXECUTABLE_FILE: exe } });
+  try {
+    const calls = () => app.evaluate(() => globalThis.__desktopPet.state.loginItemCalls);
+    await expect.poll(calls).toEqual([{ openAtLogin: false, path: exe }]);
+    const win = await openSettings(app);
+    await win.getByLabel('Start when I sign in').check();
+    await expect.poll(async () => (await calls()).at(-1)).toEqual({ openAtLogin: true, path: exe });
   } finally {
     await app.close();
   }

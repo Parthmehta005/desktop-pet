@@ -53,10 +53,16 @@ const state = {
   shuffleTimer: null,
 };
 
-/** Starts the pet when you sign in (Windows and macOS; a no-op elsewhere). */
+/**
+ * Starts the pet when you sign in (Windows and macOS; a no-op elsewhere). The portable
+ * .exe unpacks itself into a new temporary folder on every run, so Windows must be
+ * pointed at the .exe itself, not at the copy that is running.
+ */
 function applyLoginItem(openAtLogin) {
-  if (testing) state.loginItemCalls.push({ openAtLogin });
-  else app.setLoginItemSettings({ openAtLogin });
+  const portable = process.env.PORTABLE_EXECUTABLE_FILE;
+  const settings = portable ? { openAtLogin, path: portable } : { openAtLogin };
+  if (testing) state.loginItemCalls.push(settings);
+  else app.setLoginItemSettings(settings);
 }
 
 /** "A different pet every day": switches to today's pet if it isn't showing already. */

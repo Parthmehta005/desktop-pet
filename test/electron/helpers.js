@@ -23,11 +23,12 @@ export async function tempUserData() {
 }
 
 /**
- * Launches the app with its own settings folder. When the test doesn't bring one, the
- * new folder gets a config on a free hook port, so test runs can share a machine (and a
- * real pet can keep running) without fighting over the default port.
+ * Launches the app (this checkout, or a built one at `executablePath`) with its own
+ * settings folder. When the test doesn't bring one, the new folder gets a config on a
+ * free hook port, so test runs can share a machine (and a real pet can keep running)
+ * without fighting over the default port.
  */
-export async function launchApp({ userData, claudeDir, env = {} } = {}) {
+export async function launchApp({ userData, claudeDir, env = {}, executablePath } = {}) {
   let dir = userData;
   if (!dir) {
     dir = await tempUserData();
@@ -36,7 +37,8 @@ export async function launchApp({ userData, claudeDir, env = {} } = {}) {
   // Claude Code's settings folder too, so tray actions never touch the real ~/.claude.
   const claude = claudeDir ?? path.join(dir, 'claude-config');
   const app = await electron.launch({
-    args: ['.', ...chromiumArgs()],
+    // A built app (executablePath) carries its own code; otherwise run this checkout.
+    ...(executablePath ? { executablePath, args: chromiumArgs() } : { args: ['.', ...chromiumArgs()] }),
     cwd: ROOT,
     env: {
       ...process.env,
@@ -74,12 +76,15 @@ export async function readConfig(userData) {
   return JSON.parse(await readFile(path.join(userData, 'config.json'), 'utf8'));
 }
 
-/** Launches the app on a free hook port and waits for the pet and the hook server. */
-export async function launchWithHooks(changes = {}) {
+/**
+ * Launches the app on a free hook port and waits for the pet and the hook server.
+ * `options` go to launchApp (env, executablePath).
+ */
+export async function launchWithHooks(changes = {}, options = {}) {
   const userData = await tempUserData();
   const hookPort = await freePort();
   await writeConfig(userData, { hookPort, ...changes });
-  const { app, claudeDir } = await launchApp({ userData });
+  const { app, claudeDir } = await launchApp({ ...options, userData });
   const page = await app.firstWindow();
   await page.locator('body[data-ready="true"]').waitFor({ state: 'attached' });
   const { expect } = await import('@playwright/test');

@@ -81,6 +81,9 @@ same commit whenever a decision, convention or command changes.
   goes through the event bus (`src/main/event-bus.js`), with a `source` so pausing can
   drop it. Tests reach the main process through `globalThis.__desktopPet`, which only
   exists when `DESKTOP_PET_TEST=1`.
+- **Packaging:** `build.files` in `package.json` lists what ships in the app's asar
+  archive. Anything read at runtime (pages, icons, `foreground.ps1`) must be listed;
+  `test/packaged` checks the built app finds them.
 - **Hook server:** binds to `127.0.0.1` only, requires the token, limits body size, and
   replies `204` with an **empty body**. A hook's output can end up in Claude's context.
 - **Hooks installer:**
@@ -105,7 +108,9 @@ Each is added by the milestone shown.
 | `npm run test:all` | M5 | Every suite |
 | `npm run hooks:install` / `hooks:uninstall` / `hooks:status` | M6 | Manage the Claude Code hooks (`-- --settings <file> --user-data <dir> --wsl --host <h>`) |
 | `npm run build:icons` | M5 | Re-renders `assets/*.png` from the SVGs |
-| `npm run dist:win` | M9 | Builds the Windows installer and portable `.exe` |
+| `npm run dist:win` | M9 | Builds the Windows installer and portable `.exe` (Windows; needs Wine elsewhere) |
+| `npm run dist:dir` | M9 | Builds the unpacked app for this OS into `dist/` |
+| `npm run test:packaged` | M9 | Playwright tests against the built app (after `dist:dir` or `dist:win`) |
 
 ## Environment notes (cloud container)
 - Node 22 and npm 10.

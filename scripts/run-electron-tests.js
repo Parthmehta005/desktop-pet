@@ -1,8 +1,12 @@
-// Runs the Electron tests (npm run test:electron). On Linux without a display they run
-// inside a virtual one (xvfb-run). Extra arguments are passed on to Playwright.
+// Runs the Electron tests (npm run test:electron), or with `-c <config>` another
+// Electron suite (npm run test:packaged). On Linux without a display they run inside a
+// virtual one (xvfb-run). Extra arguments are passed on to Playwright.
 import { spawnSync } from 'node:child_process';
 
-const playwright = ['playwright', 'test', '-c', 'playwright.electron.config.js', '--trace', 'off', ...process.argv.slice(2)];
+const extra = process.argv.slice(2);
+const hasConfig = extra.some((a) => a === '-c' || a === '--config' || a.startsWith('--config='));
+const config = hasConfig ? [] : ['-c', 'playwright.electron.config.js'];
+const playwright = ['playwright', 'test', ...config, '--trace', 'off', ...extra];
 const needsVirtualDisplay = process.platform === 'linux' && !process.env.DISPLAY;
 
 const [command, args] = needsVirtualDisplay
