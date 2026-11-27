@@ -4,6 +4,8 @@ A little animated pet that lives along the bottom of your Windows desktop and re
 your coding. It sweats while Claude Code works, cheers when Claude finishes, waves when
 Claude needs you, and falls asleep when you step away.
 
+**New here?** The [quick guide](GUIDE.md) covers setup and everyday use on one page.
+
 ![Mochi the cat sweating over its laptop while two Claude Code sessions work](docs/images/stage.webp)
 
 Quick links: [Windows setup](#windows-setup) · [Connecting Claude Code](#connecting-claude-code)
