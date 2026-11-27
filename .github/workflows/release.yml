@@ -1,24 +1,21 @@
 name: Release
 
-# Publishes a GitHub Release when a version tag is pushed:
-#   npm version 1.2.0 --no-git-tag-version   (and add a "## [1.2.0] - date" CHANGELOG entry)
-#   git commit -am "Release 1.2.0" && git tag v1.2.0 && git push origin main v1.2.0
-# It can also be run by hand from the Actions tab for a tag that already exists.
+# Publishes a GitHub Release of the version in package.json. Either:
+#   - Actions tab → Release → Run workflow, on main. It tags the commit v<version> itself.
+#   - or push a version tag yourself: git tag v1.2.0 && git push origin v1.2.0
+# Before either: npm version 1.2.0 --no-git-tag-version, add a "## [1.2.0] - date"
+# CHANGELOG entry, and merge to main.
 
 on:
   push:
     tags: ['v*.*.*']
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'The tag to release, e.g. v1.0.0 (it must already exist)'
-        required: true
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  group: release-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -26,20 +23,33 @@ jobs:
     name: Build, test and publish (windows-latest)
     runs-on: windows-latest
     timeout-minutes: 45
-    env:
-      TAG: ${{ github.event.inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@v6
-        with:
-          ref: ${{ env.TAG }}
       - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - name: Work out the tag
+        shell: bash
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+              echo "::error::Run the release on main."; exit 1
+            fi
+            tag="v$(node -p "require('./package.json').version")"
+            # A tag that already exists must be this commit: a released version never moves.
+            if git fetch --depth=1 origin "refs/tags/$tag:refs/tags/$tag" 2>/dev/null \
+              && [ "$(git rev-parse "$tag^{commit}")" != "$GITHUB_SHA" ]; then
+              echo "::error::$tag is already another commit. Raise the version first."; exit 1
+            fi
+          else
+            tag="$GITHUB_REF_NAME"
+          fi
+          echo "TAG=$tag" >> "$GITHUB_ENV"
       - name: Check the tag matches package.json and has a CHANGELOG entry
         shell: bash
         run: node scripts/release.js check "$TAG"
+      - run: npm ci
       - name: Lint
         run: npm run lint
       - name: Unit tests
@@ -69,8 +79,10 @@ jobs:
             gh release upload "$TAG" release/DesktopPet-Setup.exe release/DesktopPet-Portable.exe --clobber
             gh release edit "$TAG" --title "Desktop Pet $version" --notes-file release/notes.md
           else
+            # Creates the tag on this commit if it doesn't exist yet (Run workflow).
             gh release create "$TAG" release/DesktopPet-Setup.exe release/DesktopPet-Portable.exe \
-              --title "Desktop Pet $version" --notes-file release/notes.md --verify-tag $prerelease
+              --title "Desktop Pet $version" --notes-file release/notes.md \
+              --target "$GITHUB_SHA" $prerelease
           fi
       - if: failure()
         uses: actions/upload-artifact@v4

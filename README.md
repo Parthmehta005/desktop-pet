@@ -521,7 +521,7 @@ GitHub Actions runs on every push:
   (including the foreground-app monitor), and both files are uploaded as the
   **desktop-pet-windows** artifact
 
-Pushing a version tag such as `v1.2.0` runs the **Release** workflow instead: see
+The separate **Release** workflow builds and publishes a version: see
 [Versions and releases](#versions-and-releases).
 
 ### Versions and releases
@@ -539,19 +539,19 @@ To release, say, 1.2.0:
 2. In `CHANGELOG.md`, move what's under **Unreleased** to a new
    `## [1.2.0] - YYYY-MM-DD` heading, and add its link at the bottom.
 3. Commit, merge to `main`, and wait for CI to pass.
-4. Tag that commit and push the tag: `git tag v1.2.0 && git push origin v1.2.0`.
+4. On GitHub, open **Actions** → **Release** → **Run workflow**, and run it on `main`.
 
-The tag starts the **Release** workflow on Windows, which takes about 10 minutes. It
-stops unless the tag matches `package.json` and the changelog has that version. Then it
-runs the lint, unit, Windows monitor, Electron and built-app tests, builds the installer
-and the portable app, and publishes them as the GitHub Release "Desktop Pet 1.2.0", with
-that version's changelog entry as the release notes. A version with a hyphen, such as
-`1.2.0-beta.1`, is published as a pre-release, which the download links skip.
+The **Release** workflow runs on Windows and takes about 10 minutes. It stops unless the
+changelog has an entry for the version in `package.json`, and unless that version is
+new (a released version is never moved to another commit). Then it runs the lint, unit,
+Windows monitor, Electron and built-app tests, builds the installer and the portable
+app, tags the commit `v1.2.0`, and publishes the GitHub Release "Desktop Pet 1.2.0",
+with that version's changelog entry as the release notes. A version with a hyphen, such
+as `1.2.0-beta.1`, is published as a pre-release, which the download links skip.
 
-If the workflow fails, nothing is published. Fix the problem on `main`, then move the
-tag to the fixed commit (`git tag -f v1.2.0 && git push -f origin v1.2.0`). For a
-failure that wasn't the code's, run **Release** again by hand from the Actions tab,
-giving it the tag.
+If it fails, nothing is published and no tag is made: fix the problem on `main` and run
+it again. Pushing a tag yourself (`git tag v1.2.0 && git push origin v1.2.0`) also
+starts it, for that commit.
 
 `node scripts/release.js check v1.2.0` runs the tag checks locally, and
 `node scripts/release.js notes 1.2.0` prints the release notes.

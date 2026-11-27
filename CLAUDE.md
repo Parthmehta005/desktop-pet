@@ -41,9 +41,10 @@ same commit whenever a decision, convention or command changes.
 - **Versions:** semver, in `package.json`. Every user-visible change adds a line under
   `## [Unreleased]` in `CHANGELOG.md`. To release: `npm version X.Y.Z
   --no-git-tag-version`, move Unreleased to `## [X.Y.Z] - date`, merge to `main`, then
-  push tag `vX.Y.Z` on `main` (README "Versions and releases"). `release.yml` publishes
-  `DesktopPet-Setup.exe` and `DesktopPet-Portable.exe`; the download links depend on
-  those names, and `test/unit/release.test.js` checks them.
+  run the Release workflow on `main` (`mcp__github__actions_run_trigger`, `release.yml`,
+  ref `main`); it makes the tag. This session's git proxy refuses tag pushes (403).
+  `release.yml` publishes `DesktopPet-Setup.exe` and `DesktopPet-Portable.exe`; the
+  download links depend on those names, and `test/unit/release.test.js` checks them.
 - Never skip, disable or `.only` a test to get a pass.
 - Decide whether to commit from the real exit codes of lint and every test suite. Never
   pipe a test command into `tail` or `grep` and then chain `&& git commit`: the pipe hides

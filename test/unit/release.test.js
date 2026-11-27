@@ -69,6 +69,10 @@ test('the command line: check and notes against the real files', async () => {
 test('the release workflow checks and tests everything before it publishes', async () => {
   const wf = await read('.github/workflows/release.yml');
   assert.match(wf, /tags: \['v\*\.\*\.\*'\]/, 'runs on version tags');
+  assert.match(wf, /workflow_dispatch:/, 'and from the Actions tab');
+  assert.match(wf, /"\$GITHUB_REF" != "refs\/heads\/main"/, 'which only releases main');
+  assert.match(wf, /tag="v\$\(node -p "require\('\.\/package\.json'\)\.version"\)"/, 'tagged with its version');
+  assert.match(wf, /--target "\$GITHUB_SHA"/, 'on the commit that was tested');
   assert.match(wf, /contents: write/, 'may create the release');
   const order = [
     'node scripts/release.js check "$TAG"',

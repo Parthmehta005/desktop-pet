@@ -636,10 +636,11 @@ releases that follow Semantic Versioning, starting with **v1.0.0**.
   change"; 1.0.0 is the first release meant for people to use. Every planned feature is
   built and tested, so this is 1.0.0. After that: MAJOR for changes that break existing
   settings or behaviour, MINOR for new features, PATCH for fixes.
-- **GitHub Releases.** Pushing a tag like `v1.0.0` runs a release workflow on Windows:
-  it checks the tag matches `package.json` and has a CHANGELOG entry, runs the Windows
-  tests, builds the installer and portable app, tests the built app, and publishes a
-  release with the changelog as its notes.
+- **GitHub Releases.** A release workflow on Windows, started from the Actions tab on
+  `main` (or by pushing a tag like `v1.0.0`): it checks the version is new and has a
+  CHANGELOG entry, runs the Windows tests, builds the installer and portable app, tests
+  the built app, tags the commit, and publishes a release with the changelog as its
+  notes.
 - **Stable file names** on releases (`DesktopPet-Setup.exe`, `DesktopPet-Portable.exe`),
   so `releases/latest/download/DesktopPet-Setup.exe` always gets the newest installer.
   The version is in the release title, the installer and the app.
@@ -654,9 +655,13 @@ signing (still in the backlog).
 2. Version 1.0.0: `package.json`, `CHANGELOG.md`, the version in the tray and settings
    window, and the scripts that check a release tag and pull its notes from the
    changelog, with tests
-3. The release workflow
+3. The release workflow (then a fix: its tests run in the same shell as CI's Windows
+   job)
 4. README and GUIDE: the one-link download, versions and how to release
-5. Review; then merge, tag `v1.0.0` on `main`, and check the release
+5. Review of everything but the release itself; merge
+6. Release from the Actions tab: the workflow makes the tag itself (this session can't
+   push tags, and it's one click for you)
+7. Merge, run the release on `main`, check the v1.0.0 release, and finish the review
 
 **Done when:** the v1.0.0 release exists with both files, the GUIDE's link downloads the
 installer, every suite passes on both operating systems, and REVIEW.md §M13 passes.
