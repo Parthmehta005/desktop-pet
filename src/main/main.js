@@ -53,6 +53,8 @@ const state = {
   // In test mode, settings saves can be slowed down to show races (a slow disk).
   testSaveDelayMs: 0,
   shuffleTimer: null,
+  // True once start() has finished: every source, the hook server and the shortcut are up.
+  started: false,
 };
 
 /**
@@ -351,6 +353,7 @@ async function start() {
   state.tray?.refresh();
   await checkShuffle();
   state.shuffleTimer = setInterval(() => checkShuffle().catch(() => {}), 60_000);
+  state.started = true;
 }
 
 registerAppScheme();

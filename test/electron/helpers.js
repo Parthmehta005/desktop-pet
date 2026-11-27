@@ -51,7 +51,23 @@ export async function launchApp({ userData, claudeDir, env = {}, executablePath 
       ...env,
     },
   });
+  await waitForStart(app);
   return { app, userData: dir, claudeDir: claude };
+}
+
+/**
+ * Waits until the app has finished starting (hook token, hook server, hook status,
+ * sources, shortcut). The pet window can be ready well before that on a slow machine,
+ * and a test that looks at the app's state then sees it half set up.
+ */
+export async function waitForStart(app, timeoutMs = 30_000) {
+  const until = Date.now() + timeoutMs;
+  while (Date.now() < until) {
+    const started = await app.evaluate(() => globalThis.__desktopPet?.state.started === true).catch(() => false);
+    if (started) return;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error(`the app did not finish starting within ${timeoutMs / 1000}s`);
 }
 
 /** A TCP port nothing is listening on right now. */
