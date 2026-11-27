@@ -206,29 +206,29 @@ app is complete.
 - [x] Security section E (hook server and settings writes) passes.
 
 ### M7 — Local activity sources
-- [ ] Repo watcher, using temporary folders:
-  - [ ] A file edit → an activity event, debounced so a burst of edits counts once.
-  - [ ] Edits under `node_modules`, `dist` or `.git/objects` → no event.
-  - [ ] Adding or removing a watched folder at runtime is respected.
-- [ ] Commit detection, using real temporary git repos:
-  - [ ] A new commit → `celebrating`.
-  - [ ] `git checkout` and `git status` → no celebration.
-  - [ ] It works in a worktree.
-- [ ] Idle monitor, with a fake `powerMonitor`:
-  - [ ] It crosses the threshold → `sleeping`.
-  - [ ] Lock → `sleeping`; unlock → `greeting`.
-  - [ ] 90 minutes active without a break → `stretch`.
-- [ ] App monitor:
-  - [ ] Recorded JSON lines are parsed into app events.
-  - [ ] Garbage lines are ignored.
-  - [ ] If the child process crashes, it restarts with backoff.
-  - [ ] On non-Windows it does nothing and doesn't spawn a process.
-- [ ] The PowerShell script is reviewed by reading it: no admin rights needed, no
+- [x] Repo watcher, using temporary folders:
+  - [x] A file edit → an activity event, debounced so a burst of edits counts once.
+  - [x] Edits under `node_modules`, `dist` or `.git/objects` → no event.
+  - [x] Adding or removing a watched folder at runtime is respected.
+- [x] Commit detection, using real temporary git repos:
+  - [x] A new commit → `celebrating`.
+  - [x] `git checkout` and `git status` → no celebration.
+  - [x] It works in a worktree.
+- [x] Idle monitor, with a fake `powerMonitor`:
+  - [x] It crosses the threshold → `sleeping`.
+  - [x] Lock → `sleeping`; unlock → `greeting`.
+  - [x] 90 minutes active without a break → `stretch`.
+- [x] App monitor:
+  - [x] Recorded JSON lines are parsed into app events.
+  - [x] Garbage lines are ignored.
+  - [x] If the child process crashes, it restarts with backoff.
+  - [x] On non-Windows it does nothing and doesn't spawn a process.
+- [x] The PowerShell script is reviewed by reading it: no admin rights needed, no
       network, starts with `-NoProfile -ExecutionPolicy Bypass`, and polls at most once
       a second.
-- [ ] End-to-end in Electron: edit a file in a watched temporary repo → `focused`; commit
+- [x] End-to-end in Electron: edit a file in a watched temporary repo → `focused`; commit
       → `celebrating`; simulated idle → `sleeping`.
-- [ ] Watcher CPU: with a watched folder of 10,000 files, the app stays idle with no
+- [x] Watcher CPU: with a watched folder of 10,000 files, the app stays idle with no
       events once the initial scan finishes.
 
 ### M8 — Settings window and polish
@@ -299,3 +299,4 @@ column.
 | M4 | `437c4d4` | 2026-11-26 | Pass | 317/317, 3 runs in a row | 79/79, 3 runs in a row | n/a | Pass | Pass (unit on Windows, browser tests on Linux) | All 6 M4 commits pass on their own. The stage is its own page, `preview/stage.html`. For deterministic tests the stage takes `?time=HH:MM` (tests start at noon, so real-world bedtime can't leak in) and the controller keeps a short mood history (brief moods flash by at high clock speeds). Two first-run test failures were test-timing assumptions, not app bugs: a session going stale at 1 hour/second, and a 12s reminder lasting milliseconds. Screenshots of both wallpapers reviewed. README "Browser preview" section written |
 | M5 | `7f3c951` | 2026-11-26 | Pass | 337/337, 3 runs in a row | 79/79, 3 runs in a row | 26/26, 3 runs in a row | Pass (unit + Electron on Linux) | Pass (unit) | All 7 M5 commits pass every suite on their own. Resource use under xvfb with software rendering: about 3% CPU and 560 MB across 4 Electron processes while wandering (`test-results/electron-metrics.json`). The window screenshot was reviewed. Additions beyond the plan: windows load over a privileged `app://` protocol that only serves `src/renderer` and `src/core` (so CSP `'self'` works without `file://`); Chromium background networking is off; an engine `reset` event lets "Pause reactions" calm the pet at once. Test-only: Electron launches with `--no-sandbox` when running as root or on CI, never in the app. The Windows Electron smoke test comes in M9 as planned |
 | M6 | `0817beb` | 2026-11-27 | Pass | 378/378, 3 runs in a row | 79/79, 3 runs in a row | 33/33, 3 runs in a row | Pass (unit, browser, Electron) | Pass (unit) | All 10 M6 commits pass every suite on their own. The per-commit re-run used `TZ=Pacific/Honolulu` (daytime) because commits before `acf4a1d` contain an M5 test that assumed daytime; the three full runs were at real UTC night time. Found and fixed along the way: that time-of-day test flaw (`acf4a1d`), and curl honouring `http_proxy` (the hook command now passes `--noproxy`). Additions: the settings folder is pinned to `<appData>/desktop-pet` so the command-line tool can find the token; `--wsl` installs; with no watched folders, every Claude session counts. Process slip: a commit was made with a failing test (the check output was piped, hiding its exit code); it was undone before pushing and redone after the fix |
+| M7 | `7f525ce` | 2026-11-27 | Pass | 411/411, 3 runs in a row | 79/79, 3 runs in a row | 51/51, 3 runs in a row | Pass (unit, browser, Electron) | Pass (unit) | Every M7 commit passes every suite on its own, re-checked after the fixes below. The three full runs were at `c0327ef`, which includes all of M7 and the M8 work that came between its fixes. A 10,000-file folder: first scan about 1.1 s, then 0.3 ms of CPU over 3 s idle and no events. The PowerShell script was reviewed by reading: no admin rights or network, started with `-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand`, checks once a second, and exits with the pet; it runs for real on Windows CI in M9. CI found three real bugs after the M7 commits, each fixed with a test that fails on the old code: settings reported as saved before they were on disk (`5fb1d5f`), commits missed on Windows because paths were compared as raw strings (`0c83396`), and a commit made straight after another going unnoticed because chokidar drops a change within 50 ms of the last one (`7f525ce`). One gate run failed because two test runs shared ports; runs now pick free ports (`5043278`), and three quiet reruns were green |

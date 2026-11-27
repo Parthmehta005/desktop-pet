@@ -22,7 +22,7 @@ completed in the last milestone.
 | M4 | Interactive browser preview | Done |
 | M5 | Electron shell | Done |
 | M6 | Claude Code integration | Done |
-| M7 | Local activity sources | In progress |
+| M7 | Local activity sources | Done |
 | M8 | Settings window and polish | In progress |
 | M9 | Packaging, Windows CI, final README | Not started |
 
@@ -409,6 +409,9 @@ the pet.
 5. Wire everything into the main process; end-to-end test in Electron (edit a file →
    focused, commit → celebrating, simulated idle → sleeping)
 6. Review
+7. Fixes for bugs CI found after the review had started (they landed between M8 commits):
+   settings saved before reporting success, Windows path comparison in commit detection,
+   and commits made straight after another
 
 **Done when:** each source has its own tests, the Electron end-to-end flows pass, the
 watcher ignores `node_modules`, and REVIEW.md §M7 passes. The PowerShell script itself
