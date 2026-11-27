@@ -1,12 +1,16 @@
 import { test, expect } from '@playwright/test';
-import { launchApp } from './helpers.js';
+import { launchApp, tempUserData, writeConfig } from './helpers.js';
 
 let app;
 let page;
 let errors;
 
 test.beforeEach(async () => {
-  ({ app } = await launchApp());
+  // These tests use the real clock, so switch the bedtime nudge off: otherwise between
+  // 00:30 and 06:00 the pet (correctly) goes to bedtime instead of wandering.
+  const userData = await tempUserData();
+  await writeConfig(userData, { bedtime: null });
+  ({ app } = await launchApp({ userData }));
   page = await app.firstWindow();
   errors = [];
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
