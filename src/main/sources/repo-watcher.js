@@ -1,20 +1,65 @@
-// Watches your repos: file edits make the pet `focused`.
+// Watches your repos: file edits make the pet `focused`, new commits make it celebrate.
 //
-// For each watched folder it watches files, skipping tool output (see repo-rules.js).
+// For each watched folder it watches files (skipping tool output, see repo-rules.js),
+// and for each git repo at the folder or one level below it, it follows the reflog
+// (.git/logs/HEAD), which git appends a line to on every commit.
 import { watch as chokidarWatch } from 'chokidar';
-import { isIgnoredPath } from './repo-rules.js';
+import { readFile, stat, open, readdir } from 'node:fs/promises';
+import path from 'node:path';
+import { isIgnoredPath, newCommits, resolveGitDir, IGNORED_DIRS } from './repo-rules.js';
 
 /** A burst of edits is reported at most this often per folder. */
 export const ACTIVITY_THROTTLE_MS = 5000;
 /** How deep inside a watched folder edits are noticed. */
 export const MAX_DEPTH = 12;
 
+async function gitDirFor(root) {
+  const dotGit = path.join(root, '.git');
+  try {
+    const info = await stat(dotGit);
+    if (info.isDirectory()) return resolveGitDir(root, { isDirectory: true });
+    return resolveGitDir(root, { isDirectory: false, content: await readFile(dotGit, 'utf8') });
+  } catch {
+    return null;
+  }
+}
+
+/** Repos to follow for a watched folder: the folder itself, or repos directly inside it. */
+async function findRepos(folder) {
+  const own = await gitDirFor(folder);
+  if (own) return [{ root: folder, gitDir: own }];
+  let entries;
+  try {
+    entries = await readdir(folder, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  const repos = [];
+  for (const entry of entries) {
+    if (!entry.isDirectory() || IGNORED_DIRS.includes(entry.name)) continue;
+    const root = path.join(folder, entry.name);
+    const gitDir = await gitDirFor(root);
+    if (gitDir) repos.push({ root, gitDir });
+  }
+  return repos;
+}
+
+async function fileSize(file) {
+  try {
+    return (await stat(file)).size;
+  } catch {
+    return 0;
+  }
+}
+
 /**
  * @param {object} options
  * @param {(folder: string) => void} options.onActivity  Files changed in a watched folder.
+ * @param {(folder: string, repoRoot: string) => void} options.onCommit  A commit landed.
  */
 export function createRepoWatcher({
   onActivity,
+  onCommit,
   watch = chokidarWatch,
   now = Date.now,
   throttleMs = ACTIVITY_THROTTLE_MS,
@@ -46,9 +91,60 @@ export function createRepoWatcher({
     return watcher;
   }
 
+  function watchReflog(folder, { root, gitDir }) {
+    const logsDir = path.join(gitDir, 'logs');
+    const head = path.join(logsDir, 'HEAD');
+    let offset = 0;
+    let reading = Promise.resolve();
+    const sizeReady = fileSize(head).then((size) => { offset = size; });
+
+    async function readNew() {
+      await sizeReady;
+      const size = await fileSize(head);
+      if (size < offset) {
+        // The reflog was rewritten (e.g. expired): skip, don't re-celebrate old commits.
+        offset = size;
+        return;
+      }
+      if (size === offset) return;
+      const handle = await open(head, 'r');
+      try {
+        const { buffer, bytesRead } = await handle.read(Buffer.alloc(size - offset), 0, size - offset, offset);
+        const text = buffer.subarray(0, bytesRead).toString('utf8');
+        const complete = text.lastIndexOf('\n') + 1; // only whole lines; the rest comes later
+        offset += Buffer.byteLength(text.slice(0, complete));
+        if (newCommits(text.slice(0, complete)).length) onCommit(folder, root);
+      } finally {
+        await handle.close();
+      }
+    }
+
+    // Watch the git dir shallowly, ignoring everything but logs/HEAD: one cheap watch
+    // that also works before the first commit creates the file.
+    const watcher = watch(gitDir, {
+      ignored: (p) => p !== gitDir && p !== logsDir && p !== head,
+      ignoreInitial: true,
+      depth: 1,
+    });
+    watcher.on('all', (event, p) => {
+      if (p !== head || (event !== 'add' && event !== 'change')) return;
+      reading = reading.then(readNew).catch(onError);
+    });
+    watcher.on('error', onError);
+    return { watcher, ready: Promise.all([whenReady(watcher), sizeReady]) };
+  }
+
   async function add(folder) {
     const files = watchFiles(folder);
-    watched.set(folder, { watchers: [files], ready: whenReady(files) });
+    // Listen for 'ready' before awaiting anything: a small folder can finish its first
+    // scan while we look for repos, and a missed 'ready' would never come again.
+    const filesReady = whenReady(files);
+    const repos = await findRepos(folder);
+    const reflogs = repos.map((repo) => watchReflog(folder, repo));
+    watched.set(folder, {
+      watchers: [files, ...reflogs.map((r) => r.watcher)],
+      ready: Promise.all([filesReady, ...reflogs.map((r) => r.ready)]),
+    });
   }
 
   async function remove(folder) {
