@@ -59,6 +59,7 @@ test('the tray menu: pet radio list, pause checkbox, test reactions, quit', () =
     uninstallHooks: () => calls.push(['uninstallHooks']),
     openSettings: () => calls.push(['openSettings']),
     quit: () => calls.push(['quit']),
+    toggleHidden: () => calls.push(['toggleHidden']),
   };
   const menu = buildTrayMenu({ config: { pet: 'corgi' }, paused: false, pets: PETS }, actions);
   const byLabel = Object.fromEntries(menu.filter((m) => m.label).map((m) => [m.label, m]));
@@ -79,11 +80,14 @@ test('the tray menu: pet radio list, pause checkbox, test reactions, quit', () =
   byLabel['Remove Claude Code hooks'].click();
   byLabel['Settings...'].click();
   byLabel['Quit Desktop Pet'].click();
+  byLabel['Hide pet'].click();
 
   assert.deepEqual(calls, [
     ['setPet', 'penguin'], ['setPaused', true], ['test', 'claude-working'],
-    ['installHooks'], ['uninstallHooks'], ['openSettings'], ['quit'],
+    ['installHooks'], ['uninstallHooks'], ['openSettings'], ['quit'], ['toggleHidden'],
   ]);
+  const hiddenMenu = buildTrayMenu({ config: { pet: 'cat' }, paused: false, pets: PETS, hidden: true }, actions);
+  assert.equal(hiddenMenu[1].label, 'Show pet', 'the item says what it will do');
   assert.equal(buildTrayMenu({ config: { pet: 'cat' }, paused: true, pets: PETS }, actions)
     .find((m) => m.label === 'Pause reactions').checked, true);
 });
@@ -92,7 +96,7 @@ test('the Claude Code part of the tray follows the hook status', () => {
   const menu = (hooks) => {
     const items = buildTrayMenu({ config: { pet: 'cat' }, paused: false, pets: PETS, hooks }, {});
     const by = (label) => items.find((m) => m.label === label);
-    return { status: items[2].label, install: by('Install Claude Code hooks').enabled, remove: by('Remove Claude Code hooks').enabled };
+    return { status: items[3].label, install: by('Install Claude Code hooks').enabled, remove: by('Remove Claude Code hooks').enabled };
   };
   assert.deepEqual(menu({ status: 'not-installed', serverError: null }), { status: 'Claude Code: hooks not installed', install: true, remove: false });
   assert.deepEqual(menu({ status: 'installed', serverError: null }), { status: 'Claude Code: connected', install: false, remove: true });

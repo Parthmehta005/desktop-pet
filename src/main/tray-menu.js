@@ -43,15 +43,18 @@ export function hooksStatusLabel({ status, serverError }) {
  *   paused: boolean,
  *   pets: Array<{ id: string, name: string, species: string }>,
  *   hooks?: { status: string, serverError: string | null },
+ *   hidden?: boolean,
  * }} state
  * @param {{
  *   setPet(id: string): void, setPaused(paused: boolean): void, test(id: string): void,
  *   installHooks(): void, uninstallHooks(): void, openSettings(): void, quit(): void,
+ *   toggleHidden(): void,
  * }} actions
  */
-export function buildTrayMenu({ config, paused, pets, hooks = { status: 'unknown', serverError: null } }, actions) {
+export function buildTrayMenu({ config, paused, pets, hooks = { status: 'unknown', serverError: null }, hidden = false }, actions) {
   return [
     { label: 'Desktop Pet', enabled: false },
+    { label: hidden ? 'Show pet' : 'Hide pet', click: () => actions.toggleHidden() },
     { type: 'separator' },
     { label: hooksStatusLabel(hooks), enabled: false },
     {

@@ -57,7 +57,9 @@ export function createPetWindow({ petSize = 1, webPreferences = {} } = {}) {
   let interactive = false;
   win.setIgnoreMouseEvents(true, { forward: true });
 
-  win.once('ready-to-show', () => win.showInactive());
+  // "Hide pet" can come before the page has loaded; don't show it then.
+  let hidden = false;
+  win.once('ready-to-show', () => { if (!hidden) win.showInactive(); });
 
   // If the page crashes or is killed, bring the pet back instead of leaving an empty
   // window. More than three crashes in a minute means something is badly wrong: stop.
@@ -92,6 +94,16 @@ export function createPetWindow({ petSize = 1, webPreferences = {} } = {}) {
     },
     get interactive() {
       return interactive;
+    },
+    /** Hides or shows the pet. Its page keeps running, so its mood stays current. */
+    setHidden(next) {
+      if (win.isDestroyed()) return;
+      hidden = next;
+      if (hidden) win.hide();
+      else win.showInactive();
+    },
+    get hidden() {
+      return hidden;
     },
   };
 }

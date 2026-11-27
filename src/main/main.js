@@ -186,6 +186,14 @@ const actions = {
     state.bus.setPaused(paused);
     state.tray?.refresh();
   },
+  /** Puts the pet away or brings it back. Not saved: after a restart it's shown. */
+  setHidden(hidden) {
+    state.petWindow?.setHidden(hidden);
+    state.tray?.refresh();
+  },
+  toggleHidden() {
+    actions.setHidden(!state.petWindow?.hidden);
+  },
   test(id) {
     const reaction = TEST_REACTIONS.find((r) => r.id === id);
     for (const event of reaction?.events ?? []) state.bus.emit(event, { source: 'test' });
@@ -235,6 +243,7 @@ const trayState = () => ({
   paused: state.bus.paused,
   pets: PETS,
   hooks: { status: state.hookInstall.status, serverError: state.hooks.error },
+  hidden: state.petWindow?.hidden ?? false,
 });
 
 function registerIpc() {
@@ -327,8 +336,9 @@ if (!isFirstInstance) {
   if (state.store.config.disableHardwareAcceleration) app.disableHardwareAcceleration();
 
   app.on('second-instance', () => {
-    // The pet is on screen already, so someone launching it again (from the Start menu,
-    // say) is most likely looking for the settings.
+    // Someone launching it again (from the Start menu, say) wants to see it, and is most
+    // likely looking for the settings.
+    if (state.petWindow?.hidden) actions.setHidden(false);
     if (state.settings) actions.openSettings();
   });
   // The pet lives in the tray, so closing windows doesn't quit the app.
