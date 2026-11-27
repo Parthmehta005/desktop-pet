@@ -8,11 +8,12 @@
 // Safety rules: the original file is backed up before any change, writes are atomic, a
 // second install with the same settings changes nothing, and a settings file that isn't
 // valid JSON is left alone.
-import { readFile, writeFile, rename, mkdir, copyFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, copyFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { INSTALLED_HOOK_EVENTS } from '../core/claude-hooks.js';
 import { HOOK_PATH } from './sources/hook-server.js';
+import { renameWithRetry } from './safe-rename.js';
 
 /** Every command the pet installs contains this, and nothing else's should. */
 export const HOOK_MARKER = HOOK_PATH;
@@ -141,7 +142,7 @@ async function writeSettings(settingsPath, original, settings, now) {
   await mkdir(path.dirname(settingsPath), { recursive: true });
   const tmp = `${settingsPath}.desktop-pet.tmp`;
   await writeFile(tmp, `${JSON.stringify(settings, null, 2)}\n`, 'utf8');
-  await rename(tmp, settingsPath);
+  await renameWithRetry(tmp, settingsPath);
   return backup;
 }
 

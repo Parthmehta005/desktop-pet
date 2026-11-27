@@ -56,7 +56,15 @@ async function saveNow(changes) {
     showError(key, local.map((e) => e.message).join('; '));
     return false;
   }
-  const result = await bridge.save(changes);
+  let result;
+  try {
+    result = await bridge.save(changes);
+  } catch (err) {
+    // The main process couldn't save it (say, the settings file was locked for too long).
+    showError(key, `Couldn't save this: ${String(err?.message ?? err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')}`);
+    refresh(); // show what is really saved
+    return false;
+  }
   if (!result.ok) {
     showError(key, result.errors.map((e) => e.message).join('; '));
     return false;

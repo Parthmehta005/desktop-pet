@@ -326,3 +326,23 @@ test('the portable .exe registers itself for sign-in, not its temporary copy', a
     await app.close();
   }
 });
+
+test('a save the app cannot complete is reported in the window, and nothing changes', async () => {
+  const { app, userData } = await launch();
+  try {
+    const win = await openSettings(app);
+    await app.evaluate(() => { globalThis.__desktopPet.state.testSaveError = 'EPERM: operation not permitted, rename'; });
+    const box = win.getByLabel('A different pet every day');
+    await box.click(); // not check(): the box goes back to unticked, which check() rejects
+    await expect(win.locator('[data-field="shuffleDaily"] .field-error')).toHaveText("Couldn't save this: EPERM: operation not permitted, rename");
+    await expect(box).not.toBeChecked();
+    expect((await readConfig(userData)).shuffleDaily).toBe(false);
+    // Once saving works again, so does the setting.
+    await app.evaluate(() => { globalThis.__desktopPet.state.testSaveError = null; });
+    await box.check();
+    await expect.poll(async () => (await readConfig(userData)).shuffleDaily).toBe(true);
+    await expect(win.locator('[data-field="shuffleDaily"] .field-error')).toBeHidden();
+  } finally {
+    await app.close();
+  }
+});

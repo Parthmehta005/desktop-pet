@@ -1,15 +1,21 @@
 // config.json in the app's data folder: load (with repair), validated updates, and
 // atomic writes. Node only, no Electron, so it can be unit tested with a temp folder.
-import { readFileSync, writeFileSync, renameSync, mkdirSync } from 'node:fs';
-import { writeFile, rename } from 'node:fs/promises';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { renameWithRetry, renameSyncWithRetry } from './safe-rename.js';
 import {
   parseConfig, validateConfig, serializeConfig, defaultConfig, CONFIG_VERSION,
 } from '../core/config.js';
 
 export const CONFIG_FILE = 'config.json';
 
-export function createConfigStore(dir) {
+/**
+ * @param {string} dir  The settings folder.
+ * @param {object} [options]  The renames, swappable in tests. They retry on Windows while
+ *   something else has config.json open (see safe-rename.js).
+ */
+export function createConfigStore(dir, { renameAsync = renameWithRetry, renameSyncSafe = renameSyncWithRetry } = {}) {
   const file = path.join(dir, CONFIG_FILE);
   const tmp = `${file}.tmp`;
   let current = defaultConfig();
@@ -17,7 +23,7 @@ export function createConfigStore(dir) {
 
   function writeSync(config) {
     writeFileSync(tmp, serializeConfig(config), 'utf8');
-    renameSync(tmp, file);
+    renameSyncSafe(tmp, file);
   }
 
   /**
@@ -45,7 +51,7 @@ export function createConfigStore(dir) {
     let movedAside = null;
     if (parsed.corrupt) {
       movedAside = path.join(dir, `config.corrupt-${Date.now()}.json`);
-      renameSync(file, movedAside);
+      renameSyncSafe(file, movedAside);
       writeSync(parsed.config);
     } else if (parsed.from !== null && parsed.from < CONFIG_VERSION) {
       writeSync(parsed.config);
@@ -67,7 +73,7 @@ export function createConfigStore(dir) {
       // Only report the new settings once they're safely on disk: quitting straight
       // after a change (or a crash) must not leave the app and the file disagreeing.
       await writeFile(tmp, serializeConfig(config), 'utf8');
-      await rename(tmp, file);
+      await renameAsync(tmp, file);
       current = config;
       return { ok: true, config: current, errors: [] };
     };
