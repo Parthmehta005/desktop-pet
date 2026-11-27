@@ -301,14 +301,14 @@ app is complete.
 - [x] The setting is in the settings window, validated, and applied live.
 
 ### M13 — Releases and versions (v1.0.0)
-- [ ] The version is 1.0.0 everywhere it appears (`package.json`, the tray, the settings
+- [x] The version is 1.0.0 everywhere it appears (`package.json`, the tray, the settings
       window, the installer) and `CHANGELOG.md` has a 1.0.0 entry.
-- [ ] A release tag that doesn't match `package.json`, or has no changelog entry, stops
+- [x] A release tag that doesn't match `package.json`, or has no changelog entry, stops
       the release (tested).
-- [ ] The release notes are the changelog's section for that version (tested).
+- [x] The release notes are the changelog's section for that version (tested).
 - [ ] The v1.0.0 release exists with `DesktopPet-Setup.exe` and
       `DesktopPet-Portable.exe`, built and tested by the release workflow.
-- [ ] The GUIDE's and README's download link is the "latest" link to that installer
+- [x] The GUIDE's and README's download link is the "latest" link to that installer
       file, and a test keeps it matching the workflow's file name.
 
 ---
@@ -340,6 +340,10 @@ These can't be done from Linux or fully from CI.
     just above the current charge): the pet runs to the bottom-right, points at the
     battery icon and panics; clicking it opens Windows' battery settings; plugging in
     calms it.
+13. The GUIDE's **DesktopPet-Setup.exe** link downloads the newest release; the tray
+    menu's top line and the Settings window show its version. Installing a newer
+    release over it (after quitting the pet) replaces the app and keeps the pet, the
+    folders and the settings.
 
 ---
 

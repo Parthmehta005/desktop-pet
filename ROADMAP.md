@@ -683,6 +683,10 @@ Ideas to pick up if time allows, or later:
     a crash it forgets until each session's next hook).
   - `actions/upload-artifact@v4` runs on a deprecated Node version on CI; move to a newer
     major when one is available.
+- From the M13 review:
+  - An optional "a new version is out" notice. It would mean the pet going online, so
+    it would be off by default.
+  - A `winget` package, once releases are code-signed.
 
 ## Risks
 

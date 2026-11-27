@@ -120,17 +120,18 @@ The [browser preview](#browser-preview) shows every pet in every state, animated
   runs without installing. Keep it somewhere permanent, such as `Documents`, if you want
   it to start when you sign in.
 
-Every version, with what changed in it, is on the [Releases page](https://github.com/Parthmehta005/desktop-pet/releases) and in
+Every version, with what changed in it, is on the
+[Releases page](https://github.com/Parthmehta005/desktop-pet/releases) and in
 [CHANGELOG.md](CHANGELOG.md). You can also [build them yourself](#building-an-installer).
 The app isn't code-signed, so Windows SmartScreen will warn you the first time: choose
 **More info → Run anyway**.
 
 **Updating.** Quit the pet (tray → **Quit Desktop Pet**), then download and run the
-newest `DesktopPet-Setup.exe`; it replaces the old version. For the
-portable app, replace the `.exe` with the new one. Either way your pet, folders and
-settings stay, because they're kept in `%APPDATA%\desktop-pet`. The top line of the tray
-menu and the Settings window show which version you have. The pet never checks for
-updates itself: it doesn't go online.
+newest `DesktopPet-Setup.exe`; it replaces the old version. For the portable app,
+replace the `.exe` with the new one. Either way your pet, folders and settings stay,
+because they're kept in `%APPDATA%\desktop-pet`. The top line of the tray menu and the
+Settings window show which version you have. The pet never checks for updates itself:
+it doesn't go online.
 
 **Option B: run from source.** In PowerShell or Command Prompt:
 
