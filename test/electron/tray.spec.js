@@ -26,7 +26,7 @@ test('the tray icon exists with its menu', async () => {
   expect(tray.destroyed).toBe(false);
   expect(await menuLabels()).toEqual([
     'Desktop Pet', '---', 'Claude Code: hooks not installed', 'Install Claude Code hooks', 'Remove Claude Code hooks',
-    '---', 'Pet', 'Pause reactions', 'Test reactions', '---', 'Quit Desktop Pet',
+    '---', 'Pet', 'Pause reactions', 'Test reactions', '---', 'Settings...', 'Quit Desktop Pet',
   ]);
 });
 

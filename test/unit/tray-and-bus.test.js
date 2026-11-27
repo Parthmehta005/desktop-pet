@@ -57,6 +57,7 @@ test('the tray menu: pet radio list, pause checkbox, test reactions, quit', () =
     test: (id) => calls.push(['test', id]),
     installHooks: () => calls.push(['installHooks']),
     uninstallHooks: () => calls.push(['uninstallHooks']),
+    openSettings: () => calls.push(['openSettings']),
     quit: () => calls.push(['quit']),
   };
   const menu = buildTrayMenu({ config: { pet: 'corgi' }, paused: false, pets: PETS }, actions);
@@ -76,11 +77,12 @@ test('the tray menu: pet radio list, pause checkbox, test reactions, quit', () =
   byLabel['Test reactions'].submenu[0].click();
   byLabel['Install Claude Code hooks'].click();
   byLabel['Remove Claude Code hooks'].click();
+  byLabel['Settings...'].click();
   byLabel['Quit Desktop Pet'].click();
 
   assert.deepEqual(calls, [
     ['setPet', 'penguin'], ['setPaused', true], ['test', 'claude-working'],
-    ['installHooks'], ['uninstallHooks'], ['quit'],
+    ['installHooks'], ['uninstallHooks'], ['openSettings'], ['quit'],
   ]);
   assert.equal(buildTrayMenu({ config: { pet: 'cat' }, paused: true, pets: PETS }, actions)
     .find((m) => m.label === 'Pause reactions').checked, true);

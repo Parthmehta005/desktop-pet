@@ -23,7 +23,7 @@ completed in the last milestone.
 | M5 | Electron shell | Done |
 | M6 | Claude Code integration | Done |
 | M7 | Local activity sources | In progress |
-| M8 | Settings window and polish | Not started |
+| M8 | Settings window and polish | In progress |
 | M9 | Packaging, Windows CI, final README | Not started |
 
 Status values: `Not started` · `In progress` · `In review` · `Done`.
@@ -434,16 +434,17 @@ Changes apply live: watchers restart and the pet swaps on the spot.
 
 **Boundary:** no packaging. No new states or sources.
 
-**Planned commits**
-1. Settings window and IPC (get and set config, with validation)
-2. Watched folders UI
-3. Pet picker with live previews, and shuffle daily
-4. Behaviour settings
+**Planned commits** (revised while building: the form is generated from one field list,
+so the window and the simple controls came together)
+1. Let test runs share a machine (preview port, free hook ports)
+2. Settings window, IPC (get and set config, with validation) and the simple controls
+   (checkboxes, numbers, sliders, times)
+3. Watched folders UI
+4. Pet picker with live previews, and shuffle daily
 5. App rules editor
 6. Hooks panel and launch at login
-7. Apply config changes live
-8. Electron end-to-end tests for the settings window
-9. Review
+7. Apply config changes live, and Electron end-to-end tests for the settings window
+8. README sections and review
 
 **Done when:** every config field can be edited and is validated, changes apply
 immediately, the settings survive a restart, and REVIEW.md §M8 passes.

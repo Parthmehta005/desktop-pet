@@ -1,0 +1,149 @@
+:root {
+  --bg: #f6f3ee;
+  --panel: #ffffff;
+  --text: #2b2622;
+  --muted: #6d655d;
+  --border: #e2dbd2;
+  --accent: #c76b2b;
+  --error: #b42318;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1d1f24;
+    --panel: #2a2d34;
+    --text: #ece8e3;
+    --muted: #a8a29b;
+    --border: #3a3e47;
+    --accent: #f2a65a;
+    --error: #ff8a80;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+main { max-width: 820px; margin: 0 auto; padding: 20px 20px 40px; }
+h1 { margin: 0; font-size: 1.5rem; }
+.intro { margin: 2px 0 16px; color: var(--muted); }
+
+.settings-section {
+  margin-bottom: 16px;
+  padding: 14px 16px 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.settings-section h2 { margin: 0 0 8px; font-size: 1.05rem; }
+.settings-section h3 { margin: 0; font-size: 0.95rem; }
+
+.field { padding: 8px 0; border-top: 1px solid var(--border); }
+.settings-section h2 + .field { border-top: 0; }
+.field-label { display: block; margin: 0 0 4px; font-weight: 600; }
+.field-help { margin: 4px 0 0; color: var(--muted); font-size: 0.85rem; }
+.field-error { margin: 4px 0 0; color: var(--error); font-weight: 600; font-size: 0.85rem; }
+.field-error[hidden] { display: none; }
+
+.field-checkbox { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: center; }
+.field-checkbox input { grid-row: 1; grid-column: 1; width: 18px; height: 18px; }
+.field-checkbox .field-label { grid-row: 1; grid-column: 2; margin: 0; }
+.field-checkbox .field-help,
+.field-checkbox .field-error { grid-column: 2; }
+
+input[type="number"],
+input[type="time"],
+input[type="text"],
+select {
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+input[type="number"] { width: 110px; }
+.unit { margin-left: 8px; color: var(--muted); }
+.range-row,
+.time-row { display: inline-flex; align-items: center; gap: 10px; }
+.range-row input { width: 240px; }
+.range-value { min-width: 48px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.inline-toggle { display: inline-flex; align-items: center; gap: 4px; }
+
+button {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) { border-color: var(--muted); }
+button:disabled { opacity: 0.5; cursor: default; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.pet-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+
+.pet-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 6px 6px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.pet-card.selected { border-color: var(--accent); }
+.pet-card input { position: absolute; opacity: 0; pointer-events: none; }
+.pet-card:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pet-name { font-weight: 700; }
+.pet-species { color: var(--muted); font-size: 0.8rem; }
+
+.folder-list { margin: 0 0 8px; padding: 0; list-style: none; }
+
+.folder-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.folder-list li code { overflow-wrap: anywhere; }
+.folder-list .empty { color: var(--muted); }
+
+.rules-box { overflow-x: auto; }
+.rules { width: 100%; border-collapse: collapse; }
+.rules th { padding: 4px; color: var(--muted); font-size: 0.8rem; font-weight: 600; text-align: left; }
+.rules td { padding: 3px 4px; }
+.rules input[type="text"] { width: 100%; min-width: 90px; font-family: ui-monospace, Consolas, monospace; font-size: 0.85rem; }
+.row-actions { white-space: nowrap; }
+.row-actions button { padding: 3px 7px; }
+.rules-actions { display: flex; gap: 8px; margin-top: 8px; }
+
+.hooks-panel { padding: 10px 0 8px; border-top: 1px solid var(--border); }
+.hooks-status { margin: 4px 0 0; font-weight: 600; }
+.hooks-status[data-status="installed"] { color: #2a7a52; }
+.hooks-actions { display: flex; gap: 8px; margin-top: 8px; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

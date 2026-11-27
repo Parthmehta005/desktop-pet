@@ -46,7 +46,7 @@ export function hooksStatusLabel({ status, serverError }) {
  * }} state
  * @param {{
  *   setPet(id: string): void, setPaused(paused: boolean): void, test(id: string): void,
- *   installHooks(): void, uninstallHooks(): void, quit(): void,
+ *   installHooks(): void, uninstallHooks(): void, openSettings(): void, quit(): void,
  * }} actions
  */
 export function buildTrayMenu({ config, paused, pets, hooks = { status: 'unknown', serverError: null } }, actions) {
@@ -85,6 +85,7 @@ export function buildTrayMenu({ config, paused, pets, hooks = { status: 'unknown
       submenu: TEST_REACTIONS.map((r) => ({ label: r.label, click: () => actions.test(r.id) })),
     },
     { type: 'separator' },
+    { label: 'Settings...', click: () => actions.openSettings() },
     { label: 'Quit Desktop Pet', click: () => actions.quit() },
   ];
 }

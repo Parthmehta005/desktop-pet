@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { createPetWindow, PET_WINDOW_OPTIONS } from './pet-window.js';
+import { createSettingsWindow } from './settings-window.js';
 import { registerAppScheme, handleAppProtocol, hardenApp, secureWebPreferences } from './security.js';
 import { rendererUrl } from './app-paths.js';
 import { createConfigStore } from './config-store.js';
@@ -12,6 +13,7 @@ import { createEventBus } from './event-bus.js';
 import { createTray } from './tray.js';
 import { buildTrayMenu, TEST_REACTIONS } from './tray-menu.js';
 import { PETS } from '../core/pets.js';
+import { CONFIG_KEYS, CONFIG_SCHEMA } from '../core/config.js';
 import { createHookServer } from './sources/hook-server.js';
 import { createSources, enabledSources } from './sources/index.js';
 import { hookToEvent } from '../core/claude-hooks.js';
@@ -25,9 +27,13 @@ const testing = process.env.DESKTOP_PET_TEST === '1';
 app.commandLine.appendSwitch('disable-background-networking');
 app.commandLine.appendSwitch('disable-component-update');
 const PRELOAD = fileURLToPath(new URL('./preload.cjs', import.meta.url));
+const SETTINGS_PRELOAD = fileURLToPath(new URL('./preload-settings.cjs', import.meta.url));
+/** Settings the settings window may change (not internal ones like the hook token). */
+const USER_KEYS = new Set(CONFIG_KEYS.filter((key) => !CONFIG_SCHEMA[key].internal));
 
 const state = {
   petWindow: null,
+  settings: null,
   store: null,
   bus: null,
   tray: null,
@@ -52,6 +58,26 @@ function fromPetWindow(event) {
   return Boolean(win && !win.isDestroyed() && event.sender === win.webContents);
 }
 
+/** Only the settings window's own page may use the settings IPC channels. */
+function fromSettingsWindow(event) {
+  const win = state.settings?.window;
+  return Boolean(win && event.sender === win.webContents);
+}
+
+/** What the settings window shows: the config (minus the hook token) and hook status. */
+function settingsState() {
+  const config = { ...state.store.config };
+  delete config.hookToken;
+  return {
+    config,
+    hooks: { ...state.hookInstall, serverError: state.hooks.error, port: state.hooks.port },
+  };
+}
+
+function broadcastSettings() {
+  state.settings?.send('settings:state', settingsState());
+}
+
 /**
  * Changes settings: saves them, then tells the pet. Rejects invalid changes whole.
  * @returns {Promise<{ ok: boolean, errors: Array<{ key: string|null, message: string }> }>}
@@ -64,6 +90,8 @@ async function setConfig(changes) {
   if ('petSize' in changes) state.petWindow.setPetSize(result.config.petSize);
   if ('hookPort' in changes) await startHookServer();
   await state.sources?.applyConfig(changes, result.config);
+  state.tray?.refresh();
+  broadcastSettings();
   return { ok: true, errors: [] };
 }
 
@@ -107,6 +135,7 @@ async function refreshHookStatus() {
     state.hookInstall = { status: 'invalid-settings', settingsPath: claudeSettingsPath(), error: err.message };
   }
   state.tray?.refresh();
+  broadcastSettings();
   return state.hookInstall;
 }
 
@@ -156,6 +185,9 @@ const actions = {
       return { ok: false, error: err.message };
     }
   },
+  openSettings() {
+    return state.settings.open();
+  },
   quit() {
     app.quit();
   },
@@ -178,6 +210,20 @@ function registerIpc() {
     if (!fromPetWindow(event) || typeof over !== 'boolean') return;
     state.petWindow.setInteractive(over);
   });
+
+  ipcMain.handle('settings:get-state', (event) => {
+    if (!fromSettingsWindow(event)) throw new Error('not allowed');
+    return settingsState();
+  });
+  ipcMain.handle('settings:save', async (event, changes) => {
+    if (!fromSettingsWindow(event)) throw new Error('not allowed');
+    const keys = changes && typeof changes === 'object' && !Array.isArray(changes) ? Object.keys(changes) : [];
+    if (keys.length === 0 || !keys.every((key) => USER_KEYS.has(key))) {
+      return { ok: false, errors: [{ key: null, message: 'Unknown setting.' }], state: settingsState() };
+    }
+    const result = await setConfig(changes);
+    return { ...result, state: settingsState() };
+  });
 }
 
 async function start() {
@@ -189,6 +235,10 @@ async function start() {
     webPreferences: secureWebPreferences(PRELOAD),
   });
   await state.petWindow.win.loadURL(rendererUrl('pet.html'));
+  state.settings = createSettingsWindow({
+    url: rendererUrl('settings.html'),
+    webPreferences: secureWebPreferences(SETTINGS_PRELOAD),
+  });
   state.tray = createTray({ getState: trayState, actions });
   await ensureHookToken();
   await startHookServer();
@@ -221,6 +271,7 @@ if (!isFirstInstance) {
   // The pet lives in the tray, so closing windows doesn't quit the app.
   app.on('window-all-closed', () => {});
   app.on('before-quit', () => {
+    state.settings?.close();
     state.tray?.destroy();
     state.hookServer?.stop();
     state.sources?.stop();
@@ -241,5 +292,6 @@ if (testing) {
     setConfig,
     trayMenu: () => buildTrayMenu(trayState(), actions),
     refreshHookStatus,
+    settingsState,
   };
 }
