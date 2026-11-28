@@ -31,3 +31,15 @@ test('fractional work areas (display scaling) round to whole pixels', () => {
   const b = stripBounds({ x: 0.4, y: 0.2, width: 1536.6, height: 816.8 }, 1);
   for (const v of Object.values(b)) assert.ok(Number.isInteger(v));
 });
+
+test('while the pet is carried the window fills the work area, with the same bottom edge', () => {
+  const workArea = { x: 0, y: 40, width: 1920, height: 1040 };
+  const strip = stripBounds(workArea, 1);
+  const lifted = stripBounds(workArea, 1, { lifted: true });
+  assert.deepEqual(lifted, workArea);
+  assert.equal(lifted.y + lifted.height, strip.y + strip.height, 'the ground stays where it was');
+  assert.deepEqual(stripBounds(workArea, 2, { lifted: true }), workArea, 'whatever the pet size');
+  assert.deepEqual(stripBounds(workArea, 1, { lifted: false }), strip);
+  const b = stripBounds({ x: 0.4, y: 0.2, width: 1536.6, height: 816.8 }, 1, { lifted: true });
+  for (const v of Object.values(b)) assert.ok(Number.isInteger(v));
+});

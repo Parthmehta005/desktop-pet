@@ -17,6 +17,11 @@ fixes.
 - Biscuit the corgi, Axo the axolotl, Bolt the robot and Nimbus the care-bot. If one of
   them was your pet, Mochi takes over; your other settings are kept.
 
+### Fixed
+- You can carry the pet anywhere above the taskbar. It used to stop about 110 pixels up,
+  at the top of its own short window; now the window grows while you hold the pet and
+  shrinks back once it lands.
+
 ## [1.0.0] - 2026-11-27
 
 The first release.

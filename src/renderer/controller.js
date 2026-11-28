@@ -49,10 +49,14 @@ function petSizePx(config) {
  * @param {() => void} [options.onBatteryClick]
  *   Called instead of petting when the pet is clicked while it panics about the battery;
  *   the desktop window opens Windows' battery settings.
+ * @param {(lifted: boolean) => void} [options.onLiftChange]
+ *   Called with true when the pet is picked up, and with false once it has landed again.
+ *   The desktop window grows to the whole work area in between, so the pet can be
+ *   carried anywhere above the taskbar.
  */
 export function createController({
   strip, pet, config = {}, now = Date.now, rng = Math.random, onHoverChange = () => {},
-  onBatteryClick = () => {},
+  onBatteryClick = () => {}, onLiftChange = () => {},
 }) {
   const actor = document.createElement('div');
   actor.className = 'pet-actor';
@@ -66,6 +70,7 @@ export function createController({
   let result = engine.mood(now());
   let walker = createWalker({ width: strip.clientWidth, petWidth: size, rng });
   let lift = 0; // height above the ground while held or falling
+  let lifted = false; // picked up and not yet landed: what onLiftChange was last told
   let velocity = 0;
   let falling = false;
   let drag = null;
@@ -137,11 +142,18 @@ export function createController({
     return Math.max(0, strip.clientHeight - size);
   }
 
+  function setLifted(next) {
+    if (next === lifted) return;
+    lifted = next;
+    onLiftChange(next);
+  }
+
   function land() {
     falling = false;
     velocity = 0;
     lift = 0;
     dispatch({ type: 'land' });
+    if (!drag?.active) setLifted(false);
     // Restart the squash even if the last one hasn't finished.
     view.element.classList.remove('landing');
     void view.element.offsetWidth;
@@ -216,6 +228,7 @@ export function createController({
       falling = false;
       actor.classList.add('dragging');
       dispatch({ type: 'grab' });
+      setLifted(true);
     }
     if (drag.active) {
       const r = strip.getBoundingClientRect();

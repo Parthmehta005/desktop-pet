@@ -322,10 +322,19 @@ function registerIpc() {
     if (!fromPetWindow(event)) throw new Error('not allowed');
     return { config: state.store.config };
   });
-  ipcMain.on('pet:ready', () => {});
+  // A page that has just (re)started isn't carrying the pet, whatever happened before.
+  ipcMain.on('pet:ready', (event) => {
+    if (!fromPetWindow(event)) return;
+    state.petWindow.setLifted(false);
+  });
   ipcMain.on('pet:interactive', (event, over) => {
     if (!fromPetWindow(event) || typeof over !== 'boolean') return;
     state.petWindow.setInteractive(over);
+  });
+  // The pet is picked up (true) or has landed again (false).
+  ipcMain.on('pet:lifted', (event, lifted) => {
+    if (!fromPetWindow(event) || typeof lifted !== 'boolean') return;
+    state.petWindow.setLifted(lifted);
   });
   // Clicking the pet while it panics about the battery. It takes no input: the page can
   // only ever ask for the one page above, and only from the pet window.
