@@ -41,7 +41,7 @@ with you first, built in small commits (with Conventional Commits prefixes such 
 | Change | Asked for | Status |
 |---|---|---|
 | CI runs only the checks a commit needs, with no risk (see below) | 2026-11-28 | Done |
-| A new pet lineup: Mochi, Pip, Maple, Hum and Mango (see below) | 2026-11-28 | In progress |
+| A new pet lineup: Mochi, Pip, Maple, Hum and Mango (see below) | 2026-11-28 | Done |
 
 **CI runs only the checks a commit needs.** Every code change still gets every test on
 Linux and Windows; time is saved only where nothing can break:
