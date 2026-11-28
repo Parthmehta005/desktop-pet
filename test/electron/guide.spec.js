@@ -51,7 +51,7 @@ test('the quick guide works as written, from setup to uninstalling the hooks', a
   // Pet, Pause reactions and Test reactions are where the guide says.
   const items = await app.evaluate(() => Object.fromEntries(globalThis.__desktopPet.trayMenu()
     .filter((m) => m.label).map((m) => [m.label, m.submenu ? m.submenu.length : m.type ?? 'item'])));
-  expect(items.Pet).toBe(6);
+  expect(items.Pet).toBe(5);
   expect(items['Pause reactions']).toBe('checkbox');
   expect(items['Test reactions']).toBeGreaterThan(5);
 

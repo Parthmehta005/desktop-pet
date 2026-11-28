@@ -17,7 +17,7 @@ test('every drawn pet is in the core pet list with the same name', () => {
   }
 });
 
-test('all six pets are drawn', () => {
+test('all five pets are drawn', () => {
   assert.deepEqual(Object.keys(PET_DEFINITIONS), [...PET_IDS]);
 });
 
@@ -29,4 +29,17 @@ test('getPet falls back to Mochi', () => {
 
 test("every pet's markup follows the rig rules", () => {
   for (const pet of defined) assertSafeMarkup(buildPetMarkup(pet), pet.id);
+});
+
+// pets.css comes after animations.css with selectors no more specific, so a pet's own
+// tail animation would also run while it sleeps or sits in a meeting unless it says not to.
+test('a pet whose tail has its own animation stills it asleep and slows it in meetings', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const css = await readFile(new URL('../../src/renderer/pets/pets.css', import.meta.url), 'utf8');
+  const own = [...css.matchAll(/\.pet-view\[data-pet="([\w-]+)"\] \.tail \{ animation: (?!none)[\w-]+ /g)].map((m) => m[1]);
+  assert.deepEqual(own.sort(), ['bat', 'bee', 'bluepanda']);
+  for (const id of own) {
+    assert.match(css, new RegExp(`\\[data-pet="${id}"\\]\\[data-state="sleeping"\\] \\.tail \\{ animation: none;`), `${id} when asleep`);
+    assert.match(css, new RegExp(`\\[data-pet="${id}"\\]\\[data-state="meeting"\\] \\.tail \\{ animation-duration: `), `${id} in a meeting`);
+  }
 });

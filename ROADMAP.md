@@ -41,6 +41,7 @@ with you first, built in small commits (with Conventional Commits prefixes such 
 | Change | Asked for | Status |
 |---|---|---|
 | CI runs only the checks a commit needs, with no risk (see below) | 2026-11-28 | Done |
+| A new pet lineup: Mochi, Pip, Maple, Hum and Mango (see below) | 2026-11-28 | Done |
 
 **CI runs only the checks a commit needs.** Every code change still gets every test on
 Linux and Windows; time is saved only where nothing can break:
@@ -55,20 +56,38 @@ Linux and Windows; time is saved only where nothing can break:
   `ci:` split the Windows job; `ci:` wire the planner into the workflow; `docs:` the
   README's CI section; then check all three cases on GitHub and log the review.
 
+**A new pet lineup.** You found the six pets too alike, and picked from eleven new
+concepts. The lineup becomes five: Mochi and Pip stay, and three new ones join.
+- **Maple** (`bluepanda`, "Blue panda"): sky blue, with a big bubbly ringed tail, a white
+  face mask and deep blue socks.
+- **Hum** (`bee`, "Bumblebee"): round and fuzzy with stripes, antennae and buzzing wings.
+- **Mango** (`bat`, "Fruit bat"): a light green head, a dark green body, and purple
+  wings, feet and inner ears.
+- Biscuit, Axo, Bolt and Nimbus are removed. Nobody uses the app yet, so there's no
+  migration: a saved pet that no longer exists falls back to Mochi, as any unknown pet
+  already does, and a test covers it.
+- Built on a side branch, `feat/new-pets`, merged through a pull request once CI is
+  green, as you asked.
+- Planned commits: `docs:` this plan; `feat:` the new lineup (drawings, signature
+  moves, the pet list, the settings grid, tests, CHANGELOG and CLAUDE.md); `docs:` the
+  README and its pets picture; then the review.
+
 ---
 
 ## What we're building
 
-### Pets (6)
+### Pets (5)
 
 | ID | Name | Look | Signature touch |
 |---|---|---|---|
 | `cat` | Mochi | Round cream cat | Tail swish, ear twitch |
-| `corgi` | Biscuit | Orange-and-white corgi | Butt wiggle, big floppy ears |
 | `penguin` | Pip | Small penguin | Waddle walk, flipper flaps |
-| `axolotl` | Axo | Pink axolotl | Gill fronds wave |
-| `robot` | Bolt | Boxy tin robot | Blinking antenna light |
-| `softbot` | Nimbus | Original inflatable care-bot: pale lavender, LED visor face, glowing chest heart | Puffs up and deflates; its heart beats faster while Claude works |
+| `bluepanda` | Maple | Sky-blue panda with a bubbly ringed tail and a white face mask | Tail swish with a flick |
+| `bee` | Hum | Round striped bumblebee with antennae and glassy wings | Wings buzz; bobs as it flies along |
+| `bat` | Mango | Green fruit bat with big ears, purple wings and a little fang | Wings flutter; wraps them round itself to sleep |
+
+Until the lineup change after M13 there were six: `corgi` Biscuit, `axolotl` Axo, `robot`
+Bolt and `softbot` Nimbus have gone, and Maple, Hum and Mango have joined.
 
 All pets are original designs. They're drawn as SVG built from the same set of named
 parts (body, head, eyes, mouth, legs, tail and so on), so every animation works for every pet.

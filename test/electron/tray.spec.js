@@ -41,13 +41,13 @@ for (const reaction of TEST_REACTIONS.filter((r) => ['claude-working', 'claude-n
 }
 
 test('picking a pet from the tray swaps it and saves the choice', async () => {
-  await app.evaluate(() => globalThis.__desktopPet.actions.setPet('axolotl'));
-  await expect(page.locator('.pet-view')).toHaveAttribute('data-pet', 'axolotl');
+  await app.evaluate(() => globalThis.__desktopPet.actions.setPet('bat'));
+  await expect(page.locator('.pet-view')).toHaveAttribute('data-pet', 'bat');
   const saved = JSON.parse(await readFile(path.join(userData, 'config.json'), 'utf8'));
-  expect(saved.pet).toBe('axolotl');
+  expect(saved.pet).toBe('bat');
   const checked = await app.evaluate(() => globalThis.__desktopPet.trayMenu()
     .find((m) => m.label === 'Pet').submenu.filter((p) => p.checked).map((p) => p.label));
-  expect(checked).toEqual(['Axo (Axolotl)']);
+  expect(checked).toEqual(['Mango (Fruit bat)']);
 });
 
 test('pausing calms the pet and ignores real events, but test reactions still work', async () => {

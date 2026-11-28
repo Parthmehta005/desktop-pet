@@ -62,14 +62,14 @@ test('the tray menu: pet radio list, pause checkbox, test reactions, quit', () =
     quit: () => calls.push(['quit']),
     toggleHidden: () => calls.push(['toggleHidden']),
   };
-  const menu = buildTrayMenu({ config: { pet: 'corgi' }, paused: false, pets: PETS }, actions);
+  const menu = buildTrayMenu({ config: { pet: 'bluepanda' }, paused: false, pets: PETS }, actions);
   const byLabel = Object.fromEntries(menu.filter((m) => m.label).map((m) => [m.label, m]));
 
   const pets = byLabel.Pet.submenu;
   assert.deepEqual(pets.map((p) => p.label), PETS.map((p) => `${p.name} (${p.species})`));
-  assert.deepEqual(pets.filter((p) => p.checked).map((p) => p.label), ['Biscuit (Corgi)']);
+  assert.deepEqual(pets.filter((p) => p.checked).map((p) => p.label), ['Maple (Blue panda)']);
   assert.ok(pets.every((p) => p.type === 'radio'));
-  pets[2].click();
+  pets[1].click();
 
   assert.equal(byLabel['Pause reactions'].type, 'checkbox');
   assert.equal(byLabel['Pause reactions'].checked, false);

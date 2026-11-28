@@ -8,6 +8,15 @@ fixes.
 
 ## [Unreleased]
 
+### Changed
+- A new lineup of five pets. Mochi the cat and Pip the penguin stay, and three new ones
+  join: Maple the blue panda, with a big bubbly ringed tail; Hum the bumblebee, whose
+  wings buzz; and Mango the green fruit bat, with purple wings and a little fang.
+
+### Removed
+- Biscuit the corgi, Axo the axolotl, Bolt the robot and Nimbus the care-bot. If one of
+  them was your pet, Mochi takes over; your other settings are kept.
+
 ## [1.0.0] - 2026-11-27
 
 The first release.

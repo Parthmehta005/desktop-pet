@@ -11,20 +11,6 @@
   95% { transform: rotate(6deg); }
 }
 
-/* Biscuit: a happy butt wiggle while wandering, and a quick tail wag. */
-.pet-view[data-pet="corgi"][data-state="wander"] .body { animation: corgi-wiggle 0.6s ease-in-out infinite alternate; }
-.pet-view[data-pet="corgi"] .tail { animation: corgi-wag 0.3s ease-in-out infinite alternate; }
-
-@keyframes corgi-wiggle {
-  from { transform: rotate(-3deg); }
-  to { transform: rotate(3deg); }
-}
-
-@keyframes corgi-wag {
-  from { transform: rotate(-12deg); }
-  to { transform: rotate(12deg); }
-}
-
 /* Pip: waddles side to side when walking, and flaps now and then. */
 .pet-view[data-pet="penguin"][data-moving="true"] .rig { animation: penguin-waddle 0.5s ease-in-out infinite; }
 .pet-view[data-pet="penguin"][data-state="wander"] .paw-l { animation: penguin-flap-l 3.4s ease-in-out infinite; }
@@ -48,56 +34,47 @@
   90% { transform: rotate(-8deg); }
 }
 
-/* Axo: gills that sway gently like they're under water. */
-.pet-view[data-pet="axolotl"] .ear-l { animation: gill-sway-l 1.8s ease-in-out infinite alternate; }
-.pet-view[data-pet="axolotl"] .ear-r { animation: gill-sway-r 1.8s ease-in-out infinite alternate; }
-.pet-view[data-pet="axolotl"][data-state="working"] .ear { animation-duration: 0.5s; }
+/*
+ * The new pets' wings and big tails are drawn as their tail part, so each one says what
+ * that part does when asleep or in a meeting: their own animation would otherwise win
+ * over the shared rules, which are no more specific and come earlier.
+ */
 
-@keyframes gill-sway-l {
-  from { transform: rotate(-7deg); }
-  to { transform: rotate(6deg); }
+/* Maple: a slow swish of its big ringed tail, with a little flick at the end. */
+.pet-view[data-pet="bluepanda"] .tail { animation: panda-tail 3.4s ease-in-out infinite; }
+.pet-view[data-pet="bluepanda"][data-state="sleeping"] .tail { animation: none; }
+.pet-view[data-pet="bluepanda"][data-state="meeting"] .tail { animation-duration: 6s; }
+
+@keyframes panda-tail {
+  0%, 100% { transform: rotate(-5deg); }
+  40% { transform: rotate(8deg); }
+  55% { transform: rotate(4deg); }
+  70% { transform: rotate(9deg); }
 }
 
-@keyframes gill-sway-r {
-  from { transform: rotate(7deg); }
-  to { transform: rotate(-6deg); }
+/* Hum: wings that buzz (slower in meetings, still when asleep), and a bob as it flies along. */
+.pet-view[data-pet="bee"] .tail { animation: bee-buzz 0.12s linear infinite alternate; }
+.pet-view[data-pet="bee"][data-state="meeting"] .tail { animation-duration: 0.5s; }
+.pet-view[data-pet="bee"][data-state="sleeping"] .tail { animation: none; transform: scale(0.9); }
+.pet-view[data-pet="bee"][data-moving="true"] .rig { animation: bee-hover 0.9s ease-in-out infinite; }
+
+@keyframes bee-buzz {
+  from { transform: scale(1, 1); }
+  to { transform: scale(0.94, 1.08); }
 }
 
-/* Bolt: the antenna light blinks (fast when busy), and the wind-up key turns. */
-.pet-view[data-pet="robot"] .antenna-light { animation: antenna-blink 1.6s ease-in-out infinite; }
-.pet-view[data-pet="robot"][data-state="working"] .antenna-light,
-.pet-view[data-pet="robot"][data-state="alert"] .antenna-light { animation-duration: 0.4s; }
-.pet-view[data-pet="robot"] .tail { animation: key-turn 3s linear infinite; }
-
-@keyframes antenna-blink {
-  0%, 45%, 100% { opacity: 1; }
-  55%, 90% { opacity: 0.25; }
+@keyframes bee-hover {
+  0%, 100% { transform: translateY(-2px); }
+  50% { transform: translateY(-7px); }
 }
 
-@keyframes key-turn {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(-14deg); }
-}
+/* Mango: a flutter of its wings now and then, and wings wrapped round itself to sleep. */
+.pet-view[data-pet="bat"] .tail { animation: bat-flutter 2.8s ease-in-out infinite; }
+.pet-view[data-pet="bat"][data-state="meeting"] .tail { animation-duration: 6s; }
+.pet-view[data-pet="bat"][data-state="sleeping"] .tail { animation: none; transform: scale(0.6, 0.92); }
 
-/* Nimbus: puffs up and settles as it breathes; its heart beats faster the harder Claude works. */
-.pet-view[data-pet="softbot"] .body { animation: nimbus-puff 3.6s ease-in-out infinite; }
-.pet-view[data-pet="softbot"] .heart-light {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: heartbeat 1.6s ease-in-out infinite;
-}
-.pet-view[data-pet="softbot"][data-state="working"] .heart-light { animation-duration: 0.7s; }
-.pet-view[data-pet="softbot"][data-state="working"][data-intensity="2"] .heart-light { animation-duration: 0.5s; }
-.pet-view[data-pet="softbot"][data-state="working"][data-intensity="3"] .heart-light { animation-duration: 0.35s; }
-.pet-view[data-pet="softbot"][data-state="sleeping"] .heart-light { animation-duration: 3s; }
-
-@keyframes nimbus-puff {
-  0%, 100% { transform: scale(1, 1); }
-  50% { transform: scale(1.05, 1.06); }
-}
-
-@keyframes heartbeat {
-  0%, 40%, 100% { transform: scale(1); opacity: 0.9; }
-  12% { transform: scale(1.18); opacity: 1; }
-  24% { transform: scale(1.05); opacity: 0.95; }
+@keyframes bat-flutter {
+  0%, 70%, 100% { transform: scale(1, 1); }
+  78% { transform: scale(0.82, 1.04); }
+  86% { transform: scale(1.06, 0.97); }
 }

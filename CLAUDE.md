@@ -58,12 +58,16 @@ same commit whenever a decision, convention or command changes.
   `/mnt/c/...` paths and documenting the WSL networking step.
 - **Art:** an SVG rig with shared part names, animated with CSS, using only `transform`
   and `opacity`. No pixel art, no bitmaps.
-- **6 pets, all 19 states each** (the 19th, `low-battery`, came in M12): `cat` Mochi, `corgi` Biscuit, `penguin` Pip, `axolotl`
-  Axo, `robot` Bolt, `softbot` Nimbus.
-- **Nimbus** stands in for the Baymax the user asked for. It must stay an original design:
-  pale lavender, an LED visor face, a glowing chest heart. Never make it white with a
-  dots-and-line face, or otherwise resemble Baymax or any other franchise character. The
-  same rule applies to all art and names.
+- **5 pets, all 19 states each:** `cat` Mochi, `penguin` Pip, `bluepanda` Maple (sky
+  blue, a bubbly ringed tail), `bee` Hum (round, striped, buzzing wings) and `bat` Mango
+  (light and dark green, purple wings). The user picked these after M13; Biscuit, Axo,
+  Bolt and Nimbus were removed, and a saved removed pet falls back to Mochi.
+- **Every pet, name and piece of art is an original design.** Never make one resemble a
+  franchise character (the user's Baymax request became Nimbus, an original care-bot,
+  for the same reason).
+- Wings and big tails are drawn as the `tail` part. A pet whose `tail` has its own
+  animation in `pets.css` must also say what it does when sleeping and in meetings: the
+  shared rules there are no more specific, and come earlier.
 - **Stack:** Electron 45, plain ES modules, no bundler. The only runtime dependency is
   `chokidar`. Tests use `node:test` and Playwright; lint uses an ESLint flat config;
   packaging uses `electron-builder` (NSIS installer and portable `.exe`).

@@ -71,16 +71,16 @@ test('a settings save survives the file being locked for a moment', async () => 
     }),
   });
   store.load();
-  const result = await store.update({ pet: 'corgi' });
+  const result = await store.update({ pet: 'bee' });
   assert.equal(result.ok, true);
-  assert.equal(JSON.parse(await readFile(path.join(dir, 'config.json'), 'utf8')).pet, 'corgi');
+  assert.equal(JSON.parse(await readFile(path.join(dir, 'config.json'), 'utf8')).pet, 'bee');
 });
 
 test('a save that still fails leaves the old settings in place and reports the error', async () => {
   const dir = await mkdtemp(path.join(tmpdir(), 'desktop-pet-lock-'));
   const store = createConfigStore(dir, { renameAsync: async () => { throw locked('EPERM'); } });
   store.load();
-  await assert.rejects(store.update({ pet: 'corgi' }), { code: 'EPERM' });
+  await assert.rejects(store.update({ pet: 'bee' }), { code: 'EPERM' });
   assert.equal(store.config.pet, 'cat', 'the app keeps what is on disk');
   assert.equal(JSON.parse(await readFile(path.join(dir, 'config.json'), 'utf8')).pet, 'cat');
   // and the next save still works
