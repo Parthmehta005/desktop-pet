@@ -1,14 +1,16 @@
 /**
  * The pets you can choose from. This is just the list; each pet's drawing lives in
  * src/renderer/pets/<id>.js. All pets are original designs.
+ *
+ * A saved pet that isn't in this list (Biscuit, Axo, Bolt and Nimbus were removed after
+ * 1.0.0) fails validation and falls back to Mochi, like any unknown pet.
  */
 export const PETS = Object.freeze([
   { id: 'cat', name: 'Mochi', species: 'Cat' },
-  { id: 'corgi', name: 'Biscuit', species: 'Corgi' },
   { id: 'penguin', name: 'Pip', species: 'Penguin' },
-  { id: 'axolotl', name: 'Axo', species: 'Axolotl' },
-  { id: 'robot', name: 'Bolt', species: 'Robot' },
-  { id: 'softbot', name: 'Nimbus', species: 'Soft care-bot' },
+  { id: 'bluepanda', name: 'Maple', species: 'Blue panda' },
+  { id: 'bee', name: 'Hum', species: 'Bumblebee' },
+  { id: 'bat', name: 'Mango', species: 'Fruit bat' },
 ].map((pet) => Object.freeze(pet)));
 
 export const PET_IDS = Object.freeze(PETS.map((p) => p.id));

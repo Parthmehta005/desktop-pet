@@ -7,11 +7,10 @@ import { openGallery } from './helpers.js';
 
 const SIGNATURE = {
   cat: 'cat-ear-twitch',
-  corgi: 'corgi-wiggle',
   penguin: 'penguin-flap-l',
-  axolotl: 'gill-sway-l',
-  robot: 'antenna-blink',
-  softbot: 'heartbeat',
+  bluepanda: 'panda-tail',
+  bee: 'bee-buzz',
+  bat: 'bat-flutter',
 };
 
 // The box every pet must stand in (viewBox units), with feet on the ground.

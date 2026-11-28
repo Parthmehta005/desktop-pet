@@ -60,7 +60,7 @@ test('the settings window and the icons load from the archive', async () => {
     win.on('pageerror', (e) => errors.push(e.message));
     await win.locator('body[data-ready="true"]').waitFor({ state: 'attached' });
     await expect(win.getByRole('button', { name: 'Add folder...' })).toBeVisible();
-    await expect(win.locator('.pet-card')).toHaveCount(6);
+    await expect(win.locator('.pet-card')).toHaveCount(5);
     expect(errors).toEqual([]);
 
     const icons = await app.evaluate(({ app: electronApp, nativeImage }, files) => files.map((f) => {

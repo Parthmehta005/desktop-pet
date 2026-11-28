@@ -160,13 +160,13 @@ test('the pet picker shows every pet alive, and picking one swaps the pet at onc
   try {
     const win = await openSettings(app);
     const cards = win.locator('.pet-card');
-    await expect(cards).toHaveCount(6);
-    await expect(win.locator('.pet-card .pet-svg')).toHaveCount(6);
+    await expect(cards).toHaveCount(5);
+    await expect(win.locator('.pet-card .pet-svg')).toHaveCount(5);
     await expect(win.locator('.pet-card.selected')).toHaveAttribute('data-pet', 'cat');
-    await win.getByText('Biscuit').click();
-    await expect(pet.locator('.pet-view')).toHaveAttribute('data-pet', 'corgi');
-    await expect(win.locator('.pet-card.selected')).toHaveAttribute('data-pet', 'corgi');
-    await expect.poll(async () => (await readConfig(userData)).pet).toBe('corgi');
+    await win.getByText('Maple').click();
+    await expect(pet.locator('.pet-view')).toHaveAttribute('data-pet', 'bluepanda');
+    await expect(win.locator('.pet-card.selected')).toHaveAttribute('data-pet', 'bluepanda');
+    await expect.poll(async () => (await readConfig(userData)).pet).toBe('bluepanda');
   } finally {
     await app.close();
   }

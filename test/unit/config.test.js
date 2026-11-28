@@ -8,11 +8,23 @@ import { ENGINE_DEFAULTS } from '../../src/core/engine.js';
 import { DEFAULT_APP_RULES } from '../../src/core/app-rules.js';
 import { PETS, PET_IDS, petById } from '../../src/core/pets.js';
 
-test('there are six pets with unique ids and names', () => {
-  assert.deepEqual([...PET_IDS], ['cat', 'corgi', 'penguin', 'axolotl', 'robot', 'softbot']);
-  assert.equal(new Set(PETS.map((p) => p.name)).size, 6);
-  assert.equal(petById('softbot').name, 'Nimbus');
+test('there are five pets with unique ids and names', () => {
+  assert.deepEqual([...PET_IDS], ['cat', 'penguin', 'bluepanda', 'bee', 'bat']);
+  assert.equal(new Set(PETS.map((p) => p.name)).size, 5);
+  assert.equal(petById('bluepanda').name, 'Maple');
+  assert.equal(petById('bluepanda').species, 'Blue panda');
   assert.equal(petById('dragon'), null);
+});
+
+test('a saved pet that was removed after 1.0.0 falls back to Mochi, and the rest is kept', () => {
+  for (const removed of ['corgi', 'axolotl', 'robot', 'softbot']) {
+    const parsed = parseConfig(JSON.stringify({ version: CONFIG_VERSION, pet: removed, idleMinutes: 12, watchedFolders: ['C:\\code'] }));
+    assert.equal(parsed.config.pet, 'cat', removed);
+    assert.equal(parsed.config.idleMinutes, 12, 'the other settings are kept');
+    assert.deepEqual(parsed.config.watchedFolders, ['C:\\code']);
+    assert.equal(parsed.corrupt, false, 'not treated as a corrupt file');
+    assert.deepEqual(parsed.errors.map((e) => e.key), ['pet'], 'reported, for the log');
+  }
 });
 
 test('the defaults are valid and complete', () => {
@@ -75,7 +87,7 @@ test('bad values fall back to the default and are reported', () => {
     toggleShortcut: 'Shift+P',
   });
   const byKey = Object.fromEntries(errors.map((e) => [e.key, e.message]));
-  assert.match(byKey.pet, /one of cat, corgi/);
+  assert.match(byKey.pet, /one of cat, penguin, bluepanda, bee, bat/);
   assert.match(byKey.shuffleDaily, /true or false/);
   assert.match(byKey.idleMinutes, /between 1 and 240/);
   assert.match(byKey.workingStaleMinutes, /whole number/);
@@ -157,12 +169,12 @@ test('non-object input gives defaults and an error', () => {
 });
 
 test('migration: a version 0 config (no version field) upgrades to the current version', () => {
-  const v0 = { pet: 'robot', watchedFolders: ['D:\\work'], idleMinutes: 15 };
+  const v0 = { pet: 'bee', watchedFolders: ['D:\\work'], idleMinutes: 15 };
   const { config, from, errors } = migrateConfig(v0);
   assert.equal(from, 0);
   assert.deepEqual(errors, []);
   assert.equal(config.version, CONFIG_VERSION);
-  assert.equal(config.pet, 'robot');
+  assert.equal(config.pet, 'bee');
   assert.equal(v0.version, undefined, 'the input is not modified');
 
   const parsed = parseConfig(JSON.stringify(v0));
@@ -175,8 +187,8 @@ test('migration: a version 0 config (no version field) upgrades to the current v
 
 test('migration: the current version is left alone; a newer one is used with a warning', () => {
   assert.equal(migrateConfig({ version: CONFIG_VERSION, pet: 'cat' }).from, CONFIG_VERSION);
-  const newer = parseConfig(JSON.stringify({ version: 99, pet: 'corgi', futureThing: true }));
-  assert.equal(newer.config.pet, 'corgi');
+  const newer = parseConfig(JSON.stringify({ version: 99, pet: 'bat', futureThing: true }));
+  assert.equal(newer.config.pet, 'bat');
   assert.equal(newer.config.version, CONFIG_VERSION);
   assert.match(newer.errors[0].message, /newer version \(99\)/);
   assert.deepEqual(newer.dropped, ['futureThing']);
@@ -193,7 +205,7 @@ test('parseConfig: corrupt JSON gives defaults and is flagged', () => {
 });
 
 test('serializeConfig round-trips through parseConfig', () => {
-  const config = { ...defaultConfig(), pet: 'axolotl', watchedFolders: ['C:\\a'], bedtime: null };
+  const config = { ...defaultConfig(), pet: 'bluepanda', watchedFolders: ['C:\\a'], bedtime: null };
   const text = serializeConfig(config);
   assert.ok(text.endsWith('\n'));
   const parsed = parseConfig(text);
@@ -201,20 +213,20 @@ test('serializeConfig round-trips through parseConfig', () => {
   assert.deepEqual(parsed.errors, []);
 });
 
-test('petForDay: same day, same pet; consecutive days always differ; all six come round', async () => {
+test('petForDay: same day, same pet; consecutive days always differ; all five come round', async () => {
   const { petForDay, localDateKey } = await import('../../src/core/pets.js');
   const day = (d, h = 9) => new Date(2026, 10, d, h, 0);
   assert.equal(petForDay(day(27, 0)), petForDay(day(27, 23)), 'the whole day is one pet');
-  const week = [21, 22, 23, 24, 25, 26].map((d) => petForDay(day(d)));
-  assert.deepEqual([...week].sort(), [...PET_IDS].sort(), 'six days, six pets');
+  const week = [21, 22, 23, 24, 25].map((d) => petForDay(day(d)));
+  assert.deepEqual([...week].sort(), [...PET_IDS].sort(), 'five days, five pets');
   for (let d = 1; d < 60; d++) assert.notEqual(petForDay(new Date(2026, 0, d)), petForDay(new Date(2026, 0, d + 1)));
   assert.equal(localDateKey(new Date(2026, 0, 5)), '2026-01-05');
 });
 
 test('parseConfig: a byte-order mark (saved by some Windows editors) is not corruption', () => {
-  const parsed = parseConfig(`\uFEFF${JSON.stringify({ version: CONFIG_VERSION, pet: 'corgi' })}`);
+  const parsed = parseConfig(`\uFEFF${JSON.stringify({ version: CONFIG_VERSION, pet: 'bee' })}`);
   assert.equal(parsed.corrupt, false);
-  assert.equal(parsed.config.pet, 'corgi');
+  assert.equal(parsed.config.pet, 'bee');
   assert.deepEqual(parsed.errors, []);
 });
 

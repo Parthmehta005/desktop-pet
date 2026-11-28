@@ -14,7 +14,7 @@ contextBridge.exposeInMainWorld('desktopPet', Object.freeze({
   getConfig: () => ipcRenderer.invoke('pet:get-config'),
   /** Engine events from the main process (Claude hooks, idle, apps...). */
   onEvent: (callback) => subscribe('pet:event', callback),
-  /** Changed settings, e.g. { pet: 'corgi' }. */
+  /** Changed settings, e.g. { pet: 'bee' }. */
   onConfig: (callback) => subscribe('pet:config', callback),
   /** Whether the pointer is over the pet, so the window should catch clicks. */
   setInteractive: (over) => ipcRenderer.send('pet:interactive', over === true),
