@@ -32,6 +32,29 @@ completed in the last milestone.
 
 Status values: `Not started` · `In progress` · `In review` · `Done`.
 
+### Changes after M13
+
+After M13 you asked to stop numbering work as milestones. Each change is still planned
+with you first, built in small commits (with Conventional Commits prefixes such as
+`ci:`, `fix:` or `docs:`), checked with REVIEW.md §1 and logged in the review log.
+
+| Change | Asked for | Status |
+|---|---|---|
+| CI runs only the checks a commit needs, with no risk (see below) | 2026-11-28 | In progress |
+
+**CI runs only the checks a commit needs.** Every code change still gets every test on
+Linux and Windows; time is saved only where nothing can break:
+- The Windows job is split in two that run at the same time: the app tests, and the
+  installer build with its tests. Same tests, about 4 minutes instead of 6.
+- A first job compares the commit with the nearest commit in its history that passed CI.
+  Exactly the same files: nothing more runs (a fast-forward merge to `main`). Only docs
+  changed (root `.md` files, `docs/`): lint and unit tests on both systems, which are the
+  only tests that read docs, and a test keeps it that way. Anything else, no such commit,
+  a run started by hand, or any doubt: everything runs.
+- Planned commits: `docs:` these conventions; `ci:` the planner script with its tests;
+  `ci:` split the Windows job; `ci:` wire the planner into the workflow; `docs:` the
+  README's CI section; then check all three cases on GitHub and log the review.
+
 ---
 
 ## What we're building
@@ -135,9 +158,11 @@ case) and WSL paths (`/mnt/c/...`).
 
 - **Milestones run in order.** Each one ends with the [REVIEW.md](REVIEW.md) gate: the
   universal checks plus that milestone's own section. The result goes in the review log.
+  (After M13, work is no longer numbered: see [Changes after M13](#changes-after-m13).)
 - **Incremental commits.** Each commit is one logical step and leaves lint and tests
   passing, so any commit can be checked out and tested on its own. Commit messages
-  start with the milestone, for example `M3: add Pip the penguin`.
+  started with the milestone, for example `M3: add Pip the penguin`; after M13 they use
+  Conventional Commits, for example `ci: split the Windows job`.
 - **Branch:** all work goes on `ccr-f206000e-0v0714` and is pushed when each milestone
   finishes. No pull request unless asked.
 - **Moving on:** when a milestone passes its gate, I record it, push, and start the next

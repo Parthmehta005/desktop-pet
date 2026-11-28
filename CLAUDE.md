@@ -6,10 +6,11 @@ same commit whenever a decision, convention or command changes.
 ## Read first
 - **[ROADMAP.md](ROADMAP.md)** is the source of truth for the plan, the milestone status
   table, and the canonical pet IDs and state IDs. Check the status table to see where
-  work stands before doing anything. M0 to M13 are done and merged into `main`; new work
-  starts from the ROADMAP backlog as a new milestone (M14 on), planned and reviewed the
-  same way. When a milestone's gate passes and CI is green, fast-forward `main` to the
-  branch (the user asked for this) and notify them.
+  work stands before doing anything. M0 to M13 are done and merged into `main`. After
+  M13 the user asked to stop numbering work as milestones: each change is planned with
+  the user, listed in ROADMAP's "Changes after M13" table, built in small commits and
+  reviewed the same way. When a change passes and CI is green, fast-forward `main` to
+  the branch (the user asked for this) and notify them.
 - **[REVIEW.md](REVIEW.md)** is the gate every milestone must pass. Results go in its §4
   review log.
 - **[GUIDE.md](GUIDE.md)** is the one-page user guide. Keep it at most 80 lines and
@@ -19,25 +20,22 @@ same commit whenever a decision, convention or command changes.
   own them finish. Each placeholder says which milestone that is.
 
 ## How to work here
-- **One milestone at a time, in order.** Set its status to `In progress` when starting
-  and `Done` when the gate passes.
+- **One change at a time.** Set its status in ROADMAP's "Changes after M13" table to
+  `In progress` when starting and `Done` when it passes.
 - **Incremental commits.** Each commit is one logical step and passes `npm run lint` and
-  every test suite that exists at that point on its own. Messages start with the
-  milestone: `M3: add Pip the penguin`. Follow the planned commit list in ROADMAP.md; if
-  the list has to change, update ROADMAP.md too.
-- **Branch:** `ccr-f206000e-0v0714`. Push at least at the end of every milestone. No pull
+  every test suite that exists at that point on its own. Messages follow Conventional
+  Commits: `feat:`, `fix:`, `ci:`, `test:`, `docs:`, `refactor:` or `chore:`, then what
+  changed (`ci: split the Windows job`). M0 to M13 started with the milestone instead
+  (`M3: add Pip the penguin`).
+- **Branch:** `ccr-f206000e-0v0714`. Push at least at the end of every change. No pull
   requests unless the user asks.
-- **End of a milestone:**
-  1. Run REVIEW.md §1 and that milestone's §2 section.
-  2. Add a row to the review log.
-  3. Update the ROADMAP status and the README sections.
+- **End of a change:**
+  1. Run REVIEW.md §1 (and the change's own checks, if it has a §2 section).
+  2. Add a row to the review log, named after the change.
+  3. Update the ROADMAP table and the README.
   4. Push, then report to the user: what was built, the test results, what couldn't be
      verified on Linux, and any known issues.
-  5. Then continue to the next milestone, unless the user asked to pause, a gate fails
-     for a reason that can't be fixed, or a decision is the user's to make.
-     After M1 the user asked for M2 to M9 to run straight through, stopping only for a
-     real blocker.
-- **Scope creep** goes in the ROADMAP backlog, never into the current milestone.
+- **Scope creep** goes in the ROADMAP backlog, never into the current change.
 - **Versions:** semver, in `package.json`. Every user-visible change adds a line under
   `## [Unreleased]` in `CHANGELOG.md`. To release: `npm version X.Y.Z
   --no-git-tag-version`, move Unreleased to `## [X.Y.Z] - date`, merge to `main`, then
@@ -147,8 +145,10 @@ Each is added by the milestone shown.
   Look at every screenshot the REVIEW gate asks for; don't just generate it.
 
 ## About the user
-- Wants a plan approved before any code, and the work split into milestones that Claude
-  reviews and tests itself.
+- Wants a plan approved before any code, and the work split into small steps that Claude
+  reviews and tests itself (numbered milestones until M13; no numbers since).
+- Wants no risk from shortcuts: speed-ups must never skip a test that could catch
+  something.
 - Likes variety: several pets, lots of animations, extra scenarios such as moods for
   particular apps.
 - Develops on Windows, and may run Claude Code natively or in WSL.
