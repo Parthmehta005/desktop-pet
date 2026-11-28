@@ -123,6 +123,7 @@ Each is added by the milestone shown.
 | `npm run dist:dir` | M9 | Builds the unpacked app for this OS into `dist/` |
 | `npm run test:packaged` | M9 | Playwright tests against the built app (after `dist:dir` or `dist:win`) |
 | `node scripts/release.js check vX.Y.Z` / `notes X.Y.Z` | M13 | Checks a release tag against `package.json` and the changelog / prints its release notes |
+| `node scripts/ci-plan.js` | CI plans | CI's first job: picks `full`, `docs` or `none` (README "CI") |
 
 ## Windows notes
 - Replacing a file by renaming over it fails for a moment on Windows while anything else
@@ -141,6 +142,10 @@ Each is added by the milestone shown.
   GitHub works.
 - Check CI with the GitHub MCP tools (`mcp__github__actions_list`, `get_job_logs`).
   There's no `gh` CLI apart from search.
+- CI skips checks only when it can prove they'd pass: a docs-only commit runs just lint
+  and unit tests there, and a commit that already passed runs nothing. That doesn't
+  change the local rule: every commit passes every suite here. Anything a skipped suite
+  or the app reads must not be a doc file (`test/unit/ci-plan.test.js` enforces it).
 - Screenshots only I look at use `deviceScaleFactor: 1`; ones meant for the user use 2.
   Look at every screenshot the REVIEW gate asks for; don't just generate it.
 

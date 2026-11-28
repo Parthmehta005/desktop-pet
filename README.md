@@ -511,15 +511,34 @@ chromium`), and the Electron tests need `xvfb` (`apt-get install xvfb`).
 
 ### CI
 
-GitHub Actions runs on every push:
+GitHub Actions runs on every push and pull request. Its first job, **Decide what to
+run** (`scripts/ci-plan.js`), compares the commit with the nearest commit in its history
+that passed CI, and picks a plan. The run's summary page says which one, and why.
+
+| Plan | When | What runs | Takes about |
+|---|---|---|---|
+| full | Anything but docs changed, nothing in the history has passed yet, the run was started by hand, or the plan can't be worked out | Everything (below) | 4 minutes |
+| docs | Only docs changed: `.md` files at the top of the repository, or `docs/` | Lint and unit tests, on Ubuntu and Windows | 1 minute |
+| none | The files are exactly those of a commit that passed, as after a fast-forward merge to `main` | Nothing more | 10 seconds |
+
+Everything is:
 
 - lint and unit tests on Ubuntu and Windows
 - browser tests on Ubuntu
-- Electron tests on Ubuntu (under xvfb) and on Windows
-- on Ubuntu, the unpacked app is built and tested
-- on Windows, the installer and portable app are built, the built app is tested
-  (including the foreground-app monitor), and both files are uploaded as the
+- Electron tests on Ubuntu (under xvfb), then the unpacked app built and tested
+- on Windows, two jobs at the same time: the real foreground-app and battery monitor
+  script and the Electron tests; and the installer and portable app built, the built
+  app tested (including the foreground-app monitor), and both files uploaded as the
   **desktop-pet-windows** artifact
+
+Skipping is only ever safe, never a guess:
+
+- The docs plan is safe because docs aren't part of the app and only the unit tests read
+  them. `test/unit/ci-plan.test.js` fails if that ever changes.
+- Only a run from a push, or one started by hand, counts as passed: it tested exactly
+  its commit. A pull request run tests the branch merged with `main`, so it doesn't count.
+- A file moved into `docs/` counts as removed from where it was, so it runs everything.
+- To run everything anyway, open **Actions** → **CI** → **Run workflow**.
 
 The separate **Release** workflow builds and publishes a version: see
 [Versions and releases](#versions-and-releases).
