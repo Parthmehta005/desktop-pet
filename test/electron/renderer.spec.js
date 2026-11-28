@@ -70,7 +70,7 @@ test('the window is locked down: isolation, sandbox, CSP, no Node, narrow bridge
   expect(page_.csp).toContain("script-src 'self'");
   expect(page_.require).toBe('undefined');
   expect(page_.process).toBe('undefined');
-  expect(page_.bridge).toEqual(['getConfig', 'onConfig', 'onEvent', 'openBatterySettings', 'ready', 'setInteractive']);
+  expect(page_.bridge).toEqual(['getConfig', 'onConfig', 'onEvent', 'openBatterySettings', 'ready', 'setInteractive', 'setLifted']);
 });
 
 test('the main process code is not reachable from the page', async () => {

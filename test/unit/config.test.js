@@ -78,6 +78,7 @@ test('bad values fall back to the default and are reported', () => {
     breakReminderMinutes: '90',
     petSize: 9,
     walkSpeed: Number.NaN,
+    petOpacity: 0,
     bedtime: '25:00',
     wakeTime: null,
     hookPort: 80,
@@ -94,6 +95,7 @@ test('bad values fall back to the default and are reported', () => {
   assert.match(byKey.breakReminderMinutes, /must be a number/);
   assert.match(byKey.petSize, /between 0.5 and 2/);
   assert.match(byKey.walkSpeed, /must be a number/);
+  assert.match(byKey.petOpacity, /between 0.2 and 1/, 'the pet can never be made invisible');
   assert.match(byKey.bedtime, /time like "00:30" or null/);
   assert.match(byKey.wakeTime, /time like "00:30"$/, 'wakeTime cannot be null');
   assert.match(byKey.hookPort, /between 1024 and 65535/);

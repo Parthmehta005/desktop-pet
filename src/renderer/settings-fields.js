@@ -4,7 +4,7 @@
 import { CONFIG_SCHEMA } from '../core/config.js';
 
 export const SECTIONS = Object.freeze([
-  { id: 'pet', title: 'Your pet', fields: ['pet', 'shuffleDaily', 'petSize', 'walkSpeed'] },
+  { id: 'pet', title: 'Your pet', fields: ['pet', 'shuffleDaily', 'petSize', 'walkSpeed', 'petOpacity'] },
   {
     id: 'claude',
     title: 'Claude Code',
@@ -21,12 +21,14 @@ export const SECTIONS = Object.freeze([
 
 /**
  * control: pets | checkbox | number | range | time | folders | rules | shortcut
+ * A range shows its value with `unit` after it (1.25x), or as a percentage if `percent`.
  */
 export const FIELDS = Object.freeze({
   pet: { label: 'Pet', control: 'pets', help: 'Who lives on your taskbar.' },
   shuffleDaily: { label: 'A different pet every day', control: 'checkbox', help: 'Picks a new pet each morning.' },
   petSize: { label: 'Size', control: 'range', step: 0.05, unit: 'x', help: 'How big the pet is.' },
   walkSpeed: { label: 'Walking speed', control: 'range', step: 0.05, unit: 'x', help: 'How fast it strolls about.' },
+  petOpacity: { label: 'Opacity', control: 'range', step: 0.05, percent: true, help: 'How see-through the pet is. At 100% it is solid.' },
 
   watchedFolders: {
     label: 'Watched folders',
@@ -74,3 +76,9 @@ export const FIELDS = Object.freeze({
 
 /** Settings the app manages itself and never shows. */
 export const HIDDEN_FIELDS = Object.freeze(Object.keys(CONFIG_SCHEMA).filter((key) => CONFIG_SCHEMA[key].internal));
+
+/** A slider's value as shown beside it: "1.25x", or "80%" for a percentage. */
+export function rangeText(info, raw) {
+  const n = Number(raw);
+  return info.percent ? `${Math.round(n * 100)}%` : `${n.toFixed(2)}${info.unit ?? ''}`;
+}

@@ -14,6 +14,7 @@ const controller = createController({
   config,
   onHoverChange: (over) => bridge.setInteractive(over),
   onBatteryClick: () => bridge.openBatterySettings(),
+  onLiftChange: (lifted) => bridge.setLifted(lifted),
 });
 
 bridge.onEvent((event) => controller.dispatch(event));

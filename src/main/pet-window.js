@@ -28,6 +28,7 @@ export const PET_WINDOW_OPTIONS = Object.freeze({
  */
 export function createPetWindow({ petSize = 1, webPreferences = {} } = {}) {
   let size = petSize;
+  let lifted = false;
   const win = new BrowserWindow({
     ...PET_WINDOW_OPTIONS,
     ...stripBounds(screen.getPrimaryDisplay().workArea, size),
@@ -39,7 +40,7 @@ export function createPetWindow({ petSize = 1, webPreferences = {} } = {}) {
 
   function relayout(workArea = screen.getPrimaryDisplay().workArea) {
     if (win.isDestroyed()) return;
-    win.setBounds(stripBounds(workArea, size));
+    win.setBounds(stripBounds(workArea, size, { lifted }));
   }
 
   const onDisplayChange = () => relayout();
@@ -68,6 +69,11 @@ export function createPetWindow({ petSize = 1, webPreferences = {} } = {}) {
     if (win.isDestroyed() || details.reason === 'clean-exit') return;
     interactive = false;
     win.setIgnoreMouseEvents(true, { forward: true });
+    // A page that stopped mid-drag can't put the window back: do it here.
+    if (lifted) {
+      lifted = false;
+      relayout();
+    }
     const now = Date.now();
     crashes = [...crashes.filter((t) => now - t < 60_000), now];
     if (crashes.length > 3) {
@@ -84,6 +90,18 @@ export function createPetWindow({ petSize = 1, webPreferences = {} } = {}) {
     setPetSize(next) {
       size = next;
       relayout();
+    },
+    /**
+     * true while the pet is carried or falling: the window then fills the work area so
+     * the pet can be lifted anywhere. false puts it back to the strip.
+     */
+    setLifted(next) {
+      if (next === lifted) return;
+      lifted = next;
+      relayout();
+    },
+    get lifted() {
+      return lifted;
     },
     /** true while the pointer is over the pet (or dragging it): catch clicks then. */
     setInteractive(over) {

@@ -8,6 +8,10 @@ fixes.
 
 ## [Unreleased]
 
+### Added
+- An Opacity slider in Settings, under Your pet: make the pet see-through, from 100%
+  down to 20%.
+
 ### Changed
 - A new lineup of five pets. Mochi the cat and Pip the penguin stay, and three new ones
   join: Maple the blue panda, with a big bubbly ringed tail; Hum the bumblebee, whose
@@ -16,6 +20,11 @@ fixes.
 ### Removed
 - Biscuit the corgi, Axo the axolotl, Bolt the robot and Nimbus the care-bot. If one of
   them was your pet, Mochi takes over; your other settings are kept.
+
+### Fixed
+- You can carry the pet anywhere above the taskbar. It used to stop about 110 pixels up,
+  at the top of its own short window; now the window grows while you hold the pet and
+  shrinks back once it lands.
 
 ## [1.0.0] - 2026-11-27
 

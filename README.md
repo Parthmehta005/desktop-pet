@@ -22,6 +22,8 @@ and [REVIEW.md](REVIEW.md).
 
 - **A pet on your desktop.** A transparent, frameless, always-on-top strip just above the
   taskbar. The pet walks around, and clicks pass through everywhere except the pet itself.
+  Pick it up and carry it anywhere on the screen; let go and it drops back down.
+- **Make it yours.** Its size, walking speed and opacity are sliders in Settings.
 - **Reacts to Claude Code.** It sweats while Claude works (more with several sessions),
   is happy when Claude finishes, waves when Claude is waiting for permission or an
   answer, and holds a "done" flag if Claude finished while you were away.
@@ -292,10 +294,11 @@ If you edit the file by hand:
 
 | Setting (in the window) | `config.json` key | Default | Allowed |
 |---|---|---|---|
-| Pet | `pet` | `"cat"` | `cat`, `corgi`, `penguin`, `axolotl`, `robot`, `softbot` |
+| Pet | `pet` | `"cat"` | `cat`, `penguin`, `bluepanda`, `bee`, `bat` |
 | A different pet every day | `shuffleDaily` | `false` | |
 | Size | `petSize` | `1` | 0.5 to 2 |
 | Walking speed | `walkSpeed` | `1` | 0.25 to 3 |
+| Opacity | `petOpacity` | `1` | 0.2 to 1 (20% to 100%) |
 | Watched folders | `watchedFolders` | `[]` | Up to 50 absolute folder paths |
 | React to all Claude sessions | `reactToAllSessions` | `false` | |
 | Stop sweating after a quiet spell of | `workingStaleMinutes` | `10` | 1 to 240 minutes |
@@ -455,14 +458,15 @@ There are two pages:
     meeting, a Steam game, YouTube, a fullscreen game), and the battery (low battery,
     plug in).
   - **Click, drag and drop:** click the pet to pet it. Drag it to carry it around, and let
-    go to drop it.
+    go to drop it. (On the desktop you can carry it anywhere up the screen; here it stays
+    on the stage.)
   - **Time speed:** up to an hour per second, so you can see it fall asleep, nudge you to
     stretch, or (with the **Night** clock) put on its nightcap.
   - **A status panel** showing the current mood, animation, modifiers, Claude sessions and
     the clock.
 
 The stage also accepts URL options, for example
-`stage.html?pet=softbot&speed=60&wallpaper=dark&time=00:45`.
+`stage.html?pet=bee&speed=60&wallpaper=dark&time=00:45`.
 
 ## Development and tests
 

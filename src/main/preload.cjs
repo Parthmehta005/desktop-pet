@@ -18,6 +18,8 @@ contextBridge.exposeInMainWorld('desktopPet', Object.freeze({
   onConfig: (callback) => subscribe('pet:config', callback),
   /** Whether the pointer is over the pet, so the window should catch clicks. */
   setInteractive: (over) => ipcRenderer.send('pet:interactive', over === true),
+  /** The pet was picked up (true) or has landed (false): grow or shrink the window. */
+  setLifted: (lifted) => ipcRenderer.send('pet:lifted', lifted === true),
   /** The renderer has started. */
   ready: () => ipcRenderer.send('pet:ready'),
   /** The pet was clicked while panicking about the battery: open battery settings. */
