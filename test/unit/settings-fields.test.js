@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { SECTIONS, FIELDS, HIDDEN_FIELDS } from '../../src/renderer/settings-fields.js';
+import { SECTIONS, FIELDS, HIDDEN_FIELDS, rangeText } from '../../src/renderer/settings-fields.js';
 import { CONFIG_SCHEMA, CONFIG_KEYS } from '../../src/core/config.js';
 
 const CONTROLS = ['pets', 'checkbox', 'number', 'range', 'time', 'folders', 'rules', 'shortcut'];
@@ -26,4 +26,14 @@ test('every field has a label, a known control, and a control that fits its type
     if (CONFIG_SCHEMA[key].nullable) assert.equal(info.nullable, true, `${key} can be switched off`);
   }
   assert.deepEqual(Object.keys(FIELDS).sort(), SECTIONS.flatMap((s) => s.fields).sort());
+});
+
+test('sliders show their value: a multiple for size and speed, a percentage for opacity', () => {
+  assert.equal(rangeText(FIELDS.petSize, 1.25), '1.25x');
+  assert.equal(rangeText(FIELDS.walkSpeed, '0.5'), '0.50x');
+  assert.equal(rangeText(FIELDS.petOpacity, 1), '100%');
+  assert.equal(rangeText(FIELDS.petOpacity, '0.35'), '35%');
+  assert.equal(rangeText(FIELDS.petOpacity, CONFIG_SCHEMA.petOpacity.min), '20%');
+  assert.deepEqual(SECTIONS.find((s) => s.id === 'pet').fields.slice(-3), ['petSize', 'walkSpeed', 'petOpacity'],
+    'next to Size and Walking speed');
 });

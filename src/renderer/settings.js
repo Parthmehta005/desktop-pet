@@ -1,7 +1,7 @@
 // The settings window. Builds the form from settings-fields.js, saves each change as you
 // make it (after checking it with the same validation the app uses), and shows errors
 // next to the field. Talks to the main process only through window.petSettings.
-import { SECTIONS, FIELDS } from './settings-fields.js';
+import { SECTIONS, FIELDS, rangeText } from './settings-fields.js';
 import { CONFIG_SCHEMA, validateConfig } from '../core/config.js';
 import { PETS } from '../core/pets.js';
 import { DEFAULT_APP_RULES, RULE_FIELDS } from '../core/app-rules.js';
@@ -124,13 +124,13 @@ function range(key, info) {
   const spec = CONFIG_SCHEMA[key];
   const input = el('input', { type: 'range', min: spec.min, max: spec.max, step: info.step });
   const value = el('output', { className: 'range-value' });
-  input.addEventListener('input', () => { value.textContent = `${Number(input.value).toFixed(2)}${info.unit}`; });
+  input.addEventListener('input', () => { value.textContent = rangeText(info, input.value); });
   input.addEventListener('change', () => save({ [key]: Number(input.value) }));
   const row = el('span', { className: 'range-row' }, input, value);
   const wrap = fieldShell(key, info, row, input);
   wrap.update = () => {
     input.value = String(state.config[key]);
-    value.textContent = `${Number(state.config[key]).toFixed(2)}${info.unit}`;
+    value.textContent = rangeText(info, state.config[key]);
   };
   return wrap;
 }

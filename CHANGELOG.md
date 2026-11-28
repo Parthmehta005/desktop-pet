@@ -8,6 +8,10 @@ fixes.
 
 ## [Unreleased]
 
+### Added
+- An Opacity slider in Settings, under Your pet: make the pet see-through, from 100%
+  down to 20%.
+
 ### Changed
 - A new lineup of five pets. Mochi the cat and Pip the penguin stay, and three new ones
   join: Maple the blue panda, with a big bubbly ringed tail; Hum the bumblebee, whose

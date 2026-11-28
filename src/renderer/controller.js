@@ -64,7 +64,7 @@ export function createController({
   actor.append(view.element);
   strip.append(actor);
 
-  let settings = { walkSpeed: 1, petSize: 1, ...config };
+  let settings = { walkSpeed: 1, petSize: 1, petOpacity: 1, ...config };
   let size = petSizePx(settings);
   const engine = createEngine(settings);
   let result = engine.mood(now());
@@ -90,6 +90,13 @@ export function createController({
     walker = resizeWalker(walker, strip.clientWidth, size);
   }
   applySize();
+
+  // The Opacity setting. It's on the actor, so it stacks with the view's own fades
+  // (meetings, hiding over fullscreen apps).
+  function applyOpacity() {
+    actor.style.opacity = String(settings.petOpacity ?? 1);
+  }
+  applyOpacity();
 
   function showBubble(text) {
     bubble.text = text;
@@ -287,6 +294,7 @@ export function createController({
       size = petSizePx(settings);
       result = engine.dispatch({ type: 'config', config: changes }, now());
       applySize();
+      applyOpacity();
       render();
     },
     /** A plain snapshot of what the pet is doing, for status displays and tests. */
@@ -306,6 +314,7 @@ export function createController({
         moving: walker.moving,
         bubble: view.state.bubble,
         opacity: getComputedStyle(view.element).opacity,
+        petOpacity: Number(getComputedStyle(actor).opacity),
         dragging: Boolean(drag?.active),
         falling,
         hovering,

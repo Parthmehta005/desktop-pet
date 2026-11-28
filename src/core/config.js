@@ -35,6 +35,8 @@ export const CONFIG_SCHEMA = Object.freeze({
   wakeTime: { type: 'time', default: '06:00' },
   petSize: { type: 'number', min: 0.5, max: 2, default: 1 },
   walkSpeed: { type: 'number', min: 0.25, max: 3, default: 1 },
+  // Never fully see-through, so the pet can't vanish by accident (hiding is separate).
+  petOpacity: { type: 'number', min: 0.2, max: 1, default: 1 },
   quietDuringMeetings: { type: 'boolean', default: true },
   hideWhenFullscreen: { type: 'boolean', default: true },
   lowBatteryPercent: { type: 'integer', min: 0, max: 50, default: 10 },

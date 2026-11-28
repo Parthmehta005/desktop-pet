@@ -1,7 +1,7 @@
 // Every setting in the window, and changes taking effect without a restart.
 import { test, expect } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
-import { launchApp } from './helpers.js';
+import { launchApp, readConfig } from './helpers.js';
 import { CONFIG_KEYS, CONFIG_SCHEMA } from '../../src/core/config.js';
 import { BASE_PET_SIZE, stripHeight } from '../../src/core/layout.js';
 
@@ -53,6 +53,29 @@ test('pet size resizes the window strip and the pet at once', async () => {
     await expect.poll(() => app.evaluate(() => globalThis.__desktopPet.state.petWindow.win.getBounds().height))
       .toBe(stripHeight(1.5));
     await expect.poll(() => pet.evaluate(() => window.__pet.controller.snapshot().petSize)).toBe(Math.round(BASE_PET_SIZE * 1.5));
+  } finally {
+    await app.close();
+  }
+});
+
+test('opacity makes the pet see-through straight away, and is saved', async () => {
+  const { app, pet, win, userData } = await setup();
+  try {
+    const slider = win.getByLabel('Opacity', { exact: true });
+    await expect(slider).toHaveValue('1');
+    await expect(win.locator('[data-field="petOpacity"] .range-value')).toHaveText('100%');
+    await slider.evaluate((el) => {
+      el.value = '0.45';
+      el.dispatchEvent(new Event('input'));
+      el.dispatchEvent(new Event('change'));
+    });
+    await expect(win.locator('[data-field="petOpacity"] .range-value')).toHaveText('45%');
+    await expect.poll(() => pet.evaluate(() => window.__pet.controller.snapshot().petOpacity)).toBeCloseTo(0.45, 2);
+    await expect.poll(async () => (await readConfig(userData)).petOpacity).toBe(0.45);
+    // It stacks with the meeting fade instead of replacing it.
+    await emit(app, { type: 'app', process: 'Zoom', title: 'Zoom Meeting' });
+    await expect.poll(() => pet.evaluate(() => window.__pet.controller.snapshot().opacity)).toBe('0.5');
+    expect(await pet.evaluate(() => window.__pet.controller.snapshot().petOpacity)).toBeCloseTo(0.45, 2);
   } finally {
     await app.close();
   }
