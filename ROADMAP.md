@@ -42,6 +42,7 @@ with you first, built in small commits (with Conventional Commits prefixes such 
 |---|---|---|
 | CI runs only the checks a commit needs, with no risk (see below) | 2026-11-28 | Done |
 | A new pet lineup: Mochi, Pip, Maple, Hum and Mango (see below) | 2026-11-28 | Done |
+| Drag the pet higher, and a pet opacity setting (see below) | 2026-11-28 | In progress |
 
 **CI runs only the checks a commit needs.** Every code change still gets every test on
 Linux and Windows; time is saved only where nothing can break:
@@ -71,6 +72,23 @@ concepts. The lineup becomes five: Mochi and Pip stay, and three new ones join.
 - Planned commits: `docs:` this plan; `feat:` the new lineup (drawings, signature
   moves, the pet list, the settings grid, tests, CHANGELOG and CLAUDE.md); `docs:` the
   README and its pets picture; then the review.
+
+**Drag the pet higher, and a pet opacity setting.**
+- You could only lift the pet about 110 px above the taskbar. It lives in a window only
+  as tall as the pet plus room for bubbles, and dragging was capped at that window's
+  top. Now, while you carry it, the window grows to the full height of the work area
+  (the screen above the taskbar), so you can lift it anywhere; let go and it falls back
+  to the taskbar as before, and the window shrinks back once it lands. The window stays
+  small the rest of the time, so a full-screen always-on-top window never sits there
+  for no reason. If the pet's page reloads while it's carried, the window shrinks back.
+- A new **Opacity** slider under Your pet, beside Size and Walking speed: from 20% to
+  100% (the default). It never goes lower, so the pet can't vanish by accident; hiding
+  it is what Ctrl+Alt+P is for. It stacks with the fade in meetings.
+- Built on a side branch and merged through a pull request once CI is green, as you
+  asked. No release yet.
+- Planned commits: `docs:` this plan; `fix:` drag the pet higher; `feat:` the opacity
+  setting; `docs:` the README (also its settings reference, which still listed the
+  removed pets); then the review.
 
 ---
 
