@@ -77,3 +77,55 @@ test('the job parser reads this workflow', () => {
     assert.ok(job.commands.length > 0);
   }
 });
+
+// What GitHub does with a job's condition, for the only form these conditions take:
+// comparisons of the plan's tier joined by &&.
+function runsWhen(condition, tier) {
+  if (condition === null) return true;
+  return condition.split('&&').every((part) => {
+    const m = part.trim().match(/^needs\.plan\.outputs\.tier (!=|==) '([a-z]*)'$/);
+    assert.ok(m, `a condition this test understands: ${part}`);
+    return m[1] === '!=' ? tier !== m[2] : tier === m[2];
+  });
+}
+
+test('a plan job decides first, and every other job waits for it', () => {
+  const { plan, ...rest } = JOBS;
+  assert.ok(plan, 'there is a plan job');
+  assert.deepEqual(plan.runsOn, ['ubuntu-latest']);
+  assert.equal(plan.needs, null);
+  assert.ok(plan.commands.includes('node scripts/ci-plan.js'));
+  assert.match(plan.text, /fetch-depth: 0/, 'it needs the whole history to find a commit that passed');
+  assert.match(plan.text, /tier: \$\{\{ steps\.plan\.outputs\.tier \}\}/);
+  assert.match(plan.text, /GITHUB_TOKEN: \$\{\{ github\.token \}\}/);
+  for (const [id, job] of Object.entries(rest)) assert.equal(job.needs, 'plan', `${id} waits for the plan`);
+  assert.match(WORKFLOW, /^permissions:\n {2}contents: read\n(?: {2}#.*\n)? {2}actions: read\n\n/m, 'read-only, plus reading earlier runs');
+});
+
+test('full runs everything, docs runs lint and unit tests on both systems, none runs nothing', () => {
+  const ran = (tier) => onTier(tier).flatMap(([, j]) => j.runsOn.map((os) => `${os}: ${j.commands.join(' ; ')}`)).sort();
+  const onTier = (tier) => Object.entries(JOBS).filter(([id, j]) => id !== 'plan' && runsWhen(j.if, tier));
+  const all = Object.keys(JOBS).filter((id) => id !== 'plan').sort();
+  assert.deepEqual(onTier('full').map(([id]) => id).sort(), all);
+  assert.deepEqual(onTier('none'), []);
+  const docs = onTier('docs');
+  assert.deepEqual(docs.map(([id]) => id), ['test']);
+  assert.deepEqual(docs[0][1].runsOn, ['ubuntu-latest', 'windows-latest']);
+  assert.deepEqual(docs[0][1].commands, ['npm ci', 'npm run lint', 'npm test']);
+  assert.ok(ran('full').length > ran('docs').length);
+});
+
+test('a missing or unexpected plan runs everything', () => {
+  for (const tier of ['', 'Full', 'skip', 'nothing']) {
+    for (const [id, job] of Object.entries(JOBS)) {
+      if (id !== 'plan') assert.equal(runsWhen(job.if, tier), true, `${id} runs when the plan says "${tier}"`);
+    }
+  }
+});
+
+test('the plan only ever says one of the tiers the conditions know', async () => {
+  const { TIERS } = await import('../../scripts/ci-plan.js');
+  assert.deepEqual(TIERS, ['full', 'docs', 'none']);
+  const named = new Set([...WORKFLOW.matchAll(/needs\.plan\.outputs\.tier [!=]= '([a-z]*)'/g)].map((m) => m[1]));
+  assert.deepEqual([...named].sort(), ['docs', 'none'], 'conditions only name the tiers that skip something');
+});

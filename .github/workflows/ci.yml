@@ -7,14 +7,43 @@ on:
 
 permissions:
   contents: read
+  # The plan job reads which earlier runs passed.
+  actions: read
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Every job waits for the plan, which compares this commit with the nearest commit in its
+# history that passed (scripts/ci-plan.js):
+#   full  everything runs
+#   docs  only docs changed: lint and unit tests run, on Linux and Windows
+#   none  exactly these files already passed: nothing more runs
+# The conditions run a job unless the plan says it can be skipped, so a missing or
+# unexpected plan runs everything. A failed plan fails the run.
 jobs:
+  plan:
+    name: Decide what to run
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      tier: ${{ steps.plan.outputs.tier }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - id: plan
+        run: node scripts/ci-plan.js
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
   test:
     name: Lint and unit tests (${{ matrix.os }})
+    needs: plan
+    if: needs.plan.outputs.tier != 'none'
     strategy:
       fail-fast: false
       matrix:
@@ -35,6 +64,8 @@ jobs:
 
   browser:
     name: Browser tests (ubuntu-latest)
+    needs: plan
+    if: needs.plan.outputs.tier != 'none' && needs.plan.outputs.tier != 'docs'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -57,6 +88,8 @@ jobs:
 
   electron:
     name: Electron tests (ubuntu-latest)
+    needs: plan
+    if: needs.plan.outputs.tier != 'none' && needs.plan.outputs.tier != 'docs'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -89,6 +122,8 @@ jobs:
   # installer build with the built app's tests (the build alone takes about 3 minutes).
   windows-app:
     name: Windows app tests (windows-latest)
+    needs: plan
+    if: needs.plan.outputs.tier != 'none' && needs.plan.outputs.tier != 'docs'
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
@@ -111,6 +146,8 @@ jobs:
 
   windows-installer:
     name: Windows installer (windows-latest)
+    needs: plan
+    if: needs.plan.outputs.tier != 'none' && needs.plan.outputs.tier != 'docs'
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
