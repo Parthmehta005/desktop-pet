@@ -41,6 +41,7 @@ with you first, built in small commits (with Conventional Commits prefixes such 
 | Change | Asked for | Status |
 |---|---|---|
 | CI runs only the checks a commit needs, with no risk (see below) | 2026-11-28 | Done |
+| A new pet lineup: Mochi, Pip, Maple, Hum and Mango (see below) | 2026-11-28 | In progress |
 
 **CI runs only the checks a commit needs.** Every code change still gets every test on
 Linux and Windows; time is saved only where nothing can break:
@@ -54,6 +55,22 @@ Linux and Windows; time is saved only where nothing can break:
 - Planned commits: `docs:` these conventions; `ci:` the planner script with its tests;
   `ci:` split the Windows job; `ci:` wire the planner into the workflow; `docs:` the
   README's CI section; then check all three cases on GitHub and log the review.
+
+**A new pet lineup.** You found the six pets too alike, and picked from eleven new
+concepts. The lineup becomes five: Mochi and Pip stay, and three new ones join.
+- **Maple** (`bluepanda`, "Blue panda"): sky blue, with a big bubbly ringed tail, a white
+  face mask and deep blue socks.
+- **Hum** (`bee`, "Bumblebee"): round and fuzzy with stripes, antennae and buzzing wings.
+- **Mango** (`bat`, "Fruit bat"): a light green head, a dark green body, and purple
+  wings, feet and inner ears.
+- Biscuit, Axo, Bolt and Nimbus are removed. Nobody uses the app yet, so there's no
+  migration: a saved pet that no longer exists falls back to Mochi, as any unknown pet
+  already does, and a test covers it.
+- Built on a side branch, `feat/new-pets`, merged through a pull request once CI is
+  green, as you asked.
+- Planned commits: `docs:` this plan; `feat:` the new lineup (drawings, signature
+  moves, the pet list, the settings grid, tests, CHANGELOG and CLAUDE.md); `docs:` the
+  README and its pets picture; then the review.
 
 ---
 
