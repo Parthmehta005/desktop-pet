@@ -76,16 +76,18 @@ concepts. The lineup becomes five: Mochi and Pip stay, and three new ones join.
 
 ## What we're building
 
-### Pets (6)
+### Pets (5)
 
 | ID | Name | Look | Signature touch |
 |---|---|---|---|
 | `cat` | Mochi | Round cream cat | Tail swish, ear twitch |
-| `corgi` | Biscuit | Orange-and-white corgi | Butt wiggle, big floppy ears |
 | `penguin` | Pip | Small penguin | Waddle walk, flipper flaps |
-| `axolotl` | Axo | Pink axolotl | Gill fronds wave |
-| `robot` | Bolt | Boxy tin robot | Blinking antenna light |
-| `softbot` | Nimbus | Original inflatable care-bot: pale lavender, LED visor face, glowing chest heart | Puffs up and deflates; its heart beats faster while Claude works |
+| `bluepanda` | Maple | Sky-blue panda with a bubbly ringed tail and a white face mask | Tail swish with a flick |
+| `bee` | Hum | Round striped bumblebee with antennae and glassy wings | Wings buzz; bobs as it flies along |
+| `bat` | Mango | Green fruit bat with big ears, purple wings and a little fang | Wings flutter; wraps them round itself to sleep |
+
+Until the lineup change after M13 there were six: `corgi` Biscuit, `axolotl` Axo, `robot`
+Bolt and `softbot` Nimbus have gone, and Maple, Hum and Mango have joined.
 
 All pets are original designs. They're drawn as SVG built from the same set of named
 parts (body, head, eyes, mouth, legs, tail and so on), so every animation works for every pet.

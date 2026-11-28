@@ -35,21 +35,20 @@ and [REVIEW.md](REVIEW.md).
   battery icon in the corner and points at it. Click it to open battery settings.
 - **Quick hide.** Press **Ctrl+Alt+P** (or use the tray) to put the pet away, and again to
   bring it back. It keeps up with what's going on while hidden.
-- **Six pets to choose from**, with an optional daily shuffle.
+- **Five pets to choose from**, with an optional daily shuffle.
 - **A browser preview** that shows every pet in every animation, with no Windows needed.
 
 ## Pets
 
-![The six pets: Mochi, Biscuit, Pip, Axo, Bolt and Nimbus](docs/images/pets.webp)
+![The five pets: Mochi, Pip, Maple, Hum and Mango](docs/images/pets.webp)
 
 | Pet | Name | Looks like |
 |---|---|---|
 | Cat | Mochi | A cream calico with an orange patch and a curly tail |
-| Corgi | Biscuit | An orange-and-white corgi with big ears and a stubby tail |
 | Penguin | Pip | A round navy penguin with orange feet |
-| Axolotl | Axo | A pink axolotl with frilly gills and a long tail |
-| Robot | Bolt | A boxy grey robot with a screen face, an antenna and a wind-up key |
-| Soft care-bot | Nimbus | A soft lavender bot with an LED visor, a cloud crest and a glowing heart |
+| Blue panda | Maple | A sky-blue panda with a big bubbly ringed tail, a white face mask and deep blue socks |
+| Bumblebee | Hum | A round fuzzy bee with two stripes, antennae and glassy wings that buzz |
+| Fruit bat | Mango | A green fruit bat with big ears, purple wings and a little fang |
 
 Pick one in **Settings → Your pet** or from the tray's **Pet** menu, or turn on **A
 different pet every day**. Every pet has all 19 animations.
@@ -472,7 +471,7 @@ The stage also accepts URL options, for example
 ```
 src/core/       Pure logic shared by everything (no Node, Electron or DOM imports):
                 the mood engine, moods, walker, path matching, app rules, config schema
-src/renderer/   What you see: the pet rig, the six pets, props, animations, the
+src/renderer/   What you see: the pet rig, the five pets, props, animations, the
                 controller that walks the pet, and the desktop window's page
 src/main/       Electron main process: lifecycle, the pet window, the app:// protocol
                 and security, config storage, the tray, and the event bus
